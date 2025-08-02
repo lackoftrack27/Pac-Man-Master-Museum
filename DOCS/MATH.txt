@@ -1,0 +1,47 @@
+/*
+    INFO: DIVIDES A UNSIGNED 8-BIT NUMBER BY 6
+    INPUT: A - DIVIDEND
+    OUTPUT: A - QUOTIENT
+    USES: AF, B
+    CYCLES: 86
+*/
+
+/*
+divideBy6:
+    SRL A   ; 8
+    LD B, A ; 4
+    SRL A   ; 8
+    SRL A   ; 8
+    ADC A, B    ; 4
+    RRA    ; 4
+    SRL A   ; 8
+    ADC A, B    ; 4
+    RRA    ; 4
+    SRL A   ; 8
+    ADC A, B    ; 4
+    RRA    ; 4
+    SRL A   ; 8
+    RET
+*/
+
+
+
+/*
+    INFO: MODULUS AN UNSIGNED 8-BIT NUMBER BY 6
+    INPUT: A - DIVIDEND
+    OUTPUT: A - REMAINDER
+    USES: AF, B, C
+*/
+/*
+modulusBy6:
+;   X % 6 = X - (X / 6) * 6
+    LD C, A     ; C = POS
+    CALL divideBy6  ; A = POS/6
+    ADD A, A    ; (POS/6) * 2
+    LD B, A     ; SAVE FOR LATER
+    ADD A, A    ; (POS/6) * 4
+    ADD A, B    ; (POS/6) * 6       [(POS * 2 + POS * 4)]
+    NEG         ; -(POS/6) * 6
+    ADD A, C    ; X - (POS/6) * 6
+    RET
+*/

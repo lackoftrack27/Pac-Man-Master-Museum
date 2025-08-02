@@ -1,0 +1,35 @@
+$3F $03 $03 $03 $03 $03 $03 $03 $03 $03 $03 $03 $15 $2A
+
+$2A $3F $03 $03 $03 $03 $03 $03 $03 $03 $03 $03 $03 $15
+
+
+LEFT ROTATING BYTE BUFFER
+
+SEND THE FIRST 10 BYTES TO CRAM $0001
+SEND REMAINDER 4 BYTES TO CRAM $000C
+
+
+
+MARQUEE @ [07, 06]
+
+"MS PAC-MAN" @ [09, 03]
+
+WITH @ [09, 07]
+
+BLINKY @ [0B, 09] && [0B, 0A]
+
+PINKY @ [0B, 09] && [0B, 0A]
+
+INKY @ [0B, 09] && [0B, 0A]
+
+SUE @ [0C, 09] && [0C, 0A]
+
+STARRING @ [09, 07]
+
+MS PAC-MAN @ [09, 09] && [09, 0A]
+
+MIDWAY LOGO @ [07, 12] && [07, 13] && [06, 14] && [06, 15] 
+
+MIDWAY COPYRIGHT @ [0A, 13]
+
+YEAR @ [0C, 15]

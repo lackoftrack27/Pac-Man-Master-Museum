@@ -1,0 +1,44 @@
+/*
+pacNormalTileDefs:
+@openRight:
+    .db 01 14 00 00       ; [2 VERTICAL]
+@openDown:
+    .db 02 00 03 00       ; [2 HORIZONTAL]
+@openLeft:
+    .db 04 15 05 16
+@openUp:
+    .db 06 17 07 16
+@halfRight:
+    .db 08 17 09 16
+@halfDown:
+    .db 10 18 05 16
+@halfLeft:    
+    .db 11 17 05 16
+@halfUp:    
+    .db 12 17 05 16
+@closed:
+    .db 13 17 05 16
+    
+;   UP
+    .DW pacNormalTileDefs@halfUp
+    .DW pacNormalTileDefs@openUp
+    .DW pacNormalTileDefs@halfUp
+    .DW pacNormalTileDefs@closed
+;   LEFT
+    .DW pacNormalTileDefs@closed
+    .DW pacNormalTileDefs@halfLeft
+    .DW pacNormalTileDefs@openLeft
+    .DW pacNormalTileDefs@halfLeft
+;   DOWN
+    .DW pacNormalTileDefs@closed
+    .DW pacNormalTileDefs@halfDown
+    .DW pacNormalTileDefs@openDown
+    .DW pacNormalTileDefs@halfDown
+;   RIGHT
+    .DW pacNormalTileDefs@halfRight
+    .DW pacNormalTileDefs@openRight
+    .DW pacNormalTileDefs@halfRight
+    .DW pacNormalTileDefs@closed
+*/
+
+

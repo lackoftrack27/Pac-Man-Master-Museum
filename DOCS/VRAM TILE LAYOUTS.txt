@@ -1,0 +1,114 @@
+TYPES OF SPRITES:
+4 TILE: TOP-LEFT, BOTTOM-LEFT, TOP-RIGHT, BOTTOM-RIGHT
+2 TILE H: LEFT, RIGHT
+2 TILE V: TOP, BOTTOM
+9 TILE: TOP-LEFT, MIDDLE-LEFT, BOTTOM-LEFT, TOP-MIDDLE, CENTER, BOTTOM-MIDDLE, TOP-RIGHT, MIDDLE-RIGHT, BOTTOM-RIGHT
+
+GAMEPLAY: [TOTAL: 219] (193 UNIQUE)
+------------------------------------- 64 (30 UNIQUE) [BASE]
+PAC-MAN OPEN RIGHT [2 V] {00, 01}
+PAC-MAN OPEN DOWN [2 H]  {02, 03}
+PAC-MAN OPEN LEFT [4]	 {04, 05, 06, 07}
+PAC-MAN OPEN UP [4]	 {08, 09, 10, 07}
+PAC-MAN HALF RIGHT [4]   {11, 09, 12, 07}
+PAC-MAN HALF DOWN [4]    {13, 14, 06, 07}
+PAC-MAN HALF LEFT [4]	 {15, 09, 06, 07}
+PAC-MAN HALF UP [4]	 {16, 09, 06, 07}
+PAC-MAN CLOSED [4]	 {17, 09, 06, 07}
+-------------------------- 32 (18 UNIQUE)
+RED GHOST RIGHT 0 [4]    {18, 19, 20, 21}
+RED GHOST RIGHT 1 [4]    {18, 22, 20, 23}
+RED GHOST DOWN 0 [4]     {24, 19, 25, 21}
+RED GHOST DOWN 1 [4]     {24, 22, 25, 23}
+RED GHOST LEFT 0 [4]     {26, 19, 27, 21}
+RED GHOST LEFT 1 [4]     {26, 22, 27, 23}
+RED GHOST UP 0 [4]       {28, 19, 29, 21}
+RED GHOST UP 1 [4]       {28, 22, 29, 23}
+-------------------------- 32 (12 UNIQUE)
+---------------------------------- 127 (63 UNIQUE) [BASE]
+PINK GHOST RIGHT 0 [4]    {30, 31, 32, 33}
+PINK GHOST RIGHT 1 [4]    {30, 34, 32, 35}
+PINK GHOST DOWN 0 [4]     {36, 31, 37, 33}
+PINK GHOST DOWN 1 [4]     {36, 34, 37, 35}
+PINK GHOST LEFT 0 [4]     {38, 31, 39, 33}
+PINK GHOST LEFT 1 [4]     {38, 34, 39, 35}
+PINK GHOST UP 0 [4]       {40, 31, 41, 33}
+PINK GHOST UP 1 [4]       {40, 34, 41, 35}
+-------------------------- 32 (12 UNIQUE)
+BLUE GHOST RIGHT 0 [4]    {42, 43, 44, 45}
+BLUE GHOST RIGHT 1 [4]    {42, 46, 44, 47}
+BLUE GHOST DOWN 0 [4]     {48, 43, 49, 45}
+BLUE GHOST DOWN 1 [4]     {48, 46, 49, 47}
+BLUE GHOST LEFT 0 [4]     {50, 43, 51, 45}
+BLUE GHOST LEFT 1 [4]     {50, 46, 51, 47}
+BLUE GHOST UP 0 [4]       {52, 43, 53, 45}
+BLUE GHOST UP 1 [4]       {52, 46, 53, 47}
+-------------------------- 32 (12 UNIQUE)
+ORANGE GHOST RIGHT 0 [4]    {54, 55, 56, 57}
+ORANGE GHOST RIGHT 1 [4]    {54, 58, 56, 59}
+ORANGE GHOST DOWN 0 [4]     {60, 55, 61, 57}
+ORANGE GHOST DOWN 1 [4]     {60, 58, 61, 59}
+ORANGE GHOST LEFT 0 [4]     {62, 55, 63, 57}
+ORANGE GHOST LEFT 1 [4]     {62, 58, 63, 59}
+ORANGE GHOST UP 0 [4]       {64, 55, 65, 57}
+ORANGE GHOST UP 1 [4]       {64, 58, 65, 59}
+-------------------------- 32 (12 UNIQUE)
+SCARED GHOST 0 [BLUE] [4]   {66, 67, 68, 69}
+SCARED GHOST 1 [BLUE] [4]   {66, 70, 68, 71}
+SCARED GHOST 0 [WHITE] [4]  {72, 73, 74, 75}
+SCARED GHOST 1 [WHITE] [4]  {72, 76, 74, 77}
+GHOST EYES RIGHT [2 H]      {78, 79}
+GHOST EYES DOWN [2 H]       {80, 81}
+GHOST EYES LEFT [2 H]       {82, 83}
+GHOST EYES UP [2 H]         {84, 85}
+-------------------------- 24 (20 UNIQUE)
+GHOST POINTS 20	   	    {86}
+GHOST POINTS 40		    {87}
+GHOST POINTS 80		    {88}
+GHOST POINTS 16		    {89}
+GHOST POINTS 32		    {90}
+GHOST POINTS 0		    {91}
+GHOST POINTS 00		    {92}
+-------------------------- 7
+----------------------------------------- 61 [DEMO/GAMEPLAY]
+CHERRY [4]		    {93, 94, 95, 96}
+STRAWBERRY [4]		    {97, 98, 99, 100}
+ORANGE [4]	            {101, 102, 103, 104}
+BELL [4]	            {105, 106, 107, 108}
+APPLE [4]                   {109, 110, 111, 112}
+MELON [4]                   {113, 114, 115, 116}
+GALAXIAN [4]                {117, 118, 119, 120}
+KEY [4]                     {121, 122, 123, 124}
+-------------------------- 32
+FRUIT POINTS 10             {125}
+FRUIT POINTS 20             {126}
+FRUIT POINTS 30             {127}
+FRUIT POINTS 50             {128}
+FRUIT POINTS 70             {129}
+FRUIT POINTS 0              {130}
+FRUIT POINTS 00             {131}
+-------------------------- 7
+PAC-MAN DEATH 0 [2 H]       {132, 133}
+PAC-MAN DEATH 1 [2 H]       {134, 135}
+PAC-MAN DEATH 2 [2 H]       {136, 137}
+PAC-MAN DEATH 3 [2 H]       {138, 139}
+PAC-MAN DEATH 4 [2 H]       {140, 141}	; -1 on y axis
+PAC-MAN DEATH 5 [2 H]       {142, 143}	; -1 on y axis cumulative
+PAC-MAN DEATH 6 [2 H]       {144, 145}	; -1 on y axis cumulative
+PAC-MAN DEATH 7 [2 H]	    {146, 147}
+PAC-MAN DEATH 8 [2 H]       {148, 149}
+PAC-MAN DEATH 9 [2 H]       {150, 151}
+PAC-MAN DEATH 10 [2 H] 	    {152, 153}	; -1 on y axis cumulative
+-------------------------- 22
+------------------------------------------- 55 (39 UNIQUE) [CUTSCENE]
+BIG PAC OPEN [9]	    {154, 155, 156, 157, 158, 159, 160, BLANK, 160}
+BIG PAC HALF [9]            {154, 155, 156, 161, 162, 163, 164, 165, 166}
+BIG PAC CLOSED [9]          {154, 155, 156, 161, 167, 163, 168, 169, 170}
+RIPPED GHOST 0 [4]          {28, 171, 172, 173}
+RIPPED GHOST 1 [4]          {174, 171, 175, 173}
+STITCHED GHOST 0 [4]        {26, 176, 177, 178}
+STITCHED GHOST 1 [4]        {26, 179, 177, 180}
+NAKED GHOST 0 [4]           {181, 182, 183, 184}
+NAKED GHOST 1 [4]           {185, 186, 187, 188}
+GHOST CLOTHES [2 H]         {189, 190}	; -3 ON Y AXIS
+GHOST CLOTHES [2 H]         {191, 192}	; -3 ON Y AXIS
