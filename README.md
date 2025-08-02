@@ -5,13 +5,16 @@ An **accuracy-focused** conversion of *Pac-Man* and *Ms. Pac-Man* for the Sega M
 ---
 
 ## Features
+- **High Accuracy:** The games play just like the originals. 
+  - The Ghost AI is faithfully replicated. Patterns for the originals can be executed here as well. *(Not 100% verified)*
+  - Sound effects and music are as accurate as possible given the limitations of the SN76489, the Master System's sound chip.
 - **Game Selection:** Choose between *Pac-Man* and *Ms. Pac-Man* by pressing left or right on the title screen.
   - Press **Button 2** to play the *Plus* variants.
 - **Customizable:** Difficulty, life count, bonus life, and other settings are fully configurable in the options menu.
-  - The popular speed-up mode can be toggled in the options menu.
+  - The popular speed-up mode can be toggled in the options menu as well.
 - **Two Graphic Styles:**
   - **Smooth** – Adds extra detail and color utilizing the Master System’s superior graphical capabilities.
-  - **Arcade** – Faithfully replicates the original arcade look as possible.
+  - **Arcade** – Faithfully replicates the original arcade look as close as possible.
 - **1–2 Player Support**
 
 ---
@@ -33,6 +36,9 @@ I hope this code is useful for anyone interested in learning Z80 assembly or exp
 This project wouldn't nearly be as polished without the help of these people:
 - **scratch125** – Art, sound, and general guidance
 - **umjammercammy** – Art and general guidance
+
+Additional Credits:
+- **Einar Saukas** - ZX7 compression algorithm used here to compress graphics and tilemaps
 
 ---
 
