@@ -34,7 +34,7 @@ I hope this code is useful for anyone interested in learning Z80 assembly or exp
 
 ## Credits
 This project wouldn't nearly be as polished without the help of these people:
-- **scratch125** – Art, sound, and general guidance
+- **125scratch** – Art, sound, and general guidance
 - **umjammercammy** – Art and general guidance
 
 Additional Credits:
