@@ -26,6 +26,8 @@ sStateGameplayTable@dead00Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   CHECK FOR ALL DOTS EATEN (IN CASE OF DYING ON LAST DOT)
+    CALL allDotsEatenCheck
 ;   GHOST VISUAL COUNTERS
     CALL ghostVisCounterUpdate
 ;   UPDATE POWER DOT PALETTE CYCLE

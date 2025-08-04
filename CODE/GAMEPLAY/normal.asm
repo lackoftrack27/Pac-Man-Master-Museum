@@ -32,24 +32,7 @@ sStateGameplayTable@normalMode:
     CALL generalGamePlayDraw
 @@update:
 ;   CHECK FOR ALL DOTS EATEN
-    ; CHECK IF GAME IS MS. PAC
-    LD L, $F4   ; AMOUNT FOR PAC-MAN
-    LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JR Z, +    ; IF NOT, SKIP
-    ; GET DOT COUNT FOR CURRENT LEVEL
-    LD HL, msMazeDotCounts
-    CALL getMazeIndex
-+:
-    ; CHECK IF DOTS EATEN IS MATCHES AMOUNT FOR MAZE
-    LD A, (currPlayerInfo.dotCount)
-    CP A, L
-    JR NZ, +    ; IF THERE ARE ANY DOTS, SKIP...
-    ; ELSE, SET MODE TO FIRST LEVEL COMPLETE STATE
-    LD HL, $01 * $100 + GAMEPLAY_COMP00
-    LD (subGameMode), HL
-    RET
-+:
+    CALL allDotsEatenCheck
 ;   GENERAL GAMEPLAY UPDATE (SHARED WITH SUPER/EAT MODE)
     CALL generalGameplayUpdate
     CALL generalGameplayUpdate

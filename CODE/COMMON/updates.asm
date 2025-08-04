@@ -667,3 +667,29 @@ superTimerUpdate:
     RET
 
 
+
+/*
+    INFO: CHECKS IF ALL DOTS IN THE MAZE ARE EATEN
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, HL
+*/
+allDotsEatenCheck:
+    LD L, $F4   ; DOT AMOUNT FOR PAC-MAN (ASSUME GAME IS PAC-MAN)
+;   CHECK IF GAME IS MS. PAC
+    LD A, (plusBitFlags)
+    BIT MS_PAC, A
+    JR Z, +    ; IF NOT, SKIP
+;   GET DOT COUNT FOR CURRENT LEVEL
+    LD HL, msMazeDotCounts
+    CALL getMazeIndex   ; L = DOT COUNT FOR CURRENT MAZE
++:
+;   CHECK IF DOTS EATEN COUNTER MATCHES MAZE AMOUNT
+    LD A, (currPlayerInfo.dotCount)
+    CP A, L
+    RET NZ      ; IF NOT, LEVEL ISN'T COMPLETE, EXIT
+;   ELSE, SET MODE TO FIRST LEVEL COMPLETE STATE
+    POP HL      ; REMOVE RETURN ADDRESS FROM STACK
+    LD HL, $01 * $100 + GAMEPLAY_COMP00
+    LD (subGameMode), HL
+    RET
