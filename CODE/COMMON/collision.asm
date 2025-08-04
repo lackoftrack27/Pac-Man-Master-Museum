@@ -103,6 +103,10 @@ interactDetermination:
     USES:  AF, BC, DE, HL, IX
 */
 globalCollCheck02:
+;   CHECK IF A COLLISION WAS DETECTED BY THE 1ST COLLISION FUNCTION
+    LD A, (ghostPointSprNum)
+    OR A
+    RET NZ  ; IF SO, EXIT
 ;   CHECK IF GAME MODE IS SUPER
     LD A, (pacPoweredUp)
     OR A

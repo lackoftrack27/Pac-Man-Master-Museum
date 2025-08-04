@@ -28,7 +28,7 @@ generalGameplayUpdate:
     JR NZ, eatModeUpdate
 ;   COLLISION CHECK BETWEEN PAC-MAN AND GHOSTS
     CALL globalCollCheck
-    CALL globalCollCheck02  ; SECOND CHECK WHICH ONLY APPLIES DURING SUPER MODE???
+    CALL globalCollCheck02  ; SECOND CHECK WHICH ONLY APPLIES DURING SUPER MODE
     ; EXIT IF COLLISION OCCURED
     LD A, (ghostPointSprNum)
     OR A
