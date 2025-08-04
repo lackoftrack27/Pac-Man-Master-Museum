@@ -11,6 +11,8 @@ sStateGameplayTable@comp00Mode:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
+;   RESET GHOST POINT SPRITE NUM
+    LD (ghostPointSprNum), A
 ;   SET TIMER
     LD A, LVLC00_TIMER_LEN
     LD (mainTimer0), A
