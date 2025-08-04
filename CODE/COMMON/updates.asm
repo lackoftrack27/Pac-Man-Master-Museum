@@ -27,8 +27,8 @@ generalGameplayUpdate:
     OR A
     JR NZ, eatModeUpdate
 ;   COLLISION CHECK BETWEEN PAC-MAN AND GHOSTS
-    CALL globalCollCheck
-    CALL globalCollCheck02  ; SECOND CHECK WHICH ONLY APPLIES DURING SUPER MODE
+    CALL globalCollCheckTile
+    CALL globalCollCheckPixel  ; SECOND CHECK WHICH ONLY APPLIES DURING SUPER MODE
     ; EXIT IF COLLISION OCCURED
     LD A, (ghostPointSprNum)
     OR A
@@ -689,7 +689,7 @@ allDotsEatenCheck:
     CP A, L
     RET NZ      ; IF NOT, LEVEL ISN'T COMPLETE, EXIT
 ;   ELSE, SET MODE TO FIRST LEVEL COMPLETE STATE
-    POP HL      ; REMOVE RETURN ADDRESS FROM STACK
+    POP HL      ; REMOVE FUNCTION CALLER FROM STACK
     LD HL, $01 * $100 + GAMEPLAY_COMP00
     LD (subGameMode), HL
     RET
