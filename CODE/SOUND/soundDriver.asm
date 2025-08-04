@@ -111,8 +111,7 @@ sndProcess:
     ADD A, C
     LD C, A
     ; LOOP AGAIN IF B ISN'T 0
-    DEC B
-    JR NZ, sndProcess@loop
+    DJNZ sndProcess@loop
     RET
 
 
@@ -196,9 +195,7 @@ readLiteral:
     LD (IY + FREQ_00), L
     LD (IY + FREQ_01), H
 ;   GET NEXT BYTE (ALWAYS DURATION)
-    ;LD A, (DE)
-    ;INC DE
-    LD A, $01
+    LD A, $01   ; FIXED DURATION NUMBER
     CALL processDuration
     JP finishTrackUpdate
 
