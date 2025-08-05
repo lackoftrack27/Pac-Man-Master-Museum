@@ -57,8 +57,8 @@ checkEatenFruit:
     RET NC  ; IF NOT WITHIN RANGE, EXIT
 ;   CENTER Y POS WITHIN MAZE WALLS (FOR SCORE)
     LD A, D
-    AND A, ~$07
-    ADD A, $04
+    AND A, ~$07 ; ROUND DOWN TO CLOSEST MULTIPLE OF 8
+    ADD A, $04  ; ALIGN WITHIN MAZE WALLS   
     LD (fruitPos + 1), A
 ;   FINISH UP (SCORE, TIMER, ETC)
     JR checkEatenFruit@ateFruit
@@ -67,44 +67,42 @@ checkEatenFruit:
 
 /*
     INFO: UPDATES FRUIT IN MAZE
-        IF LOW NIBBLE IS 0: 
-            IF HIGH NIBBLE IS 0: CHECK FIRST DOT COUNT. IF PASSED, INCREMENT NIBBLE
-            ELSE, CHECK SECOND DOT COUNT. IF PASSED, INCREMENT NIBBLE
-        IF LOW LIBBLE IS 1: 
-            DECREMENT COUNTER. IF 0, TOGGLE BIT 4 AND RESET LOW NIBBLE AND END
-            ELSE, CHECK IF PAC-MAN IS EATING FRUIT. IF SO, INCREMENT NIBBLE
-        IF LOW NIBBLE IS 2:
-            DECREMENT COUNTER. IF 0, TOGGLE BIT 4 AND RESET LOW NIBBLE AND END
-
+        --------
+        DECREMENT FRUIT TIMER IF IT ISN'T 0
+        IF TIMER IS 0 AFTER DECREMENT:
+            TOGGLE BIT 4 (FRUIT NUMBER) AND RESET LOW NIBBLE, END
+        --------
+        PAC-MAN:
+            IF LOW NIBBLE IS 0:
+                IF HIGH NIBBLE IS 0: CHECK FIRST DOT COUNT. IF PASSED, INCREMENT NIBBLE
+                ELSE, CHECK SECOND DOT COUNT. IF PASSED, INCREMENT NIBBLE
+            IF LOW NIBBLE IS 1: END
+            IF LOW NIBBLE IS 2: END
+        --------
+        MS.PAC-MAN:
+            IF LOW NIBBLE IS 0:
+                IF HIGH NIBBLE IS 0: CHECK FIRST DOT COUNT. IF PASSED, INCREMENT NIBBLE
+                ELSE, CHECK SECOND DOT COUNT. IF PASSED, INCREMENT NIBBLE
+            IF LOW NIBBLE IS 1: UPDATE FRUIT MOVEMENT / BOUNCE / ETC
+            IF LOW NIBBLE IS 2: END
+        --------
     INPUT: NONE
     OUTPUT: NONE
     USES: AF, BC, DE, HL
 */
 fruitUpdate:
-;   DON'T UPDATE DURING EAT
-    LD A, (ghostPointSprNum)
-    OR A
-    RET NZ
-;   CHECK IF GAME IS MS. PAC
-    LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JR NZ, msFruitUpdate    ; IF SO, SKIP
-;   CHECK IF FRUIT OR FRUIT POINTS ARE ACTIVE (ON SCREEN)
     LD HL, currPlayerInfo.fruitStatus
-    LD A, $0F
-    AND A, (HL)         ; CHECK IF LOW NIBBLE IS 0
-    JR Z, @dotCheck     ; IF SO, SKIP...
-;   FRUIT (1) OR POINTS (2) ARE ON SCREEN
-@updateFruitTimer:
-    ; DECREMENT FRUIT TIMER
+;   UPDATE FRUIT TIMER IF IT ISN'T 0
     LD DE, (mainTimer3)
+    LD A, E
+    OR A, D
+    JR Z, + ; SKIP IF 0
+    ; DECREMENT TIMER
     DEC DE
     LD (mainTimer3), DE
-    ; CHECK IF 0
-    LD A, D
-    OR A, E
-    RET NZ  ; IF NOT, END
-;   TIMER HAS EXPIRED
+    LD A, E
+    OR A, D
+    JR NZ, + ; IF NOT 0, SKIP
 @timerExpired:
     ; TOGGLE BIT 4 AND CLEAR LOWER NIBBLE
     LD A, $10
@@ -115,6 +113,19 @@ fruitUpdate:
     LD HL, $0000
     LD (fruitPos), HL
     RET
++:
+;   DON'T UPDATE DURING EAT
+    LD A, (ghostPointSprNum)
+    OR A
+    RET NZ
+;   CHECK IF GAME IS MS. PAC
+    LD A, (plusBitFlags)
+    BIT MS_PAC, A
+    JR NZ, msFruitUpdate    ; IF SO, SKIP
+;   CHECK IF FRUIT AND FRUIT POINTS AREN'T ACTIVE (ON SCREEN)
+    LD A, $0F
+    AND A, (HL) ; CHECK IF LOW NIBBLE IS 0 (NO FRUIT OR SCORE POINTS)
+    RET NZ      ; IF NOT, EXIT
 @dotCheck:
 ;   FRUIT (1) AND POINTS (2) ARE NOT ON SCREEN
     ; PREPARE DOT COUNT TO CHECK FOR
@@ -132,7 +143,7 @@ fruitUpdate:
     INC (HL)
     ; PREPARE FRUIT/POINTS/SCORE
     CALL prepareFruit
-    ; FRUIT POSITION
+    ; SET FIXED FRUIT POSITION
     LD HL, $9480
     LD (fruitPos), HL
     ; SET TIMER FOR 10 SECONDS
@@ -144,14 +155,11 @@ fruitUpdate:
 ;   ----------------------------------
 msFruitUpdate:
 ;   CHECK IF FRUIT OR FRUIT POINTS ARE ACTIVE (ON SCREEN)
-    LD HL, currPlayerInfo.fruitStatus
     LD A, $0F
-    AND A, (HL) ; CHECK IF LOW NIBBLE IS 0
-    JR Z, @dotCheck    ; IF SO, SKIP...
-    DEC A   ; CHECK IF LOW NIBBLE WAS 1
-    JR Z, @moveFruit    ; IF SO, SKIP...
-;   POINTS (2) IS ON SCREEN
-    JR fruitUpdate@updateFruitTimer
+    AND A, (HL)     ; CHECK IF LOW NIBBLE IS 0
+    JR Z, @dotCheck ; IF SO, FRUIT OR POINTS AREN'T ON SCREEN, CHECK DOT COUNTS
+    DEC A           ; CHECK IF LOW NIBBLE WAS 1
+    RET NZ          ; IF NOT, END
 ;   FRUIT (1) IS ON SCREEN
 @moveFruit:
     ; GET BOUNCE OFFSET

@@ -158,33 +158,25 @@ generalResetFunc:
     ; RESET PLAYER DOT COUNT
     LD (currPlayerInfo.dotCount), A
 firstTimeEnd:
-;   RESET TASK LIST PTR
-    ;LD HL, taskListArea
-    ;LD (taskListEnd), HL
-    ;LD (taskListStart), HL
     XOR A
+    LD H, A
+    LD L, A
 ;   RESET GLOBAL GHOST VARS
     LD (scatterChaseIndex), A
     LD (frameCounter), A
     LD (flashCounter), A
     LD (difficultyState), A
     LD (ghostPointSprNum), A
-;   RESET RNG INDEX
-    LD HL, $0000
-    LD (rngIndex), HL
-;   RESET SCATTER/CHASE TIMER
-    LD (mainTimer2), HL
-;   RESET FRUIT POSITION
-    LD (fruitPos), HL
-;   RESET POWER DOT PALETTE BUFFER/COUNTER
-    LD (powDotFrameCounter), A
-;   RESET 1UP FLASH
-    LD (xUPCounter), A
-;   SPRITE FLICKER
-    LD (sprFlickerControl), A
-;   EAT SUBSTATE
-    LD (eatSubState), A
-    LD (pacPoweredUp), A
+;   INITIALIZE A BUNCH OF STUFF TO 0
+    LD (rngIndex), HL       ; RNG INDEX
+    LD (mainTimer2), HL     ; SCATTER/CHASE TIMER
+    LD (mainTimer3), HL     ; FRUIT TIMER
+    LD (fruitPos), HL       ; FRUIT POSITION
+    LD (powDotFrameCounter), A  ; POWER DOT FRAME COUNTER FOR PALETTE CYCLE
+    LD (xUPCounter), A      ; 1UP / 2UP FLASH COUNTER
+    LD (sprFlickerControl), A   ; SPRITE FLICKER FLAGS
+    LD (eatSubState), A     ; EAT SUBSTATE
+    LD (pacPoweredUp), A    ; SUPER FLAG
 ;   SPEED PATTERN FOR GHOSTS IN HOME
     LD A, $55
     LD (inHomeSpdPatt), A
