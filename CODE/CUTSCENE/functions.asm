@@ -114,8 +114,6 @@ pacCutsceneInit:
     LD (pacman.xPos), HL
     XOR A
     LD (pacman.subPixel), A
-    ; SET SPRITE TABLE NUM TO 0
-    LD (pacman.sprTableNum), A
     ; CLEAR BLINKY SUBPIXEL
     LD (blinky.subPixel), A
     ; CLEAR GHOST VISUAL COUNTERS
@@ -132,13 +130,15 @@ pacCutsceneInit:
     ; BLINKY FACING LEFT
     LD (blinky.currDir), A
     LD (blinky.nextDir), A
-    ; SET SPRITE TABLE NUM
-    LD A, 09
+    ; SET PAC-MAN SPRITE TABLE NUM TO 1
+    LD (pacman.sprTableNum), A
+    ; SET BLINKY SPRITE TABLE NUM
+    LD A, $0A
     LD (blinky.sprTableNum), A
     ADD A, A
-    LD (pinky.sprTableNum), A   ; WAS $09, NOW $12
-    ;LD (inky.sprTableNum), A   ; WAS $0D
-    ;LD (clyde.sprTableNum), A   ; WAS $11
+    LD (pinky.sprTableNum), A   ; WAS $0A, NOW $14
+    LD (inky.sprTableNum), A    ; WAS $0D, NOW $14
+    LD (clyde.sprTableNum), A   ; WAS $11, NOW $14
     ; SET BLINKY'S CURRENT X TILE
     LD A, $1E       ; ($00 >> $03) + $1E
     LD (blinky + CURR_X), A
@@ -256,6 +256,56 @@ msCutSetup:
     LDIR
 ;   COMMON CUTSCENE SETUP
     CALL commonCutsceneInit
+;   LOAD TILE DATA FOR CUTSCENES
+    ; SMOOTH / ARCADE CONTROL PATH
+    LD A, (plusBitFlags)
+    BIT STYLE_0, A
+    JP NZ, @arcadeGFX
+@smoothGFX:
+    ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
+    ; CUTSCENE DATA
+    LD HL, msCutsceneTiles
+    LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; PAC-MAN (FOR CUTSCENE)
+    LD HL, pacmanTiles  ; ASSUME GAME TYPE ISN'T PLUS
+    ; LOAD ASSETS DEPENDING ON GAME TYPE
+    LD A, (plusBitFlags)
+    BIT PLUS, A
+    JR Z, +    ; IF NOT PLUS, SKIP
+    LD HL, pacmanTiles@plus ; PLUS GRAPHICS
++:
+    ; PAC-MAN (FOR CUTSCENES)
+    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    JR ++
+    ; -----------------------------
+@arcadeGFX:
+    ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
+    LD A, ARCADE_BANK
+    LD (MAPPER_SLOT2), A
+    ; -----------------------------
+    ; CUTSCENE DATA
+    LD HL, arcadeGFXData@cutsceneMs
+    LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; PAC-MAN (FOR CUTSCENE)
+    LD HL, arcadeGFXData@pacman ; ASSUME GAME ISN'T PLUS
+    ; LOAD ASSETS DEPENDING ON GAME TYPE
+    LD A, (plusBitFlags)
+    BIT PLUS, A
+    JR Z, +    ; IF NOT PLUS, SKIP
+    LD HL, arcadeGFXData@pacmanPlus ; PLUS GRAPHICS
++:
+    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
+    ; -----------------------------
+++:
 ;   TURN ON SCREEN
     CALL waitForVblank
     JP turnOnScreen

@@ -139,11 +139,13 @@ drawMaze:
     USES: AF, DE, HL
 */
 drawInMazeFruit:
-;   ASSUME FRUIT WILL NOT BE DRAWN, SO DISABLE SPRITES 25 AND BEYOND
-    LD HL, SPRITE_TABLE + 25 | VRAMWRITE
+;   CONTINUE ONLY IF IN NORMAL MODE
+    LD A, (subGameMode)
+    CP A, GAMEPLAY_NORMAL
+    RET NZ
 ;   CHECK IF FRUIT IS BEING DROPPED BY FLICKER CONTROL
     LD A, (sprFlickerControl)
-    BIT 4, (HL)
+    BIT 4, A
     JR NZ, @clearSprite ; IF SO, CLEAR FRUIT SPRITE
 ;   CHECK IF GAME IS MS. PAC
     LD A, (plusBitFlags)
@@ -152,27 +154,26 @@ drawInMazeFruit:
 ;   CHECK IF LOW NIBBLE OF STATUS IS 0 (NO FRUIT ON SCREEN)
     LD A, (currPlayerInfo.fruitStatus)
     AND A, $0F
-    JR Z, @clearSprite ; IF SO, CLEAR FRUIT SPRITE
-;   IF NOT, CHECK IF LOW NIBBLE IS 1
-    ; ASSUME FRUIT WILL BE DISPLAYED (LOW NIBBLE = 1)
+    JR Z, @clearSprite  ; IF SO, CLEAR FRUIT SPRITE
+    ; ASSUME FRUIT WILL BE DISPLAYED (LOW NIBBLE == 1)
     LD HL, (fruitTileDefPtr)
-    LD D, 94
+    LD DE, 94 * $100 + 99
+;   CHECK IF LOW NIBBLE OF STATUS IS 1 (FRUIT ON SCREEN)
     DEC A
-    JR Z, +    ; IF IT ACTUALLY IS, SKIP TO PREPARING DRAW
-    ; IF NOT, MAKE IT SO POINTS WILL BE DRAWN INSTEAD
+    JR Z, @execDraw     ; IF SO, SKIP TO PREPARING DRAW
+    ; IF NOT, DRAW POINTS INSTEAD (LOW NIBBLE == 2)
     LD HL, (fruitPointTDefPtr)
     LD D, 92    ; MOVE TO THE LEFT A BIT
-+:
-;   IF NOT, DISPLAY FRUIT
-    LD E, 99
 @execDraw:
     LD A, 25
-    CALL display4TileSprite
-;   DISABLE ALL SPRITES 29 AND BEYOND
-    LD HL, SPRITE_TABLE + 29 | VRAMWRITE
+    JP display4TileSprite
 @clearSprite:
+    LD HL, SPRITE_TABLE + 25 | VRAMWRITE
     RST setVDPAddress
-    LD A, $D0
+    LD A, $F7
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     RET
 msDrawMazeFruit:
@@ -180,11 +181,12 @@ msDrawMazeFruit:
     LD A, (currPlayerInfo.fruitStatus)
     AND A, $0F
     JR Z, drawInMazeFruit@clearSprite ; IF SO, CLEAR FRUIT SPRITE
-;   ASSUME NIBBLE IS 1 (FRUIT IS ON SCREEN)
+    ; ASSUME FRUIT WILL BE DISPLAYED
     LD HL, (fruitTileDefPtr)
+;   CHECK IF LOW NIBBLE OF STATUS IS 1 (FRUIT ON SCREEN)
     DEC A
     JR Z, +    ; IF IT ACTUALLY IS, SKIP TO PREPARING DRAW
-;   ELSE, DISPLAY POINTS INSTEAD
+    ; IF NOT, DISPLAY POINTS INSTEAD
     LD HL, (fruitPointTDefPtr)
 +:
     LD IX, fruitPos - 1
@@ -731,19 +733,43 @@ drawLives:
     USES: AF, BC, DE, HL
 */
 drawReadyTilemap:
-;   DRAW READY TEXT - ROW 0
-    LD HL, NAMETABLE + READY_TEXT_ROW0 | VRAMWRITE
+;   SET VDP ADDRESS FOR Y VALUES
+    LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
-    LD HL, mazeTxtTileMaps@ready
-    LD BC, READY_TEXT_SIZE * $100 + VDPDATA_PORT
-    OTIR
-;   DRAW READY TEXT - ROW 1
-    EX DE, HL   ; ROW 1
-    LD HL, NAMETABLE + READY_TEXT_ROW1 | VRAMWRITE
+    LD A, ($0C * $08) + $06 - $01
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+;   SET VDP ADDRESS FOR X AND INDEX VALUES
+    LD HL, SPRITE_TABLE_XN + ($19 * $02) | VRAMWRITE
     RST setVDPAddress
-    EX DE, HL
-    LD B, READY_TEXT_SIZE
-    OTIR
+    LD BC, MAZETXT_INDEX * $100 + VDPDATA_PORT  ; TILE ID AND VDP DATA PORT
+    ; TILE 0
+    LD A, ($0A * $08) + $02 ; X POSITION
+    OUT (C), A
+    OUT (C), B
+    ; TILE 1
+    LD A, ($0B * $08) + $02
+    INC B
+    OUT (C), A
+    OUT (C), B
+    ; TILE 2
+    LD A, ($0C * $08) + $02
+    INC B
+    OUT (C), A
+    OUT (C), B
+    ; TILE 3
+    LD A, ($0D * $08) + $02
+    INC B
+    OUT (C), A
+    OUT (C), B
+    ; TILE 4
+    LD A, ($0E * $08) + $02
+    INC B
+    OUT (C), A
+    OUT (C), B
     RET
 
 
@@ -754,18 +780,72 @@ drawReadyTilemap:
     USES: AF, BC, DE, HL
 */
 drawPlayerTilemap:
-;   DRAW EITHER "PLAYER ONE" OR "PLAYER TWO"
-    LD DE, mazeTxtTileMaps@playerOne    ; ASSUME WE WILL DRAW THE FORMER
-    LD A, (playerType)
-    BIT 1, A    ; CHECK IF PLAYER 1 IS PLAYING
-    JR Z, +     ; IF SO, SKIP
-    LD DE, mazeTxtTileMaps@playerTwo    ; ELSE, DRAW THE LATTER
-+:
-    LD HL, NAMETABLE + PLAYER_TEXT | VRAMWRITE
+;   SET VDP ADDRESS FOR Y VALUES
+    LD HL, SPRITE_TABLE + $1E | VRAMWRITE
     RST setVDPAddress
-    EX DE, HL
-    LD BC, PLAYER_TEXT_SIZE * $100 + VDPDATA_PORT
-    OTIR
+    LD A, ($08 * $08) + $02 - $01
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+;   SET VDP ADDRESS FOR X AND INDEX VALUES
+    LD HL, SPRITE_TABLE_XN + ($1E * $02) | VRAMWRITE
+    RST setVDPAddress
+    LD BC, (MAZETXT_INDEX + $05) * $100 + VDPDATA_PORT  ; TILE ID AND VDP DATA PORT
+    ; PLAYER
+        ; TILE 0
+    LD A, ($08 * $08) + $06 ; X POSITION
+    OUT (C), A
+    OUT (C), B
+        ; TILE 1
+    LD A, ($09 * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
+        ; TILE 2
+    LD A, ($0A * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
+        ; TILE 3
+    LD A, ($0B * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
+        ; TILE 4
+    LD A, ($0C * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
+    ; ONE / TWO
+        ; SETUP TILE ID DEPENDING ON WHICH PLAYER IS PLAYING
+    INC B
+    LD A, (playerType)
+    BIT CURR_PLAYER, A
+    JR Z, + ; IF PLAYER 1, ONLY INCREMENT BY 1 (POINT TO 'ONE')
+    ; ELSE, ADD ADDITIONAL 3 (POINT TO 'TWO')
+    INC B
+    INC B
+    INC B
++:
+        ; TILE 5
+    LD A, ($0D * $08) + $06 ; X POSITION
+    OUT (C), A
+    OUT (C), B
+        ; TILE 6
+    LD A, ($0E * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
+        ; TILE 7
+    LD A, ($0F * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
     RET
 
 
@@ -776,26 +856,49 @@ drawPlayerTilemap:
     USES: AF, BC, DE, HL
 */
 drawGameOverTilemap:
-;   LOAD TILE MAP FOR "GAME  OVER"
-    ; ROW 0
-    LD HL, NAMETABLE + GOVER_TEXT_ROW0 | VRAMWRITE
+;   SET VDP ADDRESS FOR Y VALUES
+    LD HL, SPRITE_TABLE + $26 | VRAMWRITE
     RST setVDPAddress
-    LD HL, mazeTxtTileMaps@gameOver
-    LD BC, (GOVER_TEXT_SIZE / 2) * $100 + VDPDATA_PORT
-    OTIR        ; PART 1
-    IN F, (C)   ; SKIP A TILE
-    IN F, (C)
-    LD B, GOVER_TEXT_SIZE / 2
-    OTIR        ; PART 2
-    ; ROW 1
-    EX DE, HL
-    LD HL, NAMETABLE + GOVER_TEXT_ROW1 | VRAMWRITE
+    LD A, ($0C * $08) + $06 - $01
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+;   SET VDP ADDRESS FOR X AND INDEX VALUES
+    LD HL, SPRITE_TABLE_XN + ($26 * $02) | VRAMWRITE
     RST setVDPAddress
-    EX DE, HL
-    LD B, GOVER_TEXT_SIZE / 2
-    OTIR        ; PART 1
-    IN F, (C)   ; SKIP A TILE
-    IN F, (C)
-    LD B, GOVER_TEXT_SIZE / 2
-    OTIR        ; PART 2
+    LD BC, (MAZETXT_INDEX + $10) * $100 + VDPDATA_PORT  ; TILE ID AND VDP DATA PORT
+    ; GAME
+        ; TILE 0
+    LD A, ($08 * $08) + $06 ; X POSITION
+    OUT (C), A
+    OUT (C), B
+        ; TILE 1
+    LD A, ($09 * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
+        ; TILE 2
+    LD A, ($0A * $08) + $06
+    INC B
+    OUT (C), A
+    OUT (C), B
+    ; OVER
+        ; TILE 3
+    LD A, ($0D * $08) + $02
+    INC B
+    OUT (C), A
+    OUT (C), B
+        ; TILE 4
+    LD A, ($0E * $08) + $02
+    INC B
+    OUT (C), A
+    OUT (C), B
+        ; TILE 5
+    LD A, ($0F * $08) + $02
+    INC B
+    OUT (C), A
+    OUT (C), B
     RET

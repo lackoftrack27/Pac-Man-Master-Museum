@@ -70,26 +70,4 @@ pacmanReset:
     LD (pacman.nextDir), A
 ;   GENERAL ACTOR RESET
     LD IX, pacman
-    CALL actorReset
-;   SETUP PAC-MAN IN SAT
-    JP displayPacMan
-
-
-/*
-0F - CLOSED
-0E - CLOSED
-0D - CLOSED
-0C - CLOSED
-0B - HALF
-0A - HALF
-09 - HALF
-08 - HALF
-07 - OPEN
-06 - OPEN
-05 - OPEN
-04 - OPEN
-03 - HALF
-02 - HALF
-01 - HALF
-00 - HALF
-*/
+    JP actorReset

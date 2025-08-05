@@ -145,11 +145,6 @@ sStateGameplayTable@dead02Mode:
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
-;   DISABLE ALL SPRITES (WILL CHANGE AFTER FIRST READY)
-    LD HL, SPRITE_TABLE | VRAMWRITE
-    RST setVDPAddress
-    LD A, SPR_DISABLE
-    OUT (VDPDATA_PORT), A
 ;   CLEAR GLOBAL COUNTER
     XOR A
     LD (globalDotCounter), A
@@ -167,11 +162,11 @@ sStateGameplayTable@dead02Mode:
 +:
 ;   CHECK IF TWO PLAYER MODE IS ENABLED
     LD HL, playerType
-    BIT 0, (HL)
+    BIT PLAYER_MODE, (HL)
     JR Z, + ; IF NOT, SKIP...
 @@@swapPlayers:
-;   TOGGLE PLAYER BIT (BIT 1)
-    LD A, $02
+;   TOGGLE CURRENT PLAYER BIT (BIT 1)
+    LD A, $01 << CURR_PLAYER
     XOR A, (HL)
     LD (HL), A
 ;   ELSE, TURN OFF SCREEN (AND VBLANK INTS)

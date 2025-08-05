@@ -131,17 +131,18 @@ generalResetFunc:
     LD BC, BG_CRAM_SIZE * $100 + VDPDATA_PORT
     LD HL, mazePalette
     OTIR
-;   DISABLE ALL SPRITES (WILL CHANGE AFTER FIRST READY)
+;   CLEAR SPRITE TABLE
     LD HL, SPRITE_TABLE | VRAMWRITE
     RST setVDPAddress
-    LD D, SPR_DISABLE
-    OUT (C), D
-;   DISABLE ALL SPRITES AFTER PAC-MAN AND GHOSTS
-    LD HL, SPRITE_TABLE + $19 | VRAMWRITE
-    RST setVDPAddress
-    OUT (C), D
+-:
+    OUT (C), L  ; L IS 0
+    DJNZ -
 ;   LOAD MAZE DATA
     CALL loadMaze
+;   LOAD MAZE TEXT SPRITES
+    LD HL, mazeTextTiles
+    LD DE, MAZETXT_INDEX * TILE_SIZE | VRAMWRITE
+    CALL zx7_decompressVRAM
 ;   SET POWER PELLET COLOR BUFFER 
     CALL powDotCyclingUpdate@refresh
 ;   RESET SOME VARS ONLY IF ON LEVEL FOR THE FIRST TIME
@@ -309,27 +310,6 @@ firstTimeEnd:
     CALL drawLives
     ; FRUIT
     CALL drawFruitHUD
-;   SAVE MAZE AREA WHERE "PLAYER ONE" AND "READY!" ARE DISPLAYED
-    ; "PLAYER ONE"
-    LD HL, NAMETABLE + PLAYER_TEXT
-    RST setVDPAddress
-    LD HL, workArea + $10
-    LD BC, PLAYER_TEXT_SIZE * $100 + VDPDATA_PORT
-    INIR
-    EX DE, HL   ; SAVE HL (workArea ptr)
-    ; "READY" ROW 0
-    LD HL, NAMETABLE + READY_TEXT_ROW0
-    RST setVDPAddress
-    EX DE, HL   ; RESTORE
-    LD B, READY_TEXT_SIZE
-    INIR
-    EX DE, HL   ; SAVE
-    ; "READY" ROW 1
-    LD HL, NAMETABLE + READY_TEXT_ROW1
-    RST setVDPAddress
-    EX DE, HL   ; RESTORE
-    LD B, READY_TEXT_SIZE
-    INIR
 ;   TURN ON DISPLAY
     CALL waitForVblank
     JP turnOnScreen

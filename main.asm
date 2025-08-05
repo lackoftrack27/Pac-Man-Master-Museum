@@ -529,22 +529,7 @@ checkMDPause:
 */
 .SECTION "LINE INTERRUPT HANDLER" FORCE
 lineIntHandler:
-;   SET VDP ADDRESS
-    LD A, BGPAL_TEXT
-    OUT (VDPCON_PORT), A
-    LD A, hibyte(CRAMWRITE)
-    OUT (VDPCON_PORT), A
-;   WASTE TIME LOOP
-    LD B, $06
-    -: DJNZ -
-;   CHECK WHICH SUB STATE WE ARE IN
-    LD A, (subGameMode)
-    OR A
-    LD A, CLR_YELLOW    ; ASSUME STATE IS FIRST READY, SO SET COLOR TO YELLOW ("READY!")
-    JR Z, +             ; IF SO, SKIP...
-    LD A, CLR_RED       ; ELSE, ASSUME STATE IS GAME OVER, SO SET COLOR TO RED ("GAME  OVER")
-+:
-    OUT (VDPDATA_PORT), A
+;   NO LINE INT HANDLER FOR NOW...
 ;   GO BACK TO RETURN FROM INTURRUPT
     JP vdpIntHandler@end
 .ENDS
@@ -826,27 +811,27 @@ vdpInitData:
 */
 ;   MAZE BACKGROUND PALETTES
 bgPalPac:
-    .DB $00 $30 $00 $20 $20 $00 $3B $2B $00 $00 $16 $2B $2B $2B $00 $00
+    .DB $00 $30 $00 $20 $20 $00 $3B $2B $00 $00 $16 $2B $2B $2B $03 $00
 bgPalPlus:
-    .DB $00 $29 $00 $14 $14 $00 $3B $2B $00 $00 $16 $2B $2B $2B $00 $00
+    .DB $00 $29 $00 $14 $14 $00 $3B $2B $00 $00 $16 $2B $2B $2B $03 $00
 bgPalMs00:
-    .DB $00 $03 $2B $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $00 $00
+    .DB $00 $03 $2B $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
 bgPalMs01:
-    .DB $00 $3F $38 $2A $2A $00 $3B $0F $00 $00 $0A $0F $0F $0F $00 $00
+    .DB $00 $3F $38 $2A $2A $00 $3B $0F $00 $00 $0A $0F $0F $0F $03 $00
 bgPalMs02:
-    .DB $00 $3F $1B $2A $2A $00 $3B $03 $00 $00 $02 $03 $03 $03 $00 $00
+    .DB $00 $3F $1B $2A $2A $00 $3B $03 $00 $00 $02 $03 $03 $03 $03 $00
 bgPalMs03:
-    .DB $00 $1B $30 $06 $06 $00 $3B $3F $00 $00 $2A $3F $3F $3F $00 $00
+    .DB $00 $1B $30 $06 $06 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
 bgPalMs04:
-    .DB $00 $0F $3B $0A $0A $00 $3B $3C $00 $00 $28 $3C $3C $3C $00 $00
+    .DB $00 $0F $3B $0A $0A $00 $3B $3C $00 $00 $28 $3C $3C $3C $03 $00
 bgPalMs05:
-    .DB $00 $3C $30 $28 $28 $00 $3B $3F $00 $00 $2A $3F $3F $3F $00 $00
+    .DB $00 $3C $30 $28 $28 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
 bgPalMs06:
-    .DB $00 $03 $3F $02 $02 $00 $3B $0C $00 $00 $08 $0C $0C $0C $00 $00
+    .DB $00 $03 $3F $02 $02 $00 $3B $0C $00 $00 $08 $0C $0C $0C $03 $00
 bgPalMs07:
-    .DB $00 $1B $0C $06 $06 $00 $3B $1B $00 $00 $06 $1B $1B $1B $00 $00
+    .DB $00 $1B $0C $06 $06 $00 $3B $1B $00 $00 $06 $1B $1B $1B $03 $00
 bgPalMs08:
-    .DB $00 $03 $30 $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $00 $00
+    .DB $00 $03 $30 $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
 
 
 ; SPRITE PALETTE ("SMOOTH")
@@ -905,26 +890,6 @@ hudTileMaps:
 @msLives:
 ;   MS. PAC-MAN
     .DW $1829 $182A $183F $1840 ; RIGHT HALF
-
-/*
-    MAZE TEXT TILEMAPS
-*/
-mazeTxtTileMaps:
-@ready:
-;   "READY!"
-    .DW $0184 $0185 $0186 $0187 $0188   ; 5 TILES PER LINE
-    .DW $0189 $018A $018B $018C $018D
-@playerOne:
-;   "PLAYER ONE"
-    .DW $018E $018F $0190 $0191 $0192 $0193 $0194 $0195 $0196   ; 9 TILES
-@playerTwo:
-;   "PLAYER TWO"
-    .DW $018E $018F $0190 $0191 $0192 $0193 $0197 $0198 $0199   ; 9 TILES
-@gameOver:
-;   "GAME  OVER"
-    .DW $019A $019B $019C $019D $019E $019F $01A0 $01A1 ; 8 TILES, BUT SKIP ONE TILE HALF WAY
-    .DW $01A2 $01A3 $01A4 $01A5 $01A6 $01A7 $01A8 $01A9
-
 
 /*
     TABLE FOR POSITIONS OF LIVES IN HUD
@@ -1408,12 +1373,6 @@ msMazeTilesTable:
     .DW maze2Tiles
     .DW maze3Tiles
     .DW maze4Tiles
-; MAZE TEXT TABLE
-msMazeTextTable:
-    .DW maze1Text
-    .DW maze2Text
-    .DW maze3Text
-    .DW maze4Text
 ; MAZE DOT TABLE
 msMazeDotTable:
     .DW maze1DotTable
@@ -1715,6 +1674,8 @@ fruitBounceFrames:
 .SECTION "HUD GFX DATA" FREE
     hudTextTiles:
         .INCBIN "TILE_HUD.ZX7"
+    mazeTextTiles:
+        .INCBIN "TILE_MAZETXT.ZX7"
 .ENDS
 
 
@@ -1772,8 +1733,6 @@ fruitBounceFrames:
         .INCBIN "MAP_MAZE.ZX7"
     maze0Tiles:
         .INCBIN "TILE_MAZE.ZX7"
-    maze0TextTiles:
-        .INCBIN "TEXT_MAZE.ZX7"
     maze0EatenTable:
         .INCBIN "DOT_MAZE.ZX7"
     @powDots:
@@ -1786,8 +1745,6 @@ fruitBounceFrames:
         .INCBIN "MAP_MAZE.ZX7"
     maze1Tiles:
         .INCBIN "TILE_MAZE.ZX7"
-    maze1Text:
-        .INCBIN "TEXT_MAZE.ZX7"
     maze1DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze1PowTable:
@@ -1800,8 +1757,6 @@ fruitBounceFrames:
         .INCBIN "MAP_MAZE.ZX7"
     maze2Tiles:
         .INCBIN "TILE_MAZE.ZX7"
-    maze2Text:
-        .INCBIN "TEXT_MAZE.ZX7"
     maze2DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze2PowTable:
@@ -1814,8 +1769,6 @@ fruitBounceFrames:
         .INCBIN "MAP_MAZE.ZX7"
     maze3Tiles:
         .INCBIN "TILE_MAZE.ZX7"
-    maze3Text:
-        .INCBIN "TEXT_MAZE.ZX7"
     maze3DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze3PowTable:
@@ -1828,8 +1781,6 @@ fruitBounceFrames:
         .INCBIN "MAP_MAZE.ZX7"
     maze4Tiles:
         .INCBIN "TILE_MAZE.ZX7"
-    maze4Text:
-        .INCBIN "TEXT_MAZE.ZX7"
     maze4DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze4PowTable:

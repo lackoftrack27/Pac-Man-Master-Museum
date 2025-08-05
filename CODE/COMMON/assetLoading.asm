@@ -90,14 +90,10 @@ loadTileAssets:
     LD HL, msFruitPointTiles
     LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
+    ; -----------------------------
     ; MS. PAC-MAN
     LD HL, msPacTiles
     LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; CUTSCENE DATA
-    LD HL, msCutsceneTiles
-    LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
 ;   LOAD ASSETS DEPENDING ON GAME TYPE
@@ -117,11 +113,6 @@ loadTileAssets:
     ; GHOST POINTS
     LD HL, ghostPointTiles
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; PAC-MAN (FOR CUTSCENES)
-    LD HL, pacmanTiles
-    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
     JP zx7_decompressVRAM
     ; -----------------------------
 +:
@@ -137,11 +128,6 @@ loadTileAssets:
     ; GHOST POINTS PLUS
     LD HL, ghostPointTiles@plus
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; PAC-MAN PLUS (FOR CUTSCENES)
-    LD HL, pacmanTiles@plus
-    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
     JP zx7_decompressVRAM
     ; -----------------------------
 @arcade:
@@ -192,7 +178,7 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    JP @end
+    JR @end
     ; -----------------------------
 +:
 ;   UNIQUE PLUS TILE ASSETS
@@ -233,11 +219,6 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    ; CUTSCENE DATA
-    LD HL, arcadeGFXData@cutsceneMs
-    LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
 ;   LOAD ASSETS DEPENDING ON GAME TYPE
     LD A, (plusBitFlags)
     BIT PLUS, A
@@ -250,11 +231,6 @@ loadTileAssets:
     ; GHOSTS
     LD HL, arcadeGFXData@ghosts
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; PAC-MAN (FOR CUTSCENES)
-    LD HL, arcadeGFXData@pacman
-    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
     ; GHOST POINTS
@@ -273,11 +249,6 @@ loadTileAssets:
     ; GHOSTS PLUS
     LD HL, arcadeGFXData@ghostsPlus
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; PAC-MAN PLUS (FOR CUTSCENES)
-    LD HL, arcadeGFXData@pacmanPlus
-    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
     ; GHOST POINTS PLUS
@@ -312,10 +283,6 @@ loadMaze:
     LD HL, maze0Tiles
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     CALL zx7_decompressVRAM
-    ; LOAD MAZE TEXT TILES (LOAD EVERY TIME!)
-    LD HL, maze0TextTiles
-    LD DE, MAZETEXT_ADDR | VRAMWRITE
-    CALL zx7_decompressVRAM
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, maze0EatenTable
     LD DE, mazeEatenDotTable
@@ -342,11 +309,6 @@ loadMaze:
     LD HL, msMazeTilesTable
     CALL getMazeIndex
     LD DE, BACKGROUND_ADDR | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; LOAD MAZE TEXT TILES (LOAD EVERY TIME!)
-    LD HL, msMazeTextTable
-    CALL getMazeIndex
-    LD DE, MAZETEXT_ADDR | VRAMWRITE
     CALL zx7_decompressVRAM
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, msMazeDotTable

@@ -104,10 +104,10 @@ ghostReset:
     LD (IX + INVISIBLE_FLAG), A
     LD (IX + REVE_FLAG), A
     LD (IX + EDIBLE_FLAG), A
-;   
+;   GHOST IS ALIVE
     INC A
     LD (IX + ALIVE_FLAG), A
-;   SETUP GHOST IN SAT (FALL THROUGH)
+    RET
 
 
 
@@ -200,12 +200,20 @@ ghostSpriteFlicker:
 ;   DON'T DISPLAY GHOST
     ; REMOVE CALLER
     POP HL
-    ; DISPLAY EMPTY SPRITE OFFSCREEN (CLEARS GHOST SPRITES IN S.A.T.)
 @emptySprite:
+;   MOVE SPRITE AREA TO OFFSCREEN
+    ; SET VDP ADDRESS
     LD A, (IX + SPR_NUM)
-    LD DE, $00C0
-    LD HL, EMPTY_PTR
-    JP display1TileSprite
+    OUT (VDPCON_PORT), A   ; LOW BYTE
+    LD A, hibyte(SPRITE_TABLE) | hibyte(VRAMWRITE)
+    OUT (VDPCON_PORT), A   ; HIGH BYTE
+    ; SET Y POSITION TO $F8
+    LD A, $F7
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    RET
 
 
 

@@ -252,14 +252,27 @@ pacSprCmdProcess:
     OR A
     RET Z   ; IF NO COMMAND, END
 ;   PROCESS COMMAND
-    LD B, A
+    LD B, A ; SAVE INTO B
+    ; CLEAR SPRITE COMMAND
     XOR A
     LD (pacSprControl), A
-    LD A, 21    ; ASSUME COMMAND IS 1
-    DEC B       ; CHECK IF COMMAND IS 1
+    ; ASSUME COMMAND IS 1
+    LD A, $15
+    ; CHECK IF COMMAND IS 1
+    DEC B
     JR Z, +     ; IF SO, SKIP
-    LD A, $01   ; COMMAND IS 2, SO CLEAR SUPER AREA
+    ; COMMAND IS 2, SO CLEAR SUPER AREA
+    LD A, $01
 +:
-    LD DE, $00C0
-    LD HL, EMPTY_PTR
-    JP display1TileSprite
+;   MOVE SPRITE AREA TO OFFSCREEN
+    ; SET VDP ADDRESS
+    OUT (VDPCON_PORT), A   ; LOW BYTE
+    LD A, hibyte(SPRITE_TABLE) | hibyte(VRAMWRITE)
+    OUT (VDPCON_PORT), A   ; HIGH BYTE
+    ; SET Y POSITION TO $F8
+    LD A, $F7
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    RET
