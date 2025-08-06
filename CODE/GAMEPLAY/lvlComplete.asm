@@ -52,12 +52,21 @@ sStateGameplayTable@comp01Mode:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
-;   REMOVE ALL OTHER SPRITES BESIDES PAC-MAN
+;   CLEAR FRUIT STATUS
+    LD (currPlayerInfo.fruitStatus), A
+;   REMOVE GHOSTS FROM SCREEN
     LD (blinky + Y_WHOLE), A
     LD (pinky + Y_WHOLE), A
     LD (inky + Y_WHOLE), A
     LD (clyde + Y_WHOLE), A
-    LD (currPlayerInfo.fruitStatus), A  ; ALSO CLEAR FRUIT STATUS
+;   REMOVE FRUIT FROM SCREEN
+    LD HL, SPRITE_TABLE + $19 | VRAMWRITE
+    RST setVDPAddress
+    LD A, $F7
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
 ;   TURN MAZE WHITE
     LD HL, BGPAL_WALLS | CRAMWRITE
     RST setVDPAddress

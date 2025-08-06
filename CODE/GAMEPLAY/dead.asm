@@ -61,11 +61,19 @@ sStateGameplayTable@dead01Mode:
     LD A, $01
     LD (pacSprControl), A
     LD (pacman.sprTableNum), A  ; MOVE TO SUPER AREA
-;   REMOVE ALL OTHER SPRITES BESIDES PAC-MAN
+;   REMOVE GHOSTS FROM SCREEN
     LD (blinky + Y_WHOLE), A
     LD (pinky + Y_WHOLE), A
     LD (inky + Y_WHOLE), A
     LD (clyde + Y_WHOLE), A
+;   REMOVE FRUIT FROM SCREEN
+    LD HL, SPRITE_TABLE + $19 | VRAMWRITE
+    RST setVDPAddress
+    LD A, $F7
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
 ;   FRUIT CHECK
     ; CHECK IF LOW NIBBLE IS 0
     LD A, (currPlayerInfo.fruitStatus)
@@ -77,7 +85,6 @@ sStateGameplayTable@dead01Mode:
     AND A, $F0
     LD (currPlayerInfo.fruitStatus), A
 +:
-    LD (currPlayerInfo.fruitStatus), A
 ;   SET TIMER
     LD A, DEAD01_TIMER_LEN
     LD (mainTimer0), A
