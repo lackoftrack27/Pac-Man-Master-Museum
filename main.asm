@@ -469,9 +469,12 @@ pauseMode:
     JP mainGameLoop
 ;   "PAUSE" WILL NOT BE DISPLAYED
 +:
-    XOR A   ; CLEAR "PAUSE" TILES
+    SRL B   ; BYTE COUNT -> TILE COUNT
 -:
-    ; WRITE TO VDP
+    ; WRITE BLANK MASKING TILE
+    LD A, $BF
+    OUT (VDPDATA_PORT), A
+    LD A, $11
     OUT (VDPDATA_PORT), A
     DJNZ -
     JP mainGameLoop
@@ -799,32 +802,32 @@ vdpInitData:
     $0B - POWER DOT 1
     $0C - POWER DOT 2
     $0D - POWER DOT 3
-    $0E - IN MAZE TEXT
+    $0E - HUD TEXT (WHITE)
     $0F - SPRITE MASK (BLACK)
 */
 ;   MAZE BACKGROUND PALETTES
 bgPalPac:
-    .DB $00 $30 $00 $20 $20 $00 $3B $2B $00 $00 $16 $2B $2B $2B $03 $00
+    .DB $00 $30 $00 $20 $20 $00 $3B $2B $00 $00 $16 $2B $2B $2B $3F $00
 bgPalPlus:
-    .DB $00 $29 $00 $14 $14 $00 $3B $2B $00 $00 $16 $2B $2B $2B $03 $00
+    .DB $00 $29 $00 $14 $14 $00 $3B $2B $00 $00 $16 $2B $2B $2B $3F $00
 bgPalMs00:
-    .DB $00 $03 $2B $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
+    .DB $00 $03 $2B $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
 bgPalMs01:
-    .DB $00 $3F $38 $2A $2A $00 $3B $0F $00 $00 $0A $0F $0F $0F $03 $00
+    .DB $00 $3F $38 $2A $2A $00 $3B $0F $00 $00 $0A $0F $0F $0F $3F $00
 bgPalMs02:
-    .DB $00 $3F $1B $2A $2A $00 $3B $03 $00 $00 $02 $03 $03 $03 $03 $00
+    .DB $00 $3F $1B $2A $2A $00 $3B $03 $00 $00 $02 $03 $03 $03 $3F $00
 bgPalMs03:
-    .DB $00 $1B $30 $06 $06 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
+    .DB $00 $1B $30 $06 $06 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
 bgPalMs04:
-    .DB $00 $0F $3B $0A $0A $00 $3B $3C $00 $00 $28 $3C $3C $3C $03 $00
+    .DB $00 $0F $3B $0A $0A $00 $3B $3C $00 $00 $28 $3C $3C $3C $3F $00
 bgPalMs05:
-    .DB $00 $3C $30 $28 $28 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
+    .DB $00 $3C $30 $28 $28 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
 bgPalMs06:
-    .DB $00 $03 $3F $02 $02 $00 $3B $0C $00 $00 $08 $0C $0C $0C $03 $00
+    .DB $00 $03 $3F $02 $02 $00 $3B $0C $00 $00 $08 $0C $0C $0C $3F $00
 bgPalMs07:
-    .DB $00 $1B $0C $06 $06 $00 $3B $1B $00 $00 $06 $1B $1B $1B $03 $00
+    .DB $00 $1B $0C $06 $06 $00 $3B $1B $00 $00 $06 $1B $1B $1B $3F $00
 bgPalMs08:
-    .DB $00 $03 $30 $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $03 $00
+    .DB $00 $03 $30 $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
 
 
 ; SPRITE PALETTE ("SMOOTH")
@@ -866,17 +869,17 @@ hudTileMaps:
 @highScore:
 ;   "HIGH "
 ;   "SCORE"
-    .DW $19AA $19AB $19AC $19AA $1900
-    .DW $19AD $19AE $19AF $19B0 $19B1
+    .DW $11AA $11AB $11AC $11AA $11BF
+    .DW $11AD $11AE $11AF $11B0 $11B1
 @oneUP:
 ;   "1UP"
-    .DW $19B6 $19B2 $19B3 $1900 $1900
+    .DW $11B6 $11B2 $11B3 $11BF $11BF
 @twoUP:
 ;   "2UP"
-    .DW $19B7 $19B2 $19B3 $1900 $1900
+    .DW $11B7 $11B2 $11B3 $11BF $11BF
 @pause:
 ;   "PAUSE"
-    .DW $19B3 $19B4 $19B2 $19AD $19B1
+    .DW $11B3 $11B4 $11B2 $11AD $11B1
 @lives:
 ;   PAC-MAN
     .DW $182C $1825 $183A $1834 ; LEFT HALF

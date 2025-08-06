@@ -699,41 +699,38 @@ updateSndTestTilemap:
     RRCA
     RRCA
     RRCA
+    RRCA
     LD HL, @numTable
     RST addToHL
-    OUT (VDPDATA_PORT), A
-    INC HL
-    LD A, (HL)
-    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A   ; TILE ID FOR DIGIT
+    LD A, $01
+    OUT (VDPDATA_PORT), A   ; HIGH BYTE (UPPER $100)
 ;   2ND DIGIT (LEFT -> RIGHT)
     LD A, (sndTestIndex)
     ADD A, SFX_STOP ; CONVERT TO $80 BASED
     AND A, $0F
-    ADD A, A
     LD HL, @numTable
     RST addToHL
-    OUT (VDPDATA_PORT), A
-    INC HL
-    LD A, (HL)
-    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A   ; TILE ID FOR DIGIT
+    LD A, $01
+    OUT (VDPDATA_PORT), A   ; HIGH BYTE (UPPER $100)
     RET
 
 ;   TILE LIST FOR NUMBER DIGITS
 @numTable:
-    .DW $09B5 ; 0
-    .DW $09B6 ; 1
-    .DW $09B7 ; 2
-    .DW $09B8 ; 3
-    .DW $09B9 ; 4
-    .DW $09BA ; 5
-    .DW $09BB ; 6
-    .DW $09BC ; 7
-    .DW $09BD ; 8
-    .DW $09BE ; 9
-    .DW $09B4 ; A
-    .DW $0112 ; B
-    .DW $0109 ; C
-    .DW $0107 ; D
-    .DW $0104 ; E
-    .DW $0108 ; F
-
+    .DB $B5 ; 0
+    .DB $B6 ; 1
+    .DB $B7 ; 2
+    .DB $B8 ; 3
+    .DB $B9 ; 4
+    .DB $BA ; 5
+    .DB $BB ; 6
+    .DB $BC ; 7
+    .DB $BD ; 8
+    .DB $BE ; 9
+    .DB $B4 ; A
+    .DB $12 ; B
+    .DB $09 ; C
+    .DB $07 ; D
+    .DB $04 ; E
+    .DB $08 ; F
