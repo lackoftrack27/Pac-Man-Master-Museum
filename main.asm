@@ -451,9 +451,6 @@ pauseMode:
 ;   SET BIT 2 (MODE ISN'T NEW)
     OR A, $01 << NEW_PAUSE
     LD (pauseRequest), A
-;   CLEAR "PAUSE" FLASH COUNTER
-    XOR A
-    LD (xUPCounter), A
 @update:
 ;   PREPARE VDP ADDRESS
     LD HL, NAMETABLE + XUP_TEXT | VRAMWRITE
@@ -464,28 +461,24 @@ pauseMode:
     INC (HL)
 ;   CHECK IF BIT 4 OF FLASH COUNTER IS SET (CYCLES EVERY 16 FRAMES)
     BIT 4, (HL)
-    JR NZ, +    ; IF SO, SKIP...
+    JR NZ, +    ; IF SO, CLEAR 'PAUSE'
 ;   DISPLAY "PAUSE" TILES
     ; WRITE TO VDP
     LD HL, hudTileMaps@pause
     OTIR
-;   UPDATE END
     JP mainGameLoop
 ;   "PAUSE" WILL NOT BE DISPLAYED
 +:
-    ; CLEAR "PAUSE" TILES
-    XOR A
+    XOR A   ; CLEAR "PAUSE" TILES
 -:
     ; WRITE TO VDP
     OUT (VDPDATA_PORT), A
     DJNZ -
-;   UPDATE END
     JP mainGameLoop
 @exit:
 ;   CLEAR VARIABLES
     XOR A
     LD (pauseRequest), A
-    LD (xUPCounter), A
 ;   EXIT
     JP mainGameLoop
 

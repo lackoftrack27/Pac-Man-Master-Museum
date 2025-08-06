@@ -306,24 +306,13 @@ draw1UP:
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_ATTRACT
-    JR Z, @draw  ; IF SO, SKIP...
-;   CHECK IF COUNTER EQUALS 16
-    BIT 4, (HL)
-    JR Z, +     ; IF NOT, SKIP
-;   CLEAR COUNTER
-    LD A, ~$1F
-    AND A, (HL)
-;   TOGGLE BIT 5
-    XOR A, $20
-    LD (HL), A
-+:
-;   INCREMENT COUNTER
+    JR Z, @draw  ; IF SO, DRAW xUP
+;   INCREMENT, THEN CHECK IF BIT 4 IS SET
     INC (HL)
-@draw:
-;   CHECK IF BIT 5 IS SET
-    BIT 5, (HL)
-    JR Z, +  ; IF SO, DISPLAY
-    ; ELSE, CLEAR TILES
+    BIT 4, (HL)
+    JR Z, @draw ; IF NOT, DRAW xUP
+;   ELSE, CLEAR xUP
+@clear:
     LD HL, $11BF
     SRL B
 -:
@@ -331,11 +320,11 @@ draw1UP:
     OUT (C), H
     DJNZ -
     RET
-+:
+@draw:
     LD HL, hudTileMaps@oneUP
 ;   CHECK IF PLAYER 2 IS PLAYING
     LD A, (playerType)
-    BIT 1, A
+    BIT CURR_PLAYER, A
     JR Z, + ; IF NOT, DISPLAY "1UP"
 ;   ELSE, DISPLAY "2UP"
     LD A, B
