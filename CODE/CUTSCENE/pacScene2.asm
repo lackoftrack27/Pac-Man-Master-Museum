@@ -14,6 +14,9 @@ sStateCutsceneTable@pacScene2:
 ;   SPECIFIC CUTSCENE INITIALIZTION
     ; PALETTE SETUP
     CALL pacCutSetSpritePal
+    ; HIDE RIGHT-MOST PIXEL COLUMN OF BLINKY
+    LD HL, blinky + X_WHOLE
+    INC (HL)
 @@draw:
 ;   DO COMMON DRAW
     CALL generalGamePlayDraw
@@ -68,6 +71,7 @@ scene2Update1:
 ;   MOVE HIM TWO PIXELS
     INC A
     INC A
+    INC A   ; ADDITIONAL INCREMENT TO HIDE RIGHT-MOST PIXEL COLUMN
     LD (blinky.xPos), A
 ;   TURN BLINKY AROUND
     LD A, $03   ; GO RIGHT
@@ -92,12 +96,12 @@ scene2Update2:
 
 
 scene2Update3:
-;   DO SPECIAL DRAW FOR BLINKY
-    LD HL, ghostNakedTileDefs@frame0
-    CALL specialDrawBlinky1
+;   REMOVE BLINKY FROM SCREEN (DONE TO AVOID PEAKING THROUGH FRUIT SPRITES)
+    LD IX, blinky
+    CALL ghostSpriteFlicker@emptySprite
 ;   CHECK IF BLINKY IS AT WANTED TILE
     LD A, (blinky + CURR_X)
-    CP A, $2D
+    CP A, $3C
     JP Z, incCutState   ; IF SO, UPDATE STATE
 ;   ELSE, MOVE ACTORS
     JR scene2ActorMovement01
@@ -224,7 +228,7 @@ specialDrawBlinky1:
     CALL convPosToScreen
     ; ADJUST X
     LD A, D
-    SUB A, $06
+    SUB A, $07
     LD D, A
     ; ADJUST Y
     LD A, E
