@@ -214,11 +214,10 @@ drawGhostPoints:
     ; ADD OFFSET TO BASE TILE DEF. TABLE
     LD HL, ghostPointTileDefs
     RST addToHL
-    ; PREPARE TO DRAW POINTS
-    LD IX, pacman       ; USE PAC-MAN'S POSITION
+    ; DRAW POINTS
+    LD IX, ghostPointXpos - 1
     CALL convPosToScreen
-    LD A, $01           ; SPRITE TABLE NUM
-    ; EXECUTE
+    LD A, $01           ; DISPLAY OVER PAC-MAN
     JP display2HTileSprite
 
 

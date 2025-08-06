@@ -85,6 +85,11 @@ interactDetermination:
     LD (eatSubState), A
     ; HIDE GHOST (DOESN'T ACTUALLY DO THAT, BUT SIGNALS TO SPRITE FLICKER CODE)
     LD (IX + INVISIBLE_FLAG), A ; OVERRIDDEN IF GHOST FLASHING STARTS ON SAME FRAME
+    ; SET GHOST POINT POSITION TO GHOST'S
+    LD A, (IX + X_WHOLE)
+    LD (ghostPointXpos), A
+    LD A, (IX + Y_WHOLE)
+    LD (ghostPointYpos), A
     RET
 @ghostKill:
 ;   GHOST IS KILLING PAC-MAN
