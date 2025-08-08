@@ -40,6 +40,8 @@ sStateAttractTable@introMode:
 @@draw:
 ;   POWER PELLET PALETTE CYCLING
     CALL drawPowDots
+;   UPDATE GHOST VISUAL COUNTERS
+    CALL ghostVisCounterUpdate
 @@update:
 ;   GET JUST PRESSED INPUTS
     CALL getPressedInputs
@@ -71,21 +73,8 @@ sStateAttractTable@introMode:
     CALL ghostStateTable@draw@gotoExit
     LD IX, clyde
     CALL ghostStateTable@draw@gotoExit
-    ; CHECK IF WE NEED TO DRAW GHOST POINTS
-    LD A, (ghostPointSprNum)
-    OR A
-    JR Z, @@@stateJump  ; IF NOT, SKIP
-    ; DRAW POINTS (CONERT TO OFFSET)
-    LD A, (ghostPointIndex)
-    ADD A, A
-    ; ADD OFFSET TO BASE TILE DEF. TABLE
-    LD HL, ghostPointTileDefs
-    RST addToHL
-    ; DRAW GHOST POINTS
-    LD IX, ghostPointXpos - 1
-    CALL convPosToScreen
-    LD A, $01       ; DRAW OVER PAC-MAN
-    CALL display2HTileSprite
+    ; DISPLAY GHOST POINTS (IF NEEDED)
+    CALL drawGhostPoints
 ;   UPDATE FUNCTION TABLE
 @@@stateJump:
 ;   CONVERT STATE INTO OFFSET
@@ -93,7 +82,7 @@ sStateAttractTable@introMode:
 ;   INCREMENT STATE (WON'T TAKE EFFECT TILL NEXT TIME)
     LD HL, introSubState
     INC (HL)
-;   ADD OFFSET TO TABLE
+;   EXECUTE SUB STATE
     LD HL, introSubTable
     RST jumpTableExec
     RET
@@ -452,8 +441,6 @@ introActorSetup:
 
 ;   SUB STATE 0F
 runFromGhosts:
-;   UPDATE GHOST VISUAL COUNTERS
-    CALL ghostVisCounterUpdate
 ;   STATE 15 CHECK (HAS PAC-MAN REACHED POWER DOT?)
     LD A, (pacman.xPos)
     CP A, $C8
@@ -541,8 +528,6 @@ runFromGhosts:
 
 ;   SUB STATE 10
 ghostHeadStart:
-;   UPDATE GHOST VISUAL COUNTERS
-    CALL ghostVisCounterUpdate
 ;   STATE 16 CHECK (HAS PAC-MAN REACHED CENTER OF TILE WHERE POWER DOT WAS?)
     LD A, (pacman.xPos)
     CP A, $CC
@@ -584,7 +569,8 @@ ghostHeadStart:
     LD HL, (clyde.subPixel)
     ADD HL, DE
     LD (clyde.subPixel), HL
-    RET
+    ; UPDATE TILES
+    JR eatGhosts@updateActorTiles
 
 
 ;   SUB STATE 11
@@ -595,7 +581,7 @@ eatGhosts:
 ;   IS TIMER RUNNING?
     LD HL, mainTimer0
     DEC (HL)
-    RET NZ  ; IF SO, END...
+    RET NZ      ; IF SO, END...
     INC (HL)    ; COUNTERACT DECREMENT IF AT 0
 ;   STATE 17 CHECK (HAS PAC-MAN ATE ALL GHOSTS?)
     LD A, (ghostPointIndex)
@@ -627,8 +613,6 @@ eatGhosts:
     INC (HL)
     RET
 +:
-;   UPDATE GHOST VISUAL COUNTERS
-    CALL ghostVisCounterUpdate
 ;   MOVE ALL ACTORS
     ; PAC-MAN
     LD DE, ATT_PAC_SPEED01
@@ -652,6 +636,7 @@ eatGhosts:
     LD HL, (clyde.subPixel)
     ADD HL, DE
     LD (clyde.subPixel), HL
+@updateActorTiles:
 ;   UPDATE CURRENT TILE FOR ALL ACTORS
     LD IX, pacman
     CALL updateCurrTile
