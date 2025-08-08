@@ -2,6 +2,8 @@
 
 An **accuracy-focused** conversion of *Pac-Man* and *Ms. Pac-Man* for the Sega Master System.
 
+**Download Here:** https://www.smspower.org/Homebrew/Pac-ManMasterMuseum-SMS
+
 ---
 
 ## Features
@@ -23,10 +25,10 @@ An **accuracy-focused** conversion of *Pac-Man* and *Ms. Pac-Man* for the Sega M
 This started as a personal project to learn Z80 assembly. My long-term goal was to create a Pac-Man Collection featuring *Pac-Man*, *Ms. Pac-Man*, and *Pac-Man Plus*, inspired by Opcode Games’ Colecovision release.
 
 My key inspirations for this project were:
-- *Pac-Man Collection* by **Opcode Games**
-- *Ms. Pac-Man Classic* by **xfixium**
-- *Pac-Man Emulator* by **Simon Owen**
-- *Pac-Man* by **masonicGIT**
+- [*Pac-Man Collection*](https://cvaddict.com/profile.php?gameid=157) by **Opcode Games**
+- [*Ms. Pac-Man Classic*](https://www.smspower.org/Homebrew/MsPacManClassic-SMS) by **xfixium**
+- [*Pac-Man Emulator*](https://simonowen.com/articles/pacemu/) by **Simon Owen**
+- [*Pac-Man*](https://github.com/masonicGIT/pacman) by **masonicGIT**
 
 I hope this code is useful for anyone interested in learning Z80 assembly or exploring how *Pac-Man* works internally.
 
