@@ -10,7 +10,7 @@
                 SDSC TAG AND SMS HEADER
 ----------------------------------------------------------
 */
-.SDSCTAG 2.00, sdscName, sdscDesc, sdscAuth
+.SDSCTAG 2.10, sdscName, sdscDesc, sdscAuth
 
 /*
 ----------------------------------------------------------

@@ -46,6 +46,12 @@ Additional Credits:
 
 
 ## Changelog
+**v2.10**
+- Fixed a bug where the player could still die after eating the last dot
+- Fruit timer now decrements when eating a ghost
+- Fixed a bug where Blinky would incorrectly show through the transparent pixels of the fruit sprites in Pac-Man’s third cutscene
+- Fixed a bug where the ghost score points sprite would be shown instead of Pac-Man in cutscenes if the player managed to finish a level while eating a ghost
+
 **v2.00**
 - Added Ms. Pac-Man and Ms. Pac-Man Plus (Ms. Pac-Man Plus is a hack that brings Pac-Man Plus's unique mechanics to Ms. Pac-Man)
 - Added "Arcade" graphical style which tries to imitate the original games' style as close as possible
