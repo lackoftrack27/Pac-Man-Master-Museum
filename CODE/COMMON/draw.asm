@@ -515,11 +515,17 @@ drawFruitHUD:
     LD IXH, A
     INC IXH
 @msloop:
-    LD IXL, A     ; SAVE FRUIT NUMBER
-    LD HL, msFruitTileDefsHUD
+    LD IXL, A   ; SAVE FRUIT NUMBER
+;   LOAD FRUIT TILE LIST TABLE
+    LD HL, plusBitFlags
+    BIT PLUS, (HL)
+    LD HL, msFruitTileDefsHUD   ; NON PLUS
+    JR Z, +
+    LD HL, fruitTileDefs        ; PLUS
++:
 ;   WRITE FRUIT TO SCREEN
     CALL @writeFruit
-    RET Z   ; EXIT IF COUNTER IS 0
+    RET Z       ; EXIT IF COUNTER IS 0
 ;   PREPARE FOR NEXT LOOP
     DEC IXL     ; DECREMENT FRUIT NUMBER
     LD A, IXL
