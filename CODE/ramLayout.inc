@@ -1,7 +1,9 @@
 /*
             RAM VARIABLES
 */
-.RAMSECTION "ram" SLOT 3 ALIGN $100
+
+;   STARTS AT $C000 [SIZE: $600]
+.RAMSECTION "ram" SLOT 3
 ;   GENERAL GAME STUFF
     ; SPECIAL RESET KEY
     resetSig: dsb 4
@@ -119,23 +121,6 @@
     bonusIndex: db
     speedIndex: db
     styleIndex: db
-;   TEMPORARY WORK AREA FOR WHATEVER NEEDS IT
-    workArea: dsb 128    ; 133
-
-;   STARTS AT $C200
-.ALIGN $100
-;   EATEN DOT TABLE (LOW BYTE MUST BE $00)
-    mazeEatenDotTable: dsb 256
-;   POWER DOT TABLE
-    mazePowDotTable: dsb 64
-;   MAZE COLLISION DATA
-    mazeCollisionPtr: dsb 496
-;   MAZE PALETTE DATA
-    mazePalette: dsb 16
-;   BUFFERS FOR 2 PLAYER MODE
-    collisionBuffer: dsb 496
-    tileMapBuffer: dsb $600
-    superBigBuffer: dsb $600
 ;   PATHFIND TASK LIST
     ;taskListStart: dw
     taskListEnd: dw
@@ -148,4 +133,25 @@
     chan1 INSTANCEOF sndChannel
     chan2 INSTANCEOF sndChannel
     chan3 INSTANCEOF sndChannel
+.ENDS
+
+
+;   STARTS AT $C600 [SIZE: $1960]
+.RAMSECTION "mazeRam" SLOT 4
+;   STATIC MAZE TABLES
+    mazeEatenTbl: dsb $100        ; [BYTE ALIGNED]
+    mazeMutatedTbl: dsb $100      ; [BYTE ALIGNED] JR. PAC
+    mazeEatenMutatedTbl: dsb $200 ; JR. PAC
+    mazePowTbl: dsb $40           ; [BYTE ALIGNED]
+;   MAZE PALETTE DATA
+    mazePalette: dsb $10
+;   MAZE DATA GROUP FOR EACH PLAYER
+    mazeGroup1 INSTANCEOF mazePlayerInfo
+    mazeGroup2 INSTANCEOF mazePlayerInfo
+.ENDS
+
+;   STARTS AT $DF60 [SIZE: $A0]
+.RAMSECTION "workArea" SLOT 5
+;   TEMPORARY RAM FOR WHATEVER NEEDS IT
+    workArea: dsb $A0
 .ENDS

@@ -6,8 +6,12 @@
     SLOT 1  $7FF0       ; SMS HEADER
     SLOTSIZE    $4000
     SLOT 2  $8000       ; ROM (PAGED)
-    SLOTSIZE    $2000
-    SLOT 3  $C000       ; RAM
+    SLOTSIZE    $0600
+    SLOT 3  $C000       ; GENERAL RAM AREA 0
+    SLOTSIZE    $1960
+    SLOT 4  $C600       ; MAZE RAM
+    SLOTSIZE    $A0
+    SLOT 5  $DF60       ; GENERAL RAM AREA 1
 .ENDME
 
 ;   128KB IN TOTAL

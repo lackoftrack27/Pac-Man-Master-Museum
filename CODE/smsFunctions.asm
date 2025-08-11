@@ -18,8 +18,8 @@ waitForVblank:
 ;   WAIT UNTIL NEXT VBLANK
 -:
     IN A, (VDPCON_PORT)
-    BIT 7, A
-    JR Z, -
+    OR A
+    JP P, -
     RET
 
 
@@ -29,13 +29,17 @@ waitForVblank:
     OUTPUTS: NONE
     AFFECTS: A
 */
+turnOffVblankInts:
+;   TURN OFF VBLANK INTERRUPTS (SCREEN ON)
+    LD A, $C0   ; BIT 7 SET
+    JR +
 turnOffScreen:
 ;   TURN OFF SCREEN (AND DISABLE VDP INTS)
-    LD A, $80   ; KEEP BIT 7 SET (OFFICAL DOCS SAY TO DO SO...)
+    LD A, $80   ; BIT 7 SET (OFFICAL DOCS SAY TO DO SO...)
     JR +
 turnOnScreen:
 ;   TURN ON SCREEN (AND VDP INTS)
-    LD A, $E0   ; KEEP BIT 7 SET (OFFICAL DOCS SAY TO DO SO...)
+    LD A, $E0   ; BIT 7 SET (OFFICAL DOCS SAY TO DO SO...)
 +:
     OUT (VDPCON_PORT), A
     LD A, $81

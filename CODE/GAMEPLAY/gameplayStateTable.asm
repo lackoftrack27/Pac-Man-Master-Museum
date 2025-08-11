@@ -83,32 +83,15 @@ gamePlayInit:
     ; DECREMENT LIVES FOR PLAYER 2
     LD HL, altPlayerInfo.lives
     DEC (HL)
+
+    LD HL, hudTileMaps@lives
 ;   CHECK IF GAME IS MS. PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
-    JR NZ, +    ; IF SO, SKIP
-    LD HL, hudTileMaps@lives
-    LD (lifeHudPtr), HL
-;   LOAD MAZE COLLISION DATA FOR PLAYER 2 (PAC-MAN)
-    LD HL, mazeCollsionData
-    LD DE, collisionBuffer
-    CALL zx7_decompress
-;   LOAD MAZE TILEMAP DATA FOR PLAYER 2 (PAC-MAN)
-    LD HL, mazeTileMap
-    LD DE, tileMapBuffer
-    CALL zx7_decompress
-    JR generalResetFunc
-+:
+    JR Z, +    ; IF NOT, SKIP
     LD HL, hudTileMaps@msLives
++:
     LD (lifeHudPtr), HL
-;   LOAD MAZE COLLISION DATA FOR PLAYER 2 (MAZE 1)
-    LD HL, maze1ColData
-    LD DE, collisionBuffer
-    CALL zx7_decompress
-;   LOAD MAZE TILEMAP DATA FOR PLAYER 2 (MAZE 1)
-    LD HL, maze1TileMap
-    LD DE, tileMapBuffer
-    CALL zx7_decompress
 /*
 ----------------------------------------------------------
             RESET FUNCTION FOR GAMEPLAY MODE  
@@ -139,12 +122,18 @@ generalResetFunc:
     DJNZ -
 ;   LOAD MAZE DATA
     CALL loadMaze
+;   SET POWER PELLET COLOR BUFFER 
+    CALL powDotCyclingUpdate@refresh
+;   WRITE TILEMAP DATA TO VRAM
+    LD HL, NAMETABLE | VRAMWRITE
+    RST setVDPAddress
+    LD HL, mazeGroup1.tileMap
+    LD BC, $600
+    CALL copyToVDP
 ;   LOAD MAZE TEXT SPRITES
     LD HL, mazeTextTiles
     LD DE, MAZETXT_INDEX * TILE_SIZE | VRAMWRITE
     CALL zx7_decompressVRAM
-;   SET POWER PELLET COLOR BUFFER 
-    CALL powDotCyclingUpdate@refresh
 ;   RESET SOME VARS ONLY IF ON LEVEL FOR THE FIRST TIME
     LD A, (currPlayerInfo.diedFlag)
     OR A

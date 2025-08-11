@@ -279,7 +279,7 @@ updateCollTiles:
     ; ADD X OFFSET TO POINTER
     RST addToHL
     ; ADD TO INITIAL MAZE COLLISION ADDRESS
-    LD BC, mazeCollisionPtr
+    LD BC, mazeGroup1.collMap
     ADD HL, BC
     ; PREPARE VARS
     LD D, $F0       ; UPPER NIBBLE EXTRACTOR
@@ -397,7 +397,7 @@ getTileID:
     ; ADD X OFFSET TO POINTER
     RST addToHL
     ; ADD TO INITIAL MAZE COLLISION ADDRESS
-    LD BC, mazeCollisionPtr
+    LD BC, mazeGroup1.collMap
     ADD HL, BC
     ; PREPARE VARS
     LD D, $F0       ; UPPER NIBBLE EXTRACTOR

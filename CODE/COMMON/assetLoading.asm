@@ -285,11 +285,11 @@ loadMaze:
     CALL zx7_decompressVRAM
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, maze0EatenTable
-    LD DE, mazeEatenDotTable
+    LD DE, mazeEatenTbl
     CALL zx7_decompress
     ; LOAD POWER DOT TABLE (LOAD EVERY TIME!)
     LD HL, maze0EatenTable@powDots
-    LD DE, mazePowDotTable
+    LD DE, mazePowTbl
     CALL zx7_decompress
     ; CHECK IF PLAYER HAS DIED
     LD A, (currPlayerInfo.diedFlag)
@@ -297,11 +297,11 @@ loadMaze:
     RET NZ  ; IF SO, END
     ; LOAD MAZE TILEMAP DATA
     LD HL, mazeTileMap
-    LD DE, NAMETABLE | VRAMWRITE
-    CALL zx7_decompressVRAM
+    LD DE, mazeGroup1.tileMap
+    CALL zx7_decompress
     ; LOAD MAZE COLLISION DATA
     LD HL, mazeCollsionData
-    LD DE, mazeCollisionPtr
+    LD DE, mazeGroup1.collMap
     JP zx7_decompress
 +:
 ;   LOAD MS. PAC-MAN MAZE DATA
@@ -313,12 +313,12 @@ loadMaze:
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, msMazeDotTable
     CALL getMazeIndex
-    LD DE, mazeEatenDotTable
+    LD DE, mazeEatenTbl
     CALL zx7_decompress
     ; LOAD POWER DOT TABLE (LOAD EVERY TIME!)
     LD HL, msMazePowTable
     CALL getMazeIndex
-    LD DE, mazePowDotTable
+    LD DE, mazePowTbl
     CALL zx7_decompress
     ; CHECK IF PLAYER HAS DIED
     LD A, (currPlayerInfo.diedFlag)
@@ -327,10 +327,10 @@ loadMaze:
     ; LOAD MAZE TILEMAP DATA
     LD HL, msMazeTilemapTable
     CALL getMazeIndex
-    LD DE, NAMETABLE | VRAMWRITE
-    CALL zx7_decompressVRAM
+    LD DE, mazeGroup1.tileMap
+    CALL zx7_decompress
     ; LOAD MAZE COLLISION DATA
     LD HL, msMazeColTable
     CALL getMazeIndex
-    LD DE, mazeCollisionPtr
+    LD DE, mazeGroup1.collMap
     JP zx7_decompress

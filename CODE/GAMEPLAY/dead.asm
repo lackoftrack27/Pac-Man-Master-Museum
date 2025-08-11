@@ -158,10 +158,22 @@ sStateGameplayTable@dead02Mode:
 ;   SET DEATH FLAG
     INC A
     LD (currPlayerInfo.diedFlag), A
+;   TURN OFF VBLANK INTS (BUT NOT SCREEN!)
+    CALL turnOffVblankInts
+;   UPDATE TILEMAP IN RAM
+    LD HL, NAMETABLE
+    RST setVDPAddress
+    LD HL, mazeGroup1.tileMap
+    LD BC, _sizeof_mazeGroup1.tileMap
+    CALL copyFromVDP
+;   MISSED LAST VBLANK, WAIT FOR FRESH FRAME
+    CALL waitForVblank
 ;   CHECK IF THAT WAS LAST LIFE
     LD A, (currPlayerInfo.lives)
     OR A
     JR NZ, +    ; IF NOT, SKIP...
+;   TURN ON VBLANK INTS
+    CALL turnOnScreen
 ;   SWITCH TO GAME OVER
     LD HL, $01 * $100 + GAMEPLAY_GAMEOVER
     LD (subGameMode), HL
@@ -172,62 +184,37 @@ sStateGameplayTable@dead02Mode:
     BIT PLAYER_MODE, (HL)
     JR Z, + ; IF NOT, SKIP...
 @@@swapPlayers:
+;   TURN OFF VBLANK INTS (BUT NOT SCREEN!)
+    CALL turnOffVblankInts
 ;   TOGGLE CURRENT PLAYER BIT (BIT 1)
     LD A, $01 << CURR_PLAYER
     XOR A, (HL)
     LD (HL), A
-;   ELSE, TURN OFF SCREEN (AND VBLANK INTS)
-    CALL turnOffScreen
-;   SWAP PLAYER DATA
-    ; X -> Z
-    LD HL, currPlayerInfo
-    LD DE, workArea
-    LD BC, _sizeof_playerInfo
-    LDIR
-    ; Y -> X
-    LD HL, altPlayerInfo
-    LD DE, currPlayerInfo
-    LD BC, _sizeof_playerInfo
-    LDIR
-    ; Z -> Y
-    LD HL, workArea
-    LD DE, altPlayerInfo
-    LD BC, _sizeof_playerInfo
-    LDIR
-;   SWAP COLLISION MAPS
-    ; X -> Z
-    LD HL, mazeCollisionPtr
-    LD DE, superBigBuffer
-    LD BC, MAZE_COLMAP_SIZE
-    LDIR
-    ; Y -> X
-    LD HL, collisionBuffer
-    LD DE, mazeCollisionPtr
-    LD BC, MAZE_COLMAP_SIZE
-    LDIR
-    ; Z -> Y
-    LD HL, superBigBuffer
-    LD DE, collisionBuffer
-    LD BC, MAZE_COLMAP_SIZE
-    LDIR
-;   SWAP TILEMAPS
-    ; X -> Z
-    LD HL, NAMETABLE
-    RST setVDPAddress
-    LD HL, superBigBuffer
-    LD BC, MAZE_TILEMAP_SIZE
-    CALL copyFromVDP
-    ; Y -> X
-    LD HL, NAMETABLE | VRAMWRITE
-    RST setVDPAddress
-    LD HL, tileMapBuffer
-    LD BC, MAZE_TILEMAP_SIZE
-    CALL copyToVDP
-    ; Z -> Y
-    LD HL, superBigBuffer
-    LD DE, tileMapBuffer
-    LD BC, MAZE_TILEMAP_SIZE
-    LDIR
+;   SWAP PLAYER DATA (NON MAZE STUFF)
+    LD IX, currPlayerInfo
+    LD IY, altPlayerInfo
+    LD B, _sizeof_playerInfo
+-:
+    LD E, (IX + 0)
+    LD D, (IY + 0)
+    LD (IY + 0), E
+    LD (IX + 0), D
+    INC IX
+    INC IY
+    DJNZ -
+;   SWAP PLAYER DATA (MAZE STUFF)
+    LD IX, mazeGroup1   ; CURRENT PLAYER
+    LD IY, mazeGroup2   ; ALT PLAYER
+    LD BC, _sizeof_mazeGroup1
+-:
+    LD E, (IX + 0)
+    LD D, (IY + 0)
+    LD (IY + 0), E
+    LD (IX + 0), D
+    INC IX
+    INC IY
+    CPI
+    JP PE, -
 +:
 ;   SWITCH TO SECOND READY MODE
     LD HL, $01 * $100 + GAMEPLAY_READY01

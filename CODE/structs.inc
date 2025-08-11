@@ -91,3 +91,9 @@
     freq    dw
     sndID   db      ; ID CHANNEL IS CURRENTLY PLAYING (0 MEANS OFF)
 .ENDST
+
+; UNIQUE MAZE DATA FOR EACH PLAYER
+.STRUCT mazePlayerInfo
+    collMap dsb 810     ; NON-SCROLLING: 496 BYTES
+    tileMap dsb 1886    ; NON-SCROLLING: 1536 BYTES
+.ENDST
