@@ -313,7 +313,7 @@ draw1UP:
     JR Z, @draw ; IF NOT, DRAW xUP
 ;   ELSE, CLEAR xUP
 @clear:
-    LD HL, $11BF
+    LD HL, $1100 | MASK_TILE
     SRL B
 -:
     OUT (C), L
@@ -398,7 +398,7 @@ drawScore:
     ; WRITE 2 ZEROS
     LD HL, NAMETABLE + NUM_TEXT + $08 | VRAMWRITE
     RST setVDPAddress
-    LD A, $B5   ; ZERO TILE
+    LD A, HUDZERO_INDEX   ; ZERO TILE
     LD L, $11   ; HIGH BYTE OF TILE (UPPER 256, PRIORITY)
     OUT (VDPDATA_PORT), A
     OUT (C), L
@@ -428,7 +428,7 @@ drawScore:
     BIT 0, D    ; CHECK IF FLAG IS 0
     JR NZ, ++   ; IF NOT, DRAW DIGIT
     ; WRITE BLANK MASKING TILE
-    LD A, $BF
+    LD A, MASK_TILE
     OUT (VDPDATA_PORT), A
     LD A, $11
     OUT (VDPDATA_PORT), A
@@ -444,7 +444,7 @@ drawScore:
     RRCA
 ++:
 ;   ADD ZERO DIGIT TILE INDEX
-    ADD A, $B5
+    ADD A, HUDZERO_INDEX
 ;   WRITE TO VDP
     OUT (VDPDATA_PORT), A
     OUT (C), E
@@ -603,7 +603,7 @@ removeLifeonScreen:
     LD HL, lifePositionTable
     RST addToHL
 ;   PREPARE VARS
-    LD A, $BF           ; TILE ID
+    LD A, MASK_TILE     ; TILE ID
     LD C, VDPCON_PORT   ; DATA PORT
 ;   WRITE VRAM ADDRESS FOR TOP TILES
     OUTI

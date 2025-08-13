@@ -5,13 +5,13 @@
 */
 ;   SPRITE INDEX
 titleArrowTable:
-    .DB $01 $02
+    .DB $01 + (SPRITE_ADDR / TILE_SIZE), $02 + (SPRITE_ADDR / TILE_SIZE)
 
 ;   MACROS FOR PAC-MEN TILE LISTS
 .MACRO pacSprDefsTitle  ARGS, VAL
 ;   RIGHT
     .db VAL+$07, VAL+$16, VAL+$08, VAL+$17 ; HALF
-    .db VAL, VAL+$11, $00, $00             ; OPEN
+    .db VAL, VAL+$11, BLANK_TILE, BLANK_TILE             ; OPEN
     .db VAL+$07, VAL+$16, VAL+$08, VAL+$17 ; HALF
     .db VAL+$0E, VAL+$16, VAL+$0A, VAL+$17 ; CLOSED
 .ENDM
@@ -25,9 +25,9 @@ titleArrowTable:
 .ENDM
 
 titlePacman:
-    pacSprDefsTitle     ($03)
+    pacSprDefsTitle     ($03 + SPRITE_ADDR / TILE_SIZE)
 titlemsPacman:
-    msPacSprDefsTitle   ($1D)
+    msPacSprDefsTitle   ($1D + SPRITE_ADDR / TILE_SIZE)
 
 
 /*

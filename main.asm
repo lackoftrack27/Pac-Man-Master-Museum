@@ -224,19 +224,18 @@ main:
     LD HL, vdpInitData
     LD BC, _sizeof_vdpInitData * $100 + VDPCON_PORT
     OTIR
-;   CREATE SPECIAL PRIORITY TILE AT INDEX $BF
-    LD HL, BACKGROUND_ADDR + ($BF * TILE_SIZE) | VRAMWRITE
+;   CREATE SPECIAL PRIORITY TILE AT INDEX $FF
+    LD HL, BACKGROUND_ADDR + (MASK_TILE * TILE_SIZE) | VRAMWRITE
     RST setVDPAddress
     ; WRITE 32 BYTES OF $FF ($0F INDEX)
-    DEC C   ; VDP DATA PORT
     LD B, TILE_SIZE
     LD A, $FF
 -:
-    OUT (C), A
+    OUT (VDPDATA_PORT), A
     DJNZ -
 ;   LOAD HUD TEXT TILES
     LD HL, hudTextTiles
-    LD DE, HUDTEXT_ADDR | VRAMWRITE
+    LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE
     CALL zx7_decompressVRAM
 ;   MAPPER INIT.
     LD DE, MAPPER_RAM
@@ -472,7 +471,7 @@ pauseMode:
     SRL B   ; BYTE COUNT -> TILE COUNT
 -:
     ; WRITE BLANK MASKING TILE
-    LD A, $BF
+    LD A, MASK_TILE
     OUT (VDPDATA_PORT), A
     LD A, $11
     OUT (VDPDATA_PORT), A
@@ -757,7 +756,9 @@ vdpInitData:
     .db $A0         ; ENABLE FRAME INTERRUPTS AND SET BIT 7...
     .db $81         ; FOR REG 01 (MODE CONTROL 2)
     ;----------------------
-    .db $FF         ; VRAM NAME TABLE AT $3800...
+    ;.db $FF         ; VRAM NAME TABLE AT $3800...
+    ;.DB ($00 << $03) | $01  ; SPRITE ATTR. TABLE AT $0000...
+    .DB (hibyte(NAMETABLE) >> $02) | $01
     .db $82         ; FOR REG 02 (NAME TABLE BASE ADDR)
     ;----------------------
     .db $FF         ; VRAM COLOR TABLE BASE ADDR (NORMAL OPERATION)
@@ -767,7 +768,10 @@ vdpInitData:
     .db $84         ; FOR REG 04 (PATTERN GEN. TABLE BASE ADDR)
     ;----------------------
     ;.db $FF         ; SPRITE ATTR. TABLE AT $3F00...
-    .DB ($3F << $01) | $C1
+    ;.DB ($01 << $01) | $C1
+    ;.DB ($06 << $01) | $01  ; SPRITE ATTR. TABLE AT $0600...
+        ;.DB ($00 << $03) | $01  ; SPRITE ATTR. TABLE AT $0000...
+    .DB (hibyte(SPRITE_TABLE) << $01) | $01
     .db $85         ; FOR REG 05 (SAT BASE ADDR)
     ;----------------------
     .db $FB         ; SPRITE PATTERN GENERATOR TABLE AT $0000 (256 SPRITE LIMIT)
@@ -867,6 +871,7 @@ sprPalData:
 */
 hudTileMaps:
 @highScore:
+    /*
 ;   "HIGH "
 ;   "SCORE"
     .DW $11AA $11AB $11AC $11AA $11BF
@@ -880,12 +885,28 @@ hudTileMaps:
 @pause:
 ;   "PAUSE"
     .DW $11B3 $11B4 $11B2 $11AD $11B1
+    */
+;   "HIGH "
+;   "SCORE"
+    .DW $11EA, $11EB, $11EC, $11EA, $1100 | MASK_TILE
+    .DW $11ED, $11EE, $11EF, $11F0, $11F1
+@oneUP:
+;   "1UP"
+    .DW $11F6, $11F2, $11F3, $1100 | MASK_TILE, $1100 | MASK_TILE
+@twoUP:
+;   "2UP"
+    .DW $11F7, $11F2, $11F3, $1100 | MASK_TILE, $1100 | MASK_TILE
+@pause:
+;   "PAUSE"
+    .DW $11F3, $11F4, $11F2, $11FD, $11F1
 @lives:
 ;   PAC-MAN
-    .DW $182C $1825 $183A $1834 ; LEFT HALF
+    .DW $1800 | $2C + (SPRITE_ADDR / TILE_SIZE), $1800 | $25 + (SPRITE_ADDR / TILE_SIZE)
+    .DW $1800 | $3A + (SPRITE_ADDR / TILE_SIZE), $1800 | $34 + (SPRITE_ADDR / TILE_SIZE) ; LEFT HALF
 @msLives:
 ;   MS. PAC-MAN
-    .DW $1829 $182A $183F $1840 ; RIGHT HALF
+    .DW $1800 | $29 + (SPRITE_ADDR / TILE_SIZE), $1800 | $2A + (SPRITE_ADDR / TILE_SIZE)
+    .DW $1800 | $3F + (SPRITE_ADDR / TILE_SIZE), $1800 | $40 + (SPRITE_ADDR / TILE_SIZE) ; RIGHT HALF
 
 /*
     TABLE FOR POSITIONS OF LIVES IN HUD
@@ -997,7 +1018,7 @@ powDotPalTable:
     .DB VAL+$04, VAL+$07    ; 3200
 .ENDM
 ghostPointTileDefs:
-    ghostPointsDefs (GSCORE_VRAM / TILE_SIZE)
+    ghostPointsDefs (SPRITE_ADDR + GSCORE_VRAM) / TILE_SIZE
 
 
 /*
@@ -1045,37 +1066,37 @@ fruitTable:
 .ENDM
 fruitTileDefs:
     ; FRUIT 0
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE)
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE
     ; FRUIT 1
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $02
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $02
     ; FRUIT 2
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $04
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $04
     ; FRUIT 3
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $06
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $06
     ; FRUIT 4
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $08
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $08
     ; FRUIT 5
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $0A
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $0A
     ; FRUIT 6
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $0C
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $0C
     ; FRUIT 7
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $0E
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $0E
 
 msFruitTileDefsHUD:
     ; FRUIT 0
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE)
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE
     ; FRUIT 1
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $02
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $02
     ; FRUIT 2
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $04
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $04
     ; FRUIT 3
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $06
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $06
     ; FRUIT 4
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $08
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $08
     ; FRUIT 5
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $0E  ; PEAR FOR HUD
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $0E  ; PEAR FOR HUD
     ; FRUIT 6
-    fruitSprDef (FRUIT_VRAM / TILE_SIZE) + $0C
+    fruitSprDef (SPRITE_ADDR + FRUIT_VRAM) / TILE_SIZE + $0C
 
 
 
@@ -1083,31 +1104,31 @@ msFruitTileDefsHUD:
     FRUIT POINT TILE INDEXES
 */
 .MACRO fruitPointsDefs  ARGS, VAL
-    .DB VAL, $00, VAL+$04, $00      ; 100
-    .DB VAL+$01, $00, VAL+$04, $00  ; 300
-    .DB VAL+$02, $00, VAL+$04, $00  ; 500
-    .DB VAL+$03, $00, VAL+$04, $00  ; 700
-    .DB VAL+$05, $00, VAL+$09, $00  ; 1000
-    .DB VAL+$06, $00, VAL+$09, $00  ; 2000
-    .DB VAL+$07, $00, VAL+$09, $00  ; 3000
-    .DB VAL+$08, $00, VAL+$09, $00  ; 5000
+    .DB VAL, BLANK_TILE, VAL+$04, BLANK_TILE      ; 100
+    .DB VAL+$01, BLANK_TILE, VAL+$04, BLANK_TILE  ; 300
+    .DB VAL+$02, BLANK_TILE, VAL+$04, BLANK_TILE  ; 500
+    .DB VAL+$03, BLANK_TILE, VAL+$04, BLANK_TILE  ; 700
+    .DB VAL+$05, BLANK_TILE, VAL+$09, BLANK_TILE  ; 1000
+    .DB VAL+$06, BLANK_TILE, VAL+$09, BLANK_TILE  ; 2000
+    .DB VAL+$07, BLANK_TILE, VAL+$09, BLANK_TILE  ; 3000
+    .DB VAL+$08, BLANK_TILE, VAL+$09, BLANK_TILE  ; 5000
 .ENDM
 fruitPointTileDefs:
-    fruitPointsDefs (FSCORE_VRAM / TILE_SIZE)
+    fruitPointsDefs     (SPRITE_ADDR + FSCORE_VRAM) / TILE_SIZE
 
 
 
 .MACRO msFruitPointsDefs  ARGS, VAL
-    .DB VAL, $00, VAL+$01, VAL+$09          ; 100
-    .DB VAL+$02, $00, VAL+$01, VAL+$09      ; 200
-    .DB VAL+$03, $00, VAL+$01, VAL+$09      ; 500
-    .DB VAL+$04, $00, VAL+$01, VAL+$09      ; 700
+    .DB VAL, BLANK_TILE, VAL+$01, VAL+$09          ; 100
+    .DB VAL+$02, BLANK_TILE, VAL+$01, VAL+$09      ; 200
+    .DB VAL+$03, BLANK_TILE, VAL+$01, VAL+$09      ; 500
+    .DB VAL+$04, BLANK_TILE, VAL+$01, VAL+$09      ; 700
     .DB VAL+$05, VAL+$0A, VAL+$06, VAL+$0B  ; 1000
     .DB VAL+$07, VAL+$0A, VAL+$06, VAL+$0B  ; 2000
     .DB VAL+$08, VAL+$0A, VAL+$06, VAL+$0B  ; 5000
 .ENDM
 msFruitPointTileDefs:
-    msFruitPointsDefs   (FSCORE_VRAM / TILE_SIZE)
+    msFruitPointsDefs   (SPRITE_ADDR + FSCORE_VRAM) / TILE_SIZE
 
 
 

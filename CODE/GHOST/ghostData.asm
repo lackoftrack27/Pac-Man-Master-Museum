@@ -28,13 +28,13 @@
 .ENDM
 ghostNormalTileDefs:
 @blinky:
-    ghostSprDefNormal (GHOST_VRAM / TILE_SIZE)          ; BLINKY
+    ghostSprDefNormal (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE          ; BLINKY
 @pinky:
-    ghostSprDefNormal (GHOST_VRAM / TILE_SIZE) + $0C    ; PINKY
+    ghostSprDefNormal (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $0C    ; PINKY
 @inky:
-    ghostSprDefNormal (GHOST_VRAM / TILE_SIZE) + $18    ; INKY
+    ghostSprDefNormal (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $18    ; INKY
 @clyde:
-    ghostSprDefNormal (GHOST_VRAM / TILE_SIZE) + $24    ; CLYDE
+    ghostSprDefNormal (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $24    ; CLYDE
 
 
 
@@ -52,7 +52,7 @@ ghostNormalTileDefs:
     .DB VAL+$06, VAL+$0E, VAL+$07, VAL+$0F
 .ENDM
 ghostScaredTileDefs:
-    ghostSprDefScared (SCARED_VRAM / TILE_SIZE)
+    ghostSprDefScared (SPRITE_ADDR + SCARED_VRAM) / TILE_SIZE
 
 
 
@@ -70,4 +70,4 @@ ghostScaredTileDefs:
     .DB VAL, VAL+$01
 .ENDM
 ghostEyesTileDefs:
-    ghostSprDefEyes (EYES_VRAM / TILE_SIZE)
+    ghostSprDefEyes (SPRITE_ADDR + EYES_VRAM) / TILE_SIZE

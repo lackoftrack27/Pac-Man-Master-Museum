@@ -718,17 +718,17 @@ updateSndTestTilemap:
 
 ;   TILE LIST FOR NUMBER DIGITS
 @numTable:
-    .DB $B5 ; 0
-    .DB $B6 ; 1
-    .DB $B7 ; 2
-    .DB $B8 ; 3
-    .DB $B9 ; 4
-    .DB $BA ; 5
-    .DB $BB ; 6
-    .DB $BC ; 7
-    .DB $BD ; 8
-    .DB $BE ; 9
-    .DB $B4 ; A
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $0B ; 0
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $0C ; 1
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $0D ; 2
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $0E ; 3
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $0F ; 4
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $10 ; 5
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $11 ; 6
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $12 ; 7
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $13 ; 8
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $14 ; 9
+    .DB (HUDTEXT_VRAM / TILE_SIZE) + $0A ; A
     .DB $12 ; B
     .DB $09 ; C
     .DB $07 ; D

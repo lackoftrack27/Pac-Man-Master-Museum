@@ -17,9 +17,9 @@ sStateCutsceneTable@pacScene1:
     ; SHOW STUMP THAT BLINKY WILL GET CAUGHT ON
     LD HL, NAMETABLE + ($0D * 2) + ($0D * $40) | VRAMWRITE
     RST setVDPAddress
-    LD A, $D8           ; $D8: TILE INDEX || $08: SPRITE PALETTE
+    LD A, SCENE2_STUMP0
     OUT (VDPDATA_PORT), A
-    LD A, $08
+    LD A, $08       ; SPRITE PALETTE
     OUT (VDPDATA_PORT), A
     ; SETUP TIMER
     LD A, 18
@@ -100,9 +100,9 @@ scene1Update3:
     ; CHANGE TO SMALL PIECE OF SKIN
     LD HL, NAMETABLE + ($0D * 2) + ($0D * $40) | VRAMWRITE
     RST setVDPAddress
-    LD HL, $D908    ; D9: TILE INDEX || 08: SPRITE PALETTE
-    OUT (C), H
+    LD HL, $08 * $100 + SCENE2_STUMP1
     OUT (C), L
+    OUT (C), H  ; SPRITE PALETTE
     ; INCREMENT CUTSCENE STATE
     JP incCutState
 
@@ -116,9 +116,9 @@ scene1Update4:
     ; CHANGE TO MEDIUM PIECE OF SKIN
     LD HL, NAMETABLE + ($0D * 2) + ($0D * $40) | VRAMWRITE
     RST setVDPAddress
-    LD HL, $DA08    ; DA: TILE INDEX || 08: SPRITE PALETTE
-    OUT (C), H
+    LD HL, $08 * $100 + SCENE2_STUMP2
     OUT (C), L
+    OUT (C), H  ; SPRITE PALETTE
     ; INCREMENT CUTSCENE STATE
     JP incCutState
 
@@ -131,12 +131,12 @@ scene1Update5:
     ; CHANGE TO LARGE PIECE OF SKIN
     LD HL, NAMETABLE + ($0C * 2) + ($0D * $40) | VRAMWRITE
     RST setVDPAddress
-    LD HL, $DB08    ; DB: TILE INDEX || 08: SPRITE PALETTE
-    OUT (C), H
+    LD HL, $08 * $100 + SCENE2_STUMP3
     OUT (C), L
-    INC H           ; DC
-    OUT (C), H
+    OUT (C), H  ; SPRITE PALETTE
+    INC L       ; STUMP 4
     OUT (C), L
+    OUT (C), H  ; SPRITE PALETTE
     ; INCREMENT CUTSCENE STATE
     JP incCutState
 
@@ -170,12 +170,14 @@ scene1Update8:
     ; CHANGE TO RIPPED SKIN AROUND STUMP
     LD HL, NAMETABLE + ($0C * 2) + ($0D * $40) | VRAMWRITE
     RST setVDPAddress
-    XOR A           ; CLEAR TILE
+    LD HL, $08 * $100 + SCENE2_STUMP5
+    LD A, BLANK_TILE
+    ; BLANK TILE
     OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    LD HL, $DD08    ; F3: TILE INDEX || 08: SPRITE PALETTE
     OUT (C), H
+    ; STUMP 5
     OUT (C), L
+    OUT (C), H  ; SPRITE PALETTE
     ; SET TIMER
     LD A, 60
     LD (mainTimer0), A

@@ -61,11 +61,22 @@ sStateGameplayTable@dead01Mode:
     LD A, $01
     LD (pacSprControl), A
     LD (pacman.sprTableNum), A  ; MOVE TO SUPER AREA
-;   REMOVE GHOSTS FROM SCREEN
-    LD (blinky + Y_WHOLE), A
-    LD (pinky + Y_WHOLE), A
-    LD (inky + Y_WHOLE), A
-    LD (clyde + Y_WHOLE), A
+;   REMOVE GHOSTS FROM SCREEN (LOGICALLY)
+    LD (blinky + X_WHOLE), A
+    LD (pinky + X_WHOLE), A
+    LD (inky + X_WHOLE), A
+    LD (clyde + X_WHOLE), A
+;   REMOVE GHOSTS FROM SCREEN (REAL)
+    LD HL, SPRITE_TABLE + $05 | VRAMWRITE ; $19
+    RST setVDPAddress
+    LD A, $F7
+    LD B, $04
+-:
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    DJNZ -
 ;   REMOVE FRUIT FROM SCREEN
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
@@ -90,6 +101,32 @@ sStateGameplayTable@dead01Mode:
     LD (mainTimer0), A
 ;   NOTIFY PAC-MAN
     CALL pacGameTrans_dead
+;   LOAD PAC-MAN'S DEATH SPRITES
+    ; SKIP IF GAME ISN'T PAC-MAN
+    LD A, (plusBitFlags)
+    BIT MS_PAC, A
+    JR NZ, @@draw
+    ; TURN OFF VBLANK INTS (BUT NOT SCREEN!)
+    CALL turnOffVblankInts
+    ; ASSUME STYLE IS SMOOTH
+    LD HL, pacDeathTiles
+    LD A, (plusBitFlags)
+    BIT STYLE_0, A
+    JR Z, +     ; SKIP IF SO
+    ; ELSE, GET ARCADE GFX DATA, CHANGE BANK
+    LD HL, arcadeGFXData@pacDeath
+    LD A, ARCADE_BANK
+    LD (MAPPER_SLOT2), A
++:
+    LD DE, SPRITE_ADDR + DEATH_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAMSafe
+    ; RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
+    ; MISSED LAST VBLANK, WAIT FOR NEXT
+    CALL waitForVblank
+    ; TURN VBLANKS INTS BACK ON
+    CALL turnOnScreen
 @@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw

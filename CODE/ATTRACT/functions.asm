@@ -44,7 +44,7 @@ plus_clrNametableArea:
 ;   ROW 1
     LD HL, NAMETABLE + (12 * 2) + (09 * $40) | VRAMWRITE
     RST setVDPAddress
-    XOR A
+    LD A, BLANK_TILE
     LD BC, $10 * $100 + VDPDATA_PORT
 -:
     OUT (C), A
@@ -279,7 +279,7 @@ generalIntroSetup00:
 ;   USE PRIORITY TILE TO COVER ACTORS
     ; HIGH BYTE (PRIORITY / INDEX MSB)
     ; LOW BYTE (INDEX)
-    LD DE, $11 * $100 + $BF
+    LD DE, $11 * $100 + MASK_TILE
     ; ROW 0
     LD HL, NAMETABLE + (23 * 2) + ($0C * $40) | VRAMWRITE
     RST setVDPAddress

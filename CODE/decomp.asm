@@ -32,67 +32,73 @@
 ; Uses af, bc, de, hl
 ; ===============================================================
 
+
+/*
+--------------------------------------
+    ZX7 FILE DECOMPRESSED TO VRAM (ONLY USE WHEN SCREEN IS OFF)
+--------------------------------------
+*/
 zx7_decompressVRAM:
-  ; Set VRAM address
-  ld c,$bf
-  out (c),e
-  out (c),d
-  dec c ; data port
+;   Set VRAM address
+    ld c,$bf
+    out (c),e
+    out (c),d
+    dec c ; data port
 
-  ld a, 1<<7 ; Signal bit for flags byte
-  ; This is a trick whereby we can cycle a flags byte in a through the carry flag,
-  ; and a will never be zero until it is time to read a new flags byte because we
-  ; shift a bit to the right of the data to keep it non-zero until they are all
-  ; consumed.
-  ; Each time we want a bit, we do:
-  ; add a, a ; get MSB into carry
-  ; jr z, _nextFlagsByte ; get new flags byte if necessary (and shift it into carry)
-  ; <use the bit in carry>
+    ld a, 1<<7 ; Signal bit for flags byte
+    ; This is a trick whereby we can cycle a flags byte in a through the carry flag,
+    ; and a will never be zero until it is time to read a new flags byte because we
+    ; shift a bit to the right of the data to keep it non-zero until they are all
+    ; consumed.
+    ; Each time we want a bit, we do:
+    ; add a, a ; get MSB into carry
+    ; jr z, _nextFlagsByte ; get new flags byte if necessary (and shift it into carry)
+    ; <use the bit in carry>
 
--:; First byte is always literal
-  outi ; increments hl
-  inc de
-
---: ; Main loop
-  add a, a
-  call z, @_nextFlagsByte
-  jr nc, - ; next bit indicates either literal or sequence
-  ; 0 bit = literal byte
-  ; 1 bit = sequence:
-  ; - length is encoded using a variable number of flags bits, encoding
-  ;   the number of bits and the value
-  ;   length 2 is encoded as %1
-  ;                           ^--- indicates 0 bit number, value 0
-  ;   length 3 is encoded as %011
-  ;                           ^^-- indicates 1 bit number, value 1
-  ;   length 4 is encoded as %00110
-  ;                           ^^^- indicates 2 bit number, value 2
-  ;   ...etc
-  ; - offsets are encoded as either 7 or 11 bits plus a flag:
-  ;   - 0oooooooo for offset ooooooo
-  ;   - 1oooooooo plus bitstream bits abcd for offset abcdooooooo
-  
-  push de
+;   First byte is always literal
+-:
+    outi ; increments hl
+    inc de
+;   Main loop
+--:
+    add a, a
+    call z, @_nextFlagsByte
+    jr nc, - ; next bit indicates either literal or sequence
+    ; 0 bit = literal byte
+    ; 1 bit = sequence:
+    ; - length is encoded using a variable number of flags bits, encoding
+    ;   the number of bits and the value
+    ;   length 2 is encoded as %1
+    ;                           ^--- indicates 0 bit number, value 0
+    ;   length 3 is encoded as %011
+    ;                           ^^-- indicates 1 bit number, value 1
+    ;   length 4 is encoded as %00110
+    ;                           ^^^- indicates 2 bit number, value 2
+    ;   ...etc
+    ; - offsets are encoded as either 7 or 11 bits plus a flag:
+    ;   - 0oooooooo for offset ooooooo
+    ;   - 1oooooooo plus bitstream bits abcd for offset abcdooooooo
+    push de
     ; determine number of bits used for length (Elias gamma coding)
     ld b, 1 ; length result
     ld d, 0 ; d = 0
-    
--:  ; Count how many 0 bits we have in the flags sequence
+    ; Count how many 0 bits we have in the flags sequence
+-:
     inc d
     add a, a
     call z, @_nextFlagsByte
     jr nc, -
     jp +
-
     ; determine length
--:  add a, a
+-:  
+    add a, a
     call z, @_nextFlagsByte
     rl b
     jp c, @_done ; check end marker
-+:  dec d
++:  
+    dec d
     jr nz, -
     inc b      ; adjust length
-
     ; determine offset
     ld e, (hl) ; load offset flag (1 bit) + offset value (7 bits)
     inc hl
@@ -116,104 +122,252 @@ zx7_decompressVRAM:
     ccf
     jr c, +
     inc d
-    
-+:  rr e       ; insert inverted fourth bit into E
-
++:  
+    ; insert inverted fourth bit into E
+    rr e
     ; copy previous sequence
-    ex (sp), hl   ; store source, restore destination
-    push hl       ; store destination
-      sbc hl, de  ; HL = destination - offset - 1
-    pop de        ; DE = destination
-
+    ex (sp), hl ; store source, restore destination
+    push hl     ; store destination
+    sbc hl, de  ; HL = destination - offset - 1
+    pop de      ; DE = destination
     ; ldir vram -> vram
     ;push af ; need to preserve carry
     ex af,af'
-      ; Make hl a read address
-      res 6, h
-      inc c ; ld c, $bf
--:    out (c),l
-      out (c),h
-      inc hl ; 6 cycles
-      in a,($be)
-      ; no delay needed here
-      out (c),e
-      out (c),d
-      inc de ; 6 cycles
-      out ($be),a
-      djnz -
+    ; Make hl a read address
+    res 6, h
+    inc c ; ld c, $bf
+-:    
+    out (c),l
+    out (c),h
+    inc hl ; 6 cycles
+    in a,($be)
+    ; no delay needed here
+    out (c),e
+    out (c),d
+    inc de ; 6 cycles
+    out ($be),a
+    djnz -
     ;pop af
     ex af,af'
     dec c ; ld c, $be ; restore VRAM write port
-
-  pop hl      ; restore source address (compressed data)
-  jp nc, --
-
+; restore source address (compressed data)
+    pop hl
+    jp nc, --
 @_nextFlagsByte:
-  ld a, (hl)  ; Else load the next byte
-  inc hl
-  rla         ; And push that into the carry bit
-  ret
-
+    ld a, (hl)  ; Else load the next byte
+    inc hl
+    rla         ; And push that into the carry bit
+    ret
 @_done:
-  pop hl
-  ret
+    pop hl
+    ret
 
 
+
+
+/*
+--------------------------------------
+    ZX7 FILE DECOMPRESSED TO VRAM (SAFE TO USE WHILE SCREEN IS ON)
+--------------------------------------
+*/
+zx7_decompressVRAMSafe:
+    ld a, 1<<7 ; Signal bit for flags byte
+    ; This is a trick whereby we can cycle a flags byte in a through the carry flag,
+    ; and a will never be zero until it is time to read a new flags byte because we
+    ; shift a bit to the right of the data to keep it non-zero until they are all
+    ; consumed.
+    ; Each time we want a bit, we do:
+    ; add a, a ; get MSB into carry
+    ; jr z, _nextFlagsByte ; get new flags byte if necessary (and shift it into carry)
+    ; <use the bit in carry>
+
+;   First byte is always literal
+-:
+    di
+    ; Set VRAM address
+    ld c,$bf
+    out (c),e
+    out (c),d
+    dec c ; data port
+    outi
+    inc de
+;   Main loop
+--:
+    ei
+
+    add a, a
+    call z, @_nextFlagsByte
+    jr nc, - ; next bit indicates either literal or sequence
+    ; 0 bit = literal byte
+    ; 1 bit = sequence:
+    ; - length is encoded using a variable number of flags bits, encoding
+    ;   the number of bits and the value
+    ;   length 2 is encoded as %1
+    ;                           ^--- indicates 0 bit number, value 0
+    ;   length 3 is encoded as %011
+    ;                           ^^-- indicates 1 bit number, value 1
+    ;   length 4 is encoded as %00110
+    ;                           ^^^- indicates 2 bit number, value 2
+    ;   ...etc
+    ; - offsets are encoded as either 7 or 11 bits plus a flag:
+    ;   - 0oooooooo for offset ooooooo
+    ;   - 1oooooooo plus bitstream bits abcd for offset abcdooooooo
+    push de
+    ; determine number of bits used for length (Elias gamma coding)
+    ld b, 1 ; length result
+    ld d, 0 ; d = 0
+    ; Count how many 0 bits we have in the flags sequence
+-:
+    inc d
+    add a, a
+    call z, @_nextFlagsByte
+    jr nc, -
+    jp +
+    ; determine length
+-:  
+    add a, a
+    call z, @_nextFlagsByte
+    rl b
+    jp c, @_done ; check end marker
++:  
+    dec d
+    jr nz, -
+    inc b      ; adjust length
+    ; determine offset
+    ld e, (hl) ; load offset flag (1 bit) + offset value (7 bits)
+    inc hl
+    sll e ; Undocumented instruction! Shifts into carry, inserts 1 in LSB
+    jr nc, + ; if offset flag is set, load 4 extra bits
+
+    add a, a
+    call z, @_nextFlagsByte
+    rl d
+
+    add a, a
+    call z, @_nextFlagsByte
+    rl d
+
+    add a, a
+    call z, @_nextFlagsByte
+    rl d
+
+    add a, a
+    call z, @_nextFlagsByte
+    ccf
+    jr c, +
+    inc d
++:
+    ; insert inverted fourth bit into E
+    rr e
+    ; copy previous sequence
+    ex (sp), hl   ; store source, restore destination
+    push hl       ; store destination
+    sbc hl, de  ; HL = destination - offset - 1
+    pop de        ; DE = destination
+    ; ldir vram -> vram
+    ex af, af'
+    ; Make hl a read address
+    res 6, h
+    inc c ; ld c, $bf
+    di
+-:    
+    out (c),l
+    out (c),h
+    inc hl ; 6 cycles
+    LD A, (IX + 0)  ; 20 CYCLE WAIT (a is not needed)
+    in a,($be)      ; READ DATA?
+    ; ---- 20 CYCLE WAIT
+    add a,(hl) ; 1/7 - a is restored later
+    sub (hl)   ; 1/7
+    inc hl     ; 1/6 - undone later
+    ; ----
+    ; no delay needed here
+    out (c),e       ; WRITE VDP ADDRESS?
+    out (c),d
+    inc de ; 6 cycles
+    ; ---- 20 CYCLE WAIT
+    add a,(hl) ; 1/7 - a needs to be restored
+    sub (hl)   ; 1/7
+    dec hl     ; 1/6 - undoing extra inc
+    ; ----    
+    out ($be),a     ; WRITE DATA?
+    LD A, (IX + 0)  ; 20 CYCLE WAIT (a is not needed) 
+    djnz -
+    ex af, af'
+    ; restore VRAM write port
+    dec c ; ld c, $be
+    ; restore source address (compressed data)
+    pop hl
+    jp nc, --
+@_nextFlagsByte:
+    ld a, (hl)  ; Else load the next byte
+    inc hl
+    rla         ; And push that into the carry bit
+    ret
+@_done:
+    pop hl
+    ret
+
+
+/*
+--------------------------------------
+    ZX7 FILE DECOMPRESSED TO RAM
+--------------------------------------
+*/
 zx7_decompress:
-  LD B, $00
-  ld a, 1<<7 ; Signal bit for flags byte
-  ; This is a trick whereby we can cycle a flags byte in a through the carry flag,
-  ; and a will never be zero until it is time to read a new flags byte because we
-  ; shift a bit to the right of the data to keep it non-zero until they are all
-  ; consumed.
-  ; Each time we want a bit, we do:
-  ; add a, a ; get MSB into carry
-  ; jr z, _nextFlagsByte ; get new flags byte if necessary (and shift it into carry)
-  ; <use the bit in carry>
+    ld a, 1<<7 ; Signal bit for flags byte
+    ; This is a trick whereby we can cycle a flags byte in a through the carry flag,
+    ; and a will never be zero until it is time to read a new flags byte because we
+    ; shift a bit to the right of the data to keep it non-zero until they are all
+    ; consumed.
+    ; Each time we want a bit, we do:
+    ; add a, a ; get MSB into carry
+    ; jr z, _nextFlagsByte ; get new flags byte if necessary (and shift it into carry)
+    ; <use the bit in carry>
 
--:; First byte is always literal
-  ldi
-
---: ; Main loop
-  add a, a
-  call z, _nextFlagsByte
-  jr nc, - ; next bit indicates either literal or sequence
-  ; 0 bit = literal byte
-  ; 1 bit = sequence:
-  ; - length is encoded using a variable number of flags bits, encoding
-  ;   the number of bits and the value
-  ;   length 2 is encoded as %1
-  ;                           ^--- indicates 0 bit number, value 0
-  ;   length 3 is encoded as %011
-  ;                           ^^-- indicates 1 bit number, value 1
-  ;   length 4 is encoded as %00110
-  ;                           ^^^- indicates 2 bit number, value 2
-  ;   ...etc
-  ; - offsets are encoded as either 7 or 11 bits plus a flag:
-  ;   - 0oooooooo for offset ooooooo
-  ;   - 1oooooooo plus bitstream bits abcd for offset abcdooooooo
-  
-  push de
+;   First byte is always literal
+-:
+    ldi
+;   Main loop
+--:
+    add a, a
+    call z, _nextFlagsByte
+    jr nc, - ; next bit indicates either literal or sequence
+    ; 0 bit = literal byte
+    ; 1 bit = sequence:
+    ; - length is encoded using a variable number of flags bits, encoding
+    ;   the number of bits and the value
+    ;   length 2 is encoded as %1
+    ;                           ^--- indicates 0 bit number, value 0
+    ;   length 3 is encoded as %011
+    ;                           ^^-- indicates 1 bit number, value 1
+    ;   length 4 is encoded as %00110
+    ;                           ^^^- indicates 2 bit number, value 2
+    ;   ...etc
+    ; - offsets are encoded as either 7 or 11 bits plus a flag:
+    ;   - 0oooooooo for offset ooooooo
+    ;   - 1oooooooo plus bitstream bits abcd for offset abcdooooooo
+    push de
     ; determine number of bits used for length (Elias gamma coding)
     LD BC, $01  ; length result
     ld d, 0 ; d = 0
-    
--:  ; Count how many 0 bits we have in the flags sequence
+    ; Count how many 0 bits we have in the flags sequence
+-:
     inc d
     add a, a
     call z, _nextFlagsByte
     jr nc, -
     jp +
-
     ; determine length
--:  add a, a
+-:  
+    add a, a
     call z, _nextFlagsByte
     rl c
     jp c, _done ; check end marker
-+:  dec d
++:  
+    dec d
     jr nz, -
     inc c      ; adjust length
-
     ; determine offset
     ld e, (hl) ; load offset flag (1 bit) + offset value (7 bits)
     inc hl
@@ -237,26 +391,24 @@ zx7_decompress:
     ccf
     jr c, +
     inc d
-    
-+:  rr e       ; insert inverted fourth bit into E
-
++:  
+    ; insert inverted fourth bit into E
+    rr e
     ; copy previous sequence
     ex (sp), hl   ; store source, restore destination
     push hl       ; store destination
-      sbc hl, de  ; HL = destination - offset - 1
+    sbc hl, de  ; HL = destination - offset - 1
     pop de        ; DE = destination
-
+    ; write to decompressed data to destination
     ldir
-
-  pop hl      ; restore source address (compressed data)
-  jp nc, --
-
+    ; restore source address (compressed data)
+    pop hl
+    jp nc, --
 _nextFlagsByte:
-  ld a, (hl)  ; Else load the next byte
-  inc hl
-  rla         ; And push that into the carry bit
-  ret
-
+    ld a, (hl)  ; Else load the next byte
+    inc hl
+    rla         ; And push that into the carry bit
+    ret
 _done:
-  pop hl
-  ret
+    pop hl
+    ret

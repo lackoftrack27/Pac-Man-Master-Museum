@@ -34,17 +34,17 @@ dirVectors:
 ;   DOWN
     .db VAL+$0E, VAL+$16, VAL+$0A, VAL+$17 ; CLOSED
     .db VAL+$09, VAL+$18, VAL+$0A, VAL+$17 ; HALF
-    .db VAL+$01, $00, VAL+$02, $00         ; OPEN
+    .db VAL+$01, BLANK_TILE, VAL+$02, BLANK_TILE         ; OPEN
     .db VAL+$09, VAL+$18, VAL+$0A, VAL+$17 ; HALF
 ;   RIGHT
     .db VAL+$07, VAL+$16, VAL+$08, VAL+$17 ; HALF
-    .db VAL, VAL+$11, $00, $00             ; OPEN
+    .db VAL, VAL+$11, BLANK_TILE, BLANK_TILE             ; OPEN
     .db VAL+$07, VAL+$16, VAL+$08, VAL+$17 ; HALF
     .db VAL+$0E, VAL+$16, VAL+$0A, VAL+$17 ; CLOSED
 .ENDM
 
 pacSpriteTable:
-    pacSprDefs  (PAC_VRAM / TILE_SIZE)
+    pacSprDefs  (SPRITE_ADDR + PAC_VRAM) / TILE_SIZE
 
 
 /*
@@ -60,13 +60,13 @@ pacSpriteTable:
     .DB VAL+$0C, VAL+$21, VAL+$0D, VAL+$22  ; FRAME 06 
     .DB VAL+$0E, VAL+$23, VAL+$0F, VAL+$24  ; FRAME 07
     .DB VAL+$10, VAL+$25, VAL+$11, VAL+$26  ; FRAME 08
-    .DB VAL+$12, VAL+$27, $00, $00          ; FRAME 09
+    .DB VAL+$12, VAL+$27, BLANK_TILE, BLANK_TILE          ; FRAME 09
     .DB VAL+$13, VAL+$28, VAL+$14, VAL+$29  ; FRAME 0A 
-    .DB $00, $00, $00, $00                  ; FRAME 0B
+    .DB BLANK_TILE, BLANK_TILE, BLANK_TILE, BLANK_TILE                  ; FRAME 0B
 .ENDM
 
 pacDeathTileDefs:
-    pacDeathSprDefs (DEATH_VRAM / TILE_SIZE)
+    pacDeathSprDefs (SPRITE_ADDR + DEATH_VRAM) / TILE_SIZE
 
 ;   FRAMES TIMES
 pacmanDeathTimes:
@@ -78,7 +78,7 @@ pacmanDeathTimes:
 */
 .MACRO pacBigSprDefs ARGS, VAL
 @open:
-    .DB VAL, VAL+$06, VAL+$0C, VAL+$01, VAL+$07, VAL+$0D, VAL+$02, $00, VAL+$0E
+    .DB VAL, VAL+$06, VAL+$0C, VAL+$01, VAL+$07, VAL+$0D, VAL+$02, BLANK_TILE, VAL+$0E
 @half:
     .DB VAL, VAL+$06, VAL+$0C, VAL+$03, VAL+$08, VAL+$0F, VAL+$04, VAL+$09, VAL+$10
 @closed:
@@ -86,7 +86,7 @@ pacmanDeathTimes:
 .ENDM
 
 pacBigTileDefs:
-    pacBigSprDefs (PAC_CUT_VRAM / TILE_SIZE)
+    pacBigSprDefs (SPRITE_ADDR + PAC_CUT_VRAM) / TILE_SIZE
 
 pacBigSpriteTable:
 ;   00 - 03
@@ -126,7 +126,7 @@ pacBigSpriteTable:
 .ENDM
 
 msPacSpriteTable:
-    msPacSprDefs    (PAC_VRAM / TILE_SIZE)
+    msPacSprDefs    (SPRITE_ADDR + PAC_VRAM) / TILE_SIZE
 
 
 /*
@@ -141,4 +141,4 @@ msPacSpriteTable:
 
 msPacDeathTileDefs:
     ; 3 LOOPS, BUT THIRD LOOP ENDS ON UP HALF
-    msPacDeathSprDefs   (PAC_VRAM / TILE_SIZE)
+    msPacDeathSprDefs   (SPRITE_ADDR + PAC_VRAM) / TILE_SIZE

@@ -22,14 +22,15 @@ commonCutsceneInit:
 ;   TURN OFF SCREEN
     CALL turnOffScreen
 ;   CLEAR MAZE AREA OF TILEMAP
-    LD E, 24
+    LD DE, ($01 * $100) + 24
     LD HL, NAMETABLE + ($02 * $02) | VRAMWRITE
 --:
     RST setVDPAddress
-    LD BC, 42 * $100 + VDPDATA_PORT ; 21 TILES PER ROW
+    LD BC, 21 * $100 + VDPDATA_PORT ; 21 TILES PER ROW
     XOR A
 -:
     OUT (VDPDATA_PORT), A
+    OUT (C), D      ; UPPER $100
     DJNZ -
     LD A, $40
     RST addToHL
@@ -39,7 +40,7 @@ commonCutsceneInit:
     LD HL, SPRITE_TABLE | VRAMWRITE
     RST setVDPAddress
 -:
-    OUT (C), E
+    OUT (C), E  ; E IS $00
     DJNZ -
     RET
 
@@ -265,7 +266,8 @@ msCutSetup:
     ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
     ; CUTSCENE DATA
     LD HL, msCutsceneTiles
-    LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
+    ;LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
+    LD DE, SPRITE_ADDR + MS_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
     ; PAC-MAN (FOR CUTSCENE)
@@ -288,7 +290,8 @@ msCutSetup:
     ; -----------------------------
     ; CUTSCENE DATA
     LD HL, arcadeGFXData@cutsceneMs
-    LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
+    ;LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
+    LD DE, SPRITE_ADDR + MS_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
     ; PAC-MAN (FOR CUTSCENE)
@@ -598,10 +601,13 @@ cutAniProcess:
 ;   CLEAR TEXT (ACT NAME) ON SCREEN
     LD HL, NAMETABLE + ($09 * $02) + ($07 * $40) | VRAMWRITE
     RST setVDPAddress
-    LD C, $10
+    LD C, $10 >> $01    ; $08
     XOR A
 -:
-    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A   ; TILE ID: 0
+    INC A
+    OUT (VDPDATA_PORT), A   ; UPPER $100
+    DEC A
     DEC C
     JR NZ, -
 ;   FINISH

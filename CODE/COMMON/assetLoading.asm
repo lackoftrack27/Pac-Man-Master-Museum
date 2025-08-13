@@ -34,11 +34,6 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    ; PAC DEATH
-    LD HL, pacDeathTiles
-    LD DE, SPRITE_ADDR + DEATH_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
 ;   LOAD ASSETS DEPENDING ON GAME TYPE
     LD A, (plusBitFlags)
     BIT PLUS, A
@@ -146,11 +141,6 @@ loadTileAssets:
     ; FRUIT POINTS
     LD HL, arcadeGFXData@fruitPoints
     LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; PAC DEATH
-    LD HL, arcadeGFXData@pacDeath
-    LD DE, SPRITE_ADDR + DEATH_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
 ;   LOAD ASSETS DEPENDING ON GAME TYPE

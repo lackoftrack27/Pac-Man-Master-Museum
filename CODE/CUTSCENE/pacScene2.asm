@@ -59,7 +59,7 @@ scene2Update0:
 
 scene2Update1:
 ;   DO SPECIAL DRAW FOR BLINKY
-    LD HL, ghostStitchedTileDefs@frame0
+    LD HL, ghostStitchedTileDefs
     CALL specialDrawBlinky0
 ;   CHECK IF BLINKY IS AT WANTED POSITION (OFF SCREEN)
     LD A, (blinky.xPos)
@@ -109,7 +109,7 @@ scene2Update3:
 
 scene2Update4:
 ;   DO SPECIAL DRAW FOR BLINKY
-    LD HL, ghostNakedTileDefs@frame0
+    LD HL, ghostNakedTileDefs
     CALL specialDrawBlinky1
 ;   CHECK IF BLINKY IS AT WANTED TILE
     LD A, (blinky + CURR_X)
@@ -216,7 +216,7 @@ specialDrawBlinky1:
     LD IX, blinky
     CALL displayGhostNormal@skipCalc
 ;   DRAW DRAGGING CLOTHES
-    LD HL, ghostClothTileDefs@frame0
+    LD HL, ghostClothTileDefs
     ; ADD 2 IF BIT 3 OF FRAME COUNTER IS SET
     LD A, (nakedFrameCounter)
     AND A, $F8

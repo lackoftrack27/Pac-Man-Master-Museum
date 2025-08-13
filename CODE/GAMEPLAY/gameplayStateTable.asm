@@ -132,7 +132,7 @@ generalResetFunc:
     CALL copyToVDP
 ;   LOAD MAZE TEXT SPRITES
     LD HL, mazeTextTiles
-    LD DE, MAZETXT_INDEX * TILE_SIZE | VRAMWRITE
+    LD DE, SPRITE_ADDR + MAZETXT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
 ;   RESET SOME VARS ONLY IF ON LEVEL FOR THE FIRST TIME
     LD A, (currPlayerInfo.diedFlag)

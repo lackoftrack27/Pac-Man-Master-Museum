@@ -22,31 +22,32 @@ pacCutsceneGfxTable:
 ;   --------------
 ;   GFX TILE LISTS
 ;   --------------
-ghostBrokenTileDefs:
-    .DB $C6 $D2 $C7 $D3
-@observe:
-    .DB $C8 $D2 $C9 $D3
+
+.MACRO pacCutGhostDefs   ARGS, VAL
+    ghostBrokenTileDefs:
+    .db VAL+$06, VAL+$12, VAL+$07, VAL+$13
+    @observe:
+    .db VAL+$08, VAL+$12, VAL+$09, VAL+$13
+    ghostStitchedTileDefs:
+    .db VAL, VAL+$0A, VAL+$01, VAL+$0B
+    .db VAL, VAL+$0C, VAL+$01, VAL+$0D
+    ghostNakedTileDefs:
+    .db VAL+$02, VAL+$0E, VAL+$03, VAL+$0F
+    .db VAL+$04, VAL+$10, VAL+$05, VAL+$11
+    ghostClothTileDefs:
+    .db VAL+$14, VAL+$15
+    .db VAL+$16, VAL+$17
+.ENDM
+
+.DEFINE SCENE2_STUMP0           ((SPRITE_ADDR + GHOST_CUT_VRAM) / TILE_SIZE) + $18
+.DEFINE SCENE2_STUMP1           SCENE2_STUMP0 + $01
+.DEFINE SCENE2_STUMP2           SCENE2_STUMP1 + $01
+.DEFINE SCENE2_STUMP3           SCENE2_STUMP2 + $01
+.DEFINE SCENE2_STUMP4           SCENE2_STUMP3 + $01
+.DEFINE SCENE2_STUMP5           SCENE2_STUMP4 + $01
 
 
-ghostStitchedTileDefs:
-@frame0:
-    .DB $C0 $CA $C1 $CB
-@frame1:
-    .DB $C0 $CC $C1 $CD
-
-
-ghostNakedTileDefs:
-@frame0:
-    .DB $C2 $CE $C3 $CF
-@frame1:
-    .DB $C4 $D0 $C5 $D1
-
-
-ghostClothTileDefs:
-@frame0:
-    .DB $D4 $D5 ; 2H SPRITE
-@frame1:
-    .DB $D6 $D7 ; 2H SPRITE
+pacCutGhostDefs         (SPRITE_ADDR + GHOST_CUT_VRAM) / TILE_SIZE
 
 
 /*
@@ -59,20 +60,26 @@ ghostClothTileDefs:
 ;   SCENE TITLE AND NUMBER TILE LISTS
 ;   --------------
 ;   ALL HIGH BYTES ARE $08
-msScene0Title:
-    .DB $E0 $E1 $E2 $E3 $E4 $E5 $E6 $E7
-msScene0Num:
-    .DB $F3
 
-msScene1Title:
-    .DB $E0 $E1 $E8 $E9 $EA $EB $EC $ED
-msScene1Num:
-    .DB $F4
 
-msScene2Title:
-    .DB $EE $EF $F0 $F1 $F2 $00 $00 $00
-msScene2Num:
-    .DB $F5
+.MACRO msSceneTitleDefs ARGS, VAL
+    msScene0Title:
+    .DB VAL+$20, VAL+$21, VAL+$22, VAL+$23, VAL+$24, VAL+$25, VAL+$26, VAL+$27
+    msScene0Num:
+    .DB VAL+$33
+    msScene1Title:
+    .DB VAL+$20, VAL+$21, VAL+$28, VAL+$29, VAL+$2A, VAL+$2B, VAL+$2C, VAL+$2D
+    msScene1Num:
+    .DB VAL+$34
+    msScene2Title:
+    .DB VAL+$2E, VAL+$2F, VAL+$30, VAL+$31, VAL+$32, BLANK_TILE, BLANK_TILE, BLANK_TILE
+    msScene2Num:
+    .DB VAL+$35
+.ENDM
+
+
+msSceneTitleDefs        (SPRITE_ADDR + MS_CUT_VRAM) / TILE_SIZE
+
 
 
 ;   --------------
@@ -80,7 +87,7 @@ msScene2Num:
 ;   --------------
 .MACRO msScenePacDefs   ARGS, VAL
     .db VAL+$07, VAL+$16, VAL+$08, VAL+$17  ; RIGHT HALF    [01]
-    .db VAL, VAL+$11, $00, $00              ; RIGHT OPEN    [02]
+    .db VAL, VAL+$11, BLANK_TILE, BLANK_TILE              ; RIGHT OPEN    [02]
     .db VAL+$0E, VAL+$16, VAL+$0A, VAL+$17  ; RIGHT CLOSED  [03]
     .db VAL+$0B, VAL+$19, VAL+$04, VAL+$13  ; LEFT HALF     [04]
     .db VAL+$03, VAL+$12, VAL+$04, VAL+$13  ; LEFT OPEN     [05]
@@ -92,7 +99,7 @@ msScene2Num:
 
 .MACRO msSceneMsPacDefs ARGS, VAL
     .DB VAL+$08, VAL+$1E, VAL+$09, VAL+$1F  ; RIGHT HALF    [08]
-    .DB VAL+$00, VAL+$16, VAL+$01, VAL+$17  ; RIGHT OPEN    [09]
+    .DB VAL, VAL+$16, VAL+$01, VAL+$17  ; RIGHT OPEN    [09]
     .DB VAL+$0F, VAL+$1E, VAL+$10, VAL+$23  ; RIGHT CLOSED  [0A]
     .DB VAL+$0C, VAL+$22, VAL+$05, VAL+$1B  ; LEFT HALF     [0B]
     .DB VAL+$04, VAL+$1A, VAL+$05, VAL+$1B  ; LEFT OPEN     [0C]
@@ -109,32 +116,35 @@ msScene2Num:
     .DB VAL+$04, VAL+$0A, VAL+$05, VAL+$0B  ; LEFT 1        [14 / 18]
 .ENDM
 
+.MACRO msSceneDefs ARGS, VAL
+    .DB VAL+$0D, VAL+$16, VAL+$0E, VAL+$17  ; ACT SIGN CLACKER H 0  [19]
+    .DB VAL+$0F, BLANK_TILE, BLANK_TILE, BLANK_TILE              ; ACT SIGN CLACKER H 1  [1A]
+    .DB VAL+$13, VAL+$1B, VAL+$14, VAL+$1C  ; ACT SIGN CLACKER M 0  [1B]
+    .DB VAL+$15, BLANK_TILE, BLANK_TILE, BLANK_TILE              ; ACT SIGN CLACKER M 1  [1C]
+    .DB BLANK_TILE, VAL+$1D, BLANK_TILE, VAL+$1E          ; ACT SIGN CLACKER L 0  [1D]
+    .DB BLANK_TILE, VAL+$1F, BLANK_TILE, BLANK_TILE              ; ACT SIGN CLACKER L 1  [1E]
+    .DB VAL+$10, VAL+$18, VAL+$11, VAL+$19  ; ACT SIGN 0            [1F]
+    .DB VAL+$12, VAL+$1A, BLANK_TILE, BLANK_TILE          ; ACT SIGN 1            [20]
+    .DB VAL, VAL+$09, VAL+$01, VAL+$0A  ; HEART                 [21]
+    .DB VAL+$02, BLANK_TILE, BLANK_TILE, BLANK_TILE              ; STORK HEAD            [22]
+    .DB VAL+$03, BLANK_TILE, VAL+$04, BLANK_TILE          ; STORK FLAP 0          [23]
+    .DB VAL+$05, VAL+$0B, VAL+$06, VAL+$0C  ; STORK FLAP 1          [24]
+    .DB VAL+$07, BLANK_TILE, BLANK_TILE, BLANK_TILE              ; STORK SACK            [25]
+    .DB VAL+$08, BLANK_TILE, BLANK_TILE, BLANK_TILE              ; JR PAC                [26]
+.ENDM
+
 
 ;   --------------
 ;   TILE LISTS FOR CUTSCENE SPRITES
 ;   --------------
 msSceneCharTable:
-    .DB $00 $00 $00 $00 ; EMPTY SPRITE          [00]
-    msScenePacDefs      (MS_CUT_PAC_VRAM / TILE_SIZE)
-    msSceneMsPacDefs    (PAC_VRAM / TILE_SIZE)
-    msSceneGhostDefs    (GHOST_VRAM / TILE_SIZE) + $0C
-    msSceneGhostDefs    (GHOST_VRAM / TILE_SIZE) + $18
-    .DB $CD $D6 $CE $D7 ; ACT SIGN CLACKER H 0  [19]
-    .DB $CF $00 $00 $00 ; ACT SIGN CLACKER H 1  [1A]
-    .DB $D3 $DB $D4 $DC ; ACT SIGN CLACKER M 0  [1B]
-    .DB $D5 $00 $00 $00 ; ACT SIGN CLACKER M 1  [1C]
-    .DB $00 $DD $00 $DE ; ACT SIGN CLACKER L 0  [1D]
-    .DB $00 $DF $00 $00 ; ACT SIGN CLACKER L 1  [1E]
-    .DB $D0 $D8 $D1 $D9 ; ACT SIGN 0            [1F]
-    .DB $D2 $DA $00 $00 ; ACT SIGN 1            [20]
-    .DB $C0 $C9 $C1 $CA ; HEART                 [21]
-    .DB $C2 $00 $00 $00 ; STORK HEAD            [22]
-    .DB $C3 $00 $C4 $00 ; STORK FLAP 0          [23]
-    .DB $C5 $CB $C6 $CC ; STORK FLAP 1          [24]
-    .DB $C7 $00 $00 $00 ; STORK SACK            [25]
-    .DB $C8 $00 $00 $00 ; JR PAC                [26]
+    .DSB $04, BLANK_TILE    ; EMPTY SPRITE          [00]
+    msScenePacDefs      (SPRITE_ADDR + MS_CUT_PAC_VRAM) / TILE_SIZE
+    msSceneMsPacDefs    (SPRITE_ADDR + PAC_VRAM) / TILE_SIZE
+    msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $0C
+    msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $18
+    msSceneDefs         (SPRITE_ADDR + MS_CUT_VRAM) / TILE_SIZE
     
-
 
 ;   --------------
 ;   SPRITE LISTS FOR SCENE CHARACTERS (REFERENCES PREVIOUS TABLE)
