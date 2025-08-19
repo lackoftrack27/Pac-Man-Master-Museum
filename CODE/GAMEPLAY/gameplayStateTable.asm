@@ -178,6 +178,7 @@ firstTimeEnd:
     LD (sprFlickerControl), A   ; SPRITE FLICKER FLAGS
     LD (eatSubState), A     ; EAT SUBSTATE
     LD (pacPoweredUp), A    ; SUPER FLAG
+    LD (dotExpireCounter), A    ; EXPIRE COUNTER
 ;   SPEED PATTERN FOR GHOSTS IN HOME
     LD A, $55
     LD (inHomeSpdPatt), A
