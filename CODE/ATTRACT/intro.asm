@@ -391,17 +391,19 @@ introActorSetup:
 ;   PAC-MAN SPRITE TABLE START
     INC A   ; $01
     LD (pacman.sprTableNum), A
+;   SET GHOST FLAGS
+    LD (blinky + ALIVE_FLAG), A
+    LD (pinky + ALIVE_FLAG), A
+    LD (inky + ALIVE_FLAG), A
+    LD (clyde + ALIVE_FLAG), A
 ;   DIRECTIONS (FACING LEFT)
-    LD (pacman.currDir), A
-    LD (pacman.nextDir), A
-    LD (blinky.currDir), A
-    LD (blinky.nextDir), A
-    LD (pinky.currDir), A
-    LD (pinky.nextDir), A
-    LD (inky.currDir), A
-    LD (inky.nextDir), A
-    LD (clyde.currDir), A
-    LD (clyde.nextDir), A
+    LD L, A     ; SET BOTH CURRENT AND NEXT
+    LD H, A
+    LD (pacman.currDir), HL
+    LD (blinky.currDir), HL
+    LD (pinky.currDir), HL
+    LD (inky.currDir), HL
+    LD (clyde.currDir), HL
 ;   PINKY ID
     LD (pinky.id), A
 ;   INKY ID
@@ -467,17 +469,13 @@ runFromGhosts:
     ; TIMER "SET"
     LD (mainTimer0), A
     ; MAKE GHOSTS FACE RIGHT
-    LD A, $03
-    LD (blinky.currDir), A
-    LD (blinky.nextDir), A
-    LD (pinky.currDir), A
-    LD (pinky.nextDir), A
-    LD (inky.currDir), A
-    LD (inky.nextDir), A
-    LD (clyde.currDir), A
-    LD (clyde.nextDir), A
+    LD HL, $0303
+    LD (blinky.currDir), HL
+    LD (pinky.currDir), HL
+    LD (inky.currDir), HL
+    LD (clyde.currDir), HL
     ; SET POWER DOT DELAY
-    INC A
+    LD A, $04
     LD (pacPelletTimer), A  ; HALF OF THE TIME SET IN ACTUAL GAME DUE TO SINGLE UPDATE HERE
     RET
 +:
