@@ -46,6 +46,11 @@ Additional Credits:
 
 
 ## Changelog
+**v2.20**
+- Fixed a bug where the ghosts wouldn't be eaten during Pac-Man's Introduction
+- Fixed the 6th fruit sprite on the HUD for Ms. Pac-Man Plus
+- Properly initialized player inactivity timer
+
 **v2.10**
 - Fixed a bug where the player could still die after eating the last dot
 - Fruit timer now decrements when eating a ghost
