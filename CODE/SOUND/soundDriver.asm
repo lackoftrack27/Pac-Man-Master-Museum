@@ -73,6 +73,8 @@ sndProcess:
     JP NZ, sndStopAll@write
 +:
 ;   SETUP
+    LD A, SND_BANK              ; SOUND BANK
+    LD (MAPPER_SLOT2), A
     LD IY, chan0                ; CHANNEL POINTER
     LD BC, CHAN_COUNT * $100    ; LOOP COUNTER AND CHANNEL NUMBER
 @loop:
@@ -112,6 +114,9 @@ sndProcess:
     LD C, A
     ; LOOP AGAIN IF B ISN'T 0
     DJNZ sndProcess@loop
+    ; RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
     RET
 
 
@@ -473,6 +478,12 @@ cfTable:
     USED: AF, HL, DE, BC, IY
 */
 sndPlaySFX:
+;   SET BANK
+    PUSH AF
+    LD A, SND_BANK
+    LD (MAPPER_SLOT2), A
+    POP AF
+;
     LD IY, chan0
 ;   CHECK IF CHANNEL NUMBER IS 0
     INC B
@@ -525,6 +536,9 @@ sndPlaySFX:
     LD (IY + DUR_COUNTER), $01
 ;   SET PLAYING FLAG, CLEAR REST, ATTACK
     LD (IY + CHAN_CONTROL), $01 << CHANCON_PLAYING
+;   RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   CHECK IF CHANNEL 2 IS SELECTED
     LD HL, chan2
     LD E, IYL
@@ -547,6 +561,12 @@ sndPlaySFX:
     USED: AF, HL, DE, BC, IY
 */
 sndPlayMusic:
+;   SET BANK
+    PUSH AF
+    LD A, SND_BANK
+    LD (MAPPER_SLOT2), A
+    POP AF
+;
     LD IY, chan0
 ;   SET POINTER
     ; CONVERT SOUND NUMBER TO TABLE OFFSET
@@ -602,6 +622,9 @@ sndPlayMusic:
     LD DE, _sizeof_sndChannel
     ADD IY, DE
     DJNZ -
+;   RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   END
     XOR A
     LD (sndNoiseType), A
