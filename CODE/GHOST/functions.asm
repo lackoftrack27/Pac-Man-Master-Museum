@@ -12,14 +12,14 @@ blinkyReset:
     LD A, GHOST_SCATTER
     LD (blinky.state), A
 ;   SET X AND Y POSITION
-    LD HL, $6480    ; YX
+    LD HL, $0080
     LD (blinky.xPos), HL
-    XOR A
-    LD (blinky.subPixel), A
+    LD HL, $0064
+    LD (blinky.yPos), HL
 ;   GHOST ID
     LD (blinky.id), A
 ;   FACING LEFT
-    INC A   ; $01
+    LD A, $01
     LD (blinky.currDir), A
     LD (blinky.nextDir), A
 ;   SET GENERAL ACTOR/GHOST STUFF
@@ -35,12 +35,12 @@ pinkyReset:
     LD A, GHOST_REST
     LD (pinky.state), A
 ;   SET X AND Y POSITION
-    LD HL, $7C80
+    LD HL, $0080
     LD (pinky.xPos), HL
-    XOR A
-    LD (pinky.subPixel), A
+    LD HL, $007C
+    LD (pinky.yPos), HL
 ;   GHOST ID
-    INC A   ; $01
+    LD A, $01
     LD (pinky.id), A
 ;   FACING DOWN
     INC A   ; $02
@@ -62,11 +62,12 @@ inkyReset:
     LD A, GHOST_REST
     LD (inky.state), A
 ;   SET X AND Y POSITION
-    LD HL, $7C90
+    LD HL, $0090
     LD (inky.xPos), HL
-    XOR A
-    LD (inky.subPixel), A
+    LD HL, $007C
+    LD (inky.yPos), HL
 ;   FACING UP
+    XOR A
     LD (inky.currDir), A
     LD (inky.nextDir), A
 ;   SET GENERAL ACTOR/GHOST STUFF
@@ -85,11 +86,12 @@ clydeReset:
     LD A, GHOST_REST
     LD (clyde.state), A
 ;   SET X AND Y POSITION
-    LD HL, $7C70
+    LD HL, $0070
     LD (clyde.xPos), HL
-    XOR A
-    LD (clyde.subPixel), A
+    LD HL, $007C
+    LD (clyde.yPos), HL
 ;   FACING UP
+    XOR A
     LD (clyde.currDir), A
     LD (clyde.nextDir), A
 ;   SET GENERAL ACTOR/GHOST STUFF
@@ -135,9 +137,18 @@ displayGhostNormal:
     RRCA
     RRCA
     ADD A, E
+    LD B, A
 ;   ADD NEXT DIRECTION TO BASE TABLE ADDRESS OF TILE DEFS
     LD HL, ghostNormalTileDefs
-    RST addToHL
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JP Z, +
+    LD HL, ottoGhostSNTileDefs
++:
+    LD A, B
+    LD E, A
+    LD D, $00
+    ADD HL, DE
 @skipCalc:
 ;   GET X AND Y POSITION
     CALL convPosToScreen
@@ -145,6 +156,7 @@ displayGhostNormal:
     LD A, (IX + SPR_NUM)
 ;   DISPLAY 4 TILE SPRITE
     JP display4TileSprite
+
 
 
 displayGhostScared:
@@ -158,9 +170,18 @@ displayGhostScared:
     AND A, $10
     RRCA
     ADD A, E
-;   ADD OFFSET TO BASE TABLE
+    LD B, A
+;   ADD NEXT DIRECTION TO BASE TABLE ADDRESS OF TILE DEFS
     LD HL, ghostScaredTileDefs
-    RST addToHL
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JP Z, +
+    LD HL, ottoGhostScaredSNTileDefs
++:
+    LD A, B
+    LD E, A
+    LD D, $00
+    ADD HL, DE
 ;   GET X AND Y POSITION
     CALL convPosToScreen
 ;   GET SPRITE NUMBER
@@ -169,13 +190,15 @@ displayGhostScared:
     JP display4TileSprite
 
 
+
 displayGhostEyes:
-;   GET NEXT DIRECTION
+    LD HL, ghostEyesTileDefs
+;   USE NEXT DIR AS OFFSET
     LD A, (IX + NEXT_DIR)
     ADD A, A    ; MULT BY 2
-;   ADD TO TABLE ADDRESS
-    LD HL, ghostEyesTileDefs
-    RST addToHL
+    LD E, A
+    LD D, $00
+    ADD HL, DE
 ;   GET X AND Y POSITION
     CALL convPosToScreen
 ;   GET SPRITE NUMBER
@@ -185,21 +208,8 @@ displayGhostEyes:
 
 
 
+
 ghostSpriteFlicker:
-;   CHECK IF SPRITE FLICKERING IS HAPPENING
-    LD A, (sprFlickerControl)
-    CP A, $20
-    RET C       ; IF NOT, END
-;   SELECT WHICH GHOST TO NOT DISPLAY
-    LD B, (IX + ID)
-    INC B
--:
-    RRCA        ; RIGHT SHIFT BY ID + 1
-    DJNZ -
-    RET NC      ; IF UNDERFLOW ON LAST SHIFT DIDN'T OCCUR, RETURN AND DISPLAY GHOST
-;   DON'T DISPLAY GHOST
-    ; REMOVE CALLER
-    POP HL
 @emptySprite:
 ;   MOVE SPRITE AREA TO OFFSCREEN
     ; SET VDP ADDRESS
@@ -239,6 +249,10 @@ updateDiffFlags:
     LD A, $01
     LD (difficultyState), A
 +:
+;   STOP HERE IF GAME IS JR.PAC (JR.PAC DOESN'T USE SECOND DIFF FLAG)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    RET NZ
 ;   CHECK IF DIFF FLAG IS 2
     LD A, (difficultyState)
     BIT 1, A

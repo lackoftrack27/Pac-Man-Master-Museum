@@ -57,11 +57,8 @@ pacCutGhostDefs         (SPRITE_ADDR + GHOST_CUT_VRAM) / TILE_SIZE
 */
 
 ;   --------------
-;   SCENE TITLE AND NUMBER TILE LISTS
+;   MACROS FOR TILE LISTS
 ;   --------------
-;   ALL HIGH BYTES ARE $08
-
-
 .MACRO msSceneTitleDefs ARGS, VAL
     msScene0Title:
     .DB VAL+$20, VAL+$21, VAL+$22, VAL+$23, VAL+$24, VAL+$25, VAL+$26, VAL+$27
@@ -78,42 +75,19 @@ pacCutGhostDefs         (SPRITE_ADDR + GHOST_CUT_VRAM) / TILE_SIZE
 .ENDM
 
 
-msSceneTitleDefs        (SPRITE_ADDR + MS_CUT_VRAM) / TILE_SIZE
-
-
-
-;   --------------
-;   MACROS FOR TILE LISTS
-;   --------------
-.MACRO msScenePacDefs   ARGS, VAL
-    .db VAL+$07, VAL+$16, VAL+$08, VAL+$17  ; RIGHT HALF    [01]
-    .db VAL, VAL+$11, BLANK_TILE, BLANK_TILE              ; RIGHT OPEN    [02]
-    .db VAL+$0E, VAL+$16, VAL+$0A, VAL+$17  ; RIGHT CLOSED  [03]
-    .db VAL+$0B, VAL+$19, VAL+$04, VAL+$13  ; LEFT HALF     [04]
-    .db VAL+$03, VAL+$12, VAL+$04, VAL+$13  ; LEFT OPEN     [05]
-    .db VAL+$0F, VAL+$19, VAL+$04, VAL+$13  ; LEFT CLOSED   [06...]
-    .db VAL+$0C, VAL+$14, VAL+$0D, VAL+$15  ; UP HALF       [06]
-    .db VAL+$05, VAL+$14, VAL+$06, VAL+$15  ; UP OPEN       [07]
-    .db VAL+$10, VAL+$14, VAL+$0D, VAL+$15  ; UP CLOSED     [09...]
-.ENDM
-
-.MACRO msSceneMsPacDefs ARGS, VAL
-    .DB VAL+$08, VAL+$1E, VAL+$09, VAL+$1F  ; RIGHT HALF    [08]
-    .DB VAL, VAL+$16, VAL+$01, VAL+$17  ; RIGHT OPEN    [09]
-    .DB VAL+$0F, VAL+$1E, VAL+$10, VAL+$23  ; RIGHT CLOSED  [0A]
-    .DB VAL+$0C, VAL+$22, VAL+$05, VAL+$1B  ; LEFT HALF     [0B]
-    .DB VAL+$04, VAL+$1A, VAL+$05, VAL+$1B  ; LEFT OPEN     [0C]
-    .DB VAL+$13, VAL+$25, VAL+$05, VAL+$1B  ; LEFT CLOSED   [0D]
-    .DB VAL+$0D, VAL+$1C, VAL+$0E, VAL+$1D  ; UP HALF       [0E]
-    .DB VAL+$06, VAL+$1C, VAL+$07, VAL+$1D  ; UP OPEN       [0F]
-    .DB VAL+$14, VAL+$1C, VAL+$15, VAL+$1D  ; UP CLOSED     [10]
-.ENDM
-
 .MACRO msSceneGhostDefs ARGS, VAL
-    .DB VAL, VAL+$08, VAL+$01, VAL+$09      ; RIGHT 0       [11 / 15]
-    .DB VAL, VAL+$0A, VAL+$01, VAL+$0B      ; RIGHT 1       [12 / 16]
-    .DB VAL+$04, VAL+$08, VAL+$05, VAL+$09  ; LEFT 0        [13 / 17]
-    .DB VAL+$04, VAL+$0A, VAL+$05, VAL+$0B  ; LEFT 1        [14 / 18]
+    .DB VAL, VAL+$08, VAL+$01, VAL+$09      ; RIGHT 0
+    .DB VAL, VAL+$0A, VAL+$01, VAL+$0B      ; RIGHT 1
+    .DB VAL+$04, VAL+$08, VAL+$05, VAL+$09  ; LEFT 0
+    .DB VAL+$04, VAL+$0A, VAL+$05, VAL+$0B  ; LEFT 1
+.ENDM
+
+
+.MACRO msSceneOttoGhostDefs ARGS, VAL
+    .DB VAL, VAL+$0F, VAL+$01, VAL+$10      ; RIGHT 0
+    .DB VAL+$02, VAL+$11, VAL+$03, VAL+$12  ; RIGHT 1
+    .DB VAL+$08, VAL+$17, VAL+$09, VAL+$18  ; LEFT 0
+    .DB VAL+$0A, VAL+$19, VAL+$09, VAL+$16  ; LEFT 1
 .ENDM
 
 .MACRO msSceneDefs ARGS, VAL
@@ -135,15 +109,154 @@ msSceneTitleDefs        (SPRITE_ADDR + MS_CUT_VRAM) / TILE_SIZE
 
 
 ;   --------------
+;   SCENE TITLE AND NUMBER TILE LISTS
+;   --------------
+;   ALL HIGH BYTES ARE $08
+msSceneTitleDefs        (SPRITE_ADDR + MS_CUT_VRAM) / TILE_SIZE
+
+
+;   $01 - $0C
+msSceneSubTileTbl:
+@pacSN:
+;   PAC-MAN [SMOOTH]
+    .DW pacSNTileTbl@titlePtr       ; RIGHT HALF
+    .DW pacSNTileTbl@titlePtr + $08 ; RIGHT OPEN
+    .DW pacSNTileTbl@titlePtr       ; RIGHT HALF
+    .DW pacSNTileTbl@titlePtr + $18 ; RIGHT CLOSED
+    .DW pacSNTileTbl@left + $08     ; LEFT HALF
+    .DW pacSNTileTbl@left + $10     ; LEFT OPEN
+    .DW pacSNTileTbl@left + $08     ; LEFT HALF
+    .DW pacSNTileTbl@left           ; LEFT CLOSED
+    .DW pacSNTileTbl@up             ; UP HALF
+    .DW pacSNTileTbl@up + $08       ; UP OPEN
+    .DW pacSNTileTbl@up             ; UP HALF
+    .DW pacSNTileTbl@up + $18       ; UP CLOSED
+@annaSN:
+;   ANNA [SMOOTH]
+    .DW annaSNTileTbl@right + $18   ; RIGHT HALF 1
+    .DW annaSNTileTbl@right + $10   ; RIGHT CLOSED
+    .DW annaSNTileTbl@right + $08   ; RIGHT HALF 0
+    .DW annaSNTileTbl@right         ; RIGHT OPEN
+    .DW annaSNTileTbl@left          ; LEFT HALF 1
+    .DW annaSNTileTbl@left + $08    ; LEFT CLOSED
+    .DW annaSNTileTbl@left + $10    ; LEFT HALF 0
+    .DW annaSNTileTbl@left + $18    ; LEFT OPEN
+    .DW annaSNTileTbl@up + $18      ; UP HALF 1
+    .DW annaSNTileTbl@up + $10      ; UP CLOSED
+    .DW annaSNTileTbl@up + $08      ; UP HALF 0
+    .DW annaSNTileTbl@up            ; UP OPEN
+@pacAN:
+;   PAC-MAN [ARCADE]
+    .DW pacANTileTbl@titlePtr       ; RIGHT HALF
+    .DW pacANTileTbl@titlePtr + $08 ; RIGHT OPEN
+    .DW pacANTileTbl@titlePtr       ; RIGHT HALF
+    .DW pacANTileTbl@titlePtr + $18 ; RIGHT CLOSED
+    .DW pacANTileTbl@left + $08     ; LEFT HALF
+    .DW pacANTileTbl@left + $10     ; LEFT OPEN
+    .DW pacANTileTbl@left + $08     ; LEFT HALF
+    .DW pacANTileTbl@left           ; LEFT CLOSED
+    .DW pacANTileTbl@up             ; UP HALF
+    .DW pacANTileTbl@up + $08       ; UP OPEN
+    .DW pacANTileTbl@up             ; UP HALF
+    .DW pacANTileTbl@up + $18       ; UP CLOSED
+@annaAN:
+;   ANNA [ARCADE]
+    .DW annaANTileTbl@right + $18   ; RIGHT HALF 1
+    .DW annaANTileTbl@right + $10   ; RIGHT CLOSED
+    .DW annaANTileTbl@right + $08   ; RIGHT HALF 0
+    .DW annaANTileTbl@right         ; RIGHT OPEN
+    .DW annaANTileTbl@left          ; LEFT HALF 1
+    .DW annaANTileTbl@left + $08    ; LEFT CLOSED
+    .DW annaANTileTbl@left + $10    ; LEFT HALF 0
+    .DW annaANTileTbl@left + $18    ; LEFT OPEN
+    .DW annaANTileTbl@up + $18      ; UP HALF 1
+    .DW annaANTileTbl@up + $10      ; UP CLOSED
+    .DW annaANTileTbl@up + $08      ; UP HALF 0
+    .DW annaANTileTbl@up            ; UP OPEN
+
+
+;   $0D - $18
+msSceneMainTileTbl:
+@msSN:
+;   MS.PAC-MAN [SMOOTH]
+    .DW msSNTileTbl@hudPtr          ; RIGHT HALF
+    .DW msSNTileTbl@titlePtr        ; RIGHT OPEN
+    .DW msSNTileTbl@hudPtr          ; RIGHT HALF
+    .DW msSNTileTbl@hudPtr + $08    ; RIGHT CLOSED
+    .DW msSNTileTbl@left            ; LEFT HALF
+    .DW msSNTileTbl@left + $18      ; LEFT OPEN
+    .DW msSNTileTbl@left            ; LEFT HALF
+    .DW msSNTileTbl@left + $08      ; LEFT CLOSED
+    .DW msSNTileTbl@up + $08        ; UP HALF
+    .DW msSNTileTbl@up              ; UP OPEN
+    .DW msSNTileTbl@up + $08        ; UP HALF
+    .DW msSNTileTbl@up + $10        ; UP CLOSED
+@ottoSN:
+;   OTTO [SMOOTH]
+    .DW ottoSNTileTbl@titlePtr + $18; RIGHT HALF 1
+    .DW ottoSNTileTbl@titlePtr + $10; RIGHT CLOSED
+    .DW ottoSNTileTbl@titlePtr + $08; RIGHT HALF 0
+    .DW ottoSNTileTbl@titlePtr      ; RIGHT OPEN
+    .DW ottoSNTileTbl@left          ; LEFT HALF 1
+    .DW ottoSNTileTbl@left + $08    ; LEFT CLOSED
+    .DW ottoSNTileTbl@left + $10    ; LEFT HALF 0
+    .DW ottoSNTileTbl@left + $18    ; LEFT OPEN
+    .DW ottoSNTileTbl@up + $18      ; UP HALF 1
+    .DW ottoSNTileTbl@up + $10      ; UP CLOSED
+    .DW ottoSNTileTbl@up + $08      ; UP HALF 0
+    .DW ottoSNTileTbl@up            ; UP OPEN
+@msAN:
+;   MS.PAC-MAN [ARCADE]
+    .DW msANTileTbl@hudPtr          ; RIGHT HALF
+    .DW msANTileTbl@titlePtr        ; RIGHT OPEN
+    .DW msANTileTbl@hudPtr          ; RIGHT HALF
+    .DW msANTileTbl@hudPtr + $08    ; RIGHT CLOSED
+    .DW msANTileTbl@left            ; LEFT HALF
+    .DW msANTileTbl@left + $18      ; LEFT OPEN
+    .DW msANTileTbl@left            ; LEFT HALF
+    .DW msANTileTbl@left + $08      ; LEFT CLOSED
+    .DW msANTileTbl@up + $08        ; UP HALF
+    .DW msANTileTbl@up              ; UP OPEN
+    .DW msANTileTbl@up + $08        ; UP HALF
+    .DW msANTileTbl@up + $10        ; UP CLOSED
+@ottoAN:
+;   OTTO [ARCADE]
+    .DW ottoANTileTbl@titlePtr + $18; RIGHT HALF 1
+    .DW ottoANTileTbl@titlePtr + $10; RIGHT CLOSED
+    .DW ottoANTileTbl@titlePtr + $08; RIGHT HALF 0
+    .DW ottoANTileTbl@titlePtr      ; RIGHT OPEN
+    .DW ottoANTileTbl@left          ; LEFT HALF 1
+    .DW ottoANTileTbl@left + $08    ; LEFT CLOSED
+    .DW ottoANTileTbl@left + $10    ; LEFT HALF 0
+    .DW ottoANTileTbl@left + $18    ; LEFT OPEN
+    .DW ottoANTileTbl@up + $18      ; UP HALF 1
+    .DW ottoANTileTbl@up + $10      ; UP CLOSED
+    .DW ottoANTileTbl@up + $08      ; UP HALF 0
+    .DW ottoANTileTbl@up            ; UP OPEN
+
+
+;   GHOSTS $19 - $20
+msSceneGhostTileTbl:
+    ; PINKY & INKY
+    msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $0C
+    msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $18
+@otto:
+    ; PINKY & INKY (OTTO)
+    msSceneOttoGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $1E
+    msSceneOttoGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $3C
+
+;   $21 - $FE
+
+
+
+
+;   --------------
 ;   TILE LISTS FOR CUTSCENE SPRITES
 ;   --------------
 msSceneCharTable:
     .DSB $04, BLANK_TILE    ; EMPTY SPRITE          [00]
-    msScenePacDefs      (SPRITE_ADDR + MS_CUT_PAC_VRAM) / TILE_SIZE
-    msSceneMsPacDefs    (SPRITE_ADDR + PAC_VRAM) / TILE_SIZE
-    msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $0C
-    msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $18
     msSceneDefs         (SPRITE_ADDR + MS_CUT_VRAM) / TILE_SIZE
+
     
 
 ;   --------------
@@ -152,44 +265,48 @@ msSceneCharTable:
 msSceneCharacters:
 @emptySpr:
     .DB $00 $FF
+;   --------
 @pacRight:
-    .DB $01 $01 $02 $02 $01 $01 $03 $03 $FF
+    .DB $01 $01 $02 $02 $03 $03 $04 $04 $FF
 @pacLeft:
-    .DB $04 $04 $05 $05 $04 $04 $06 $06 $FF
+    .DB $05 $05 $06 $06 $07 $07 $08 $08 $FF
 @pacUp:
-    .DB $07 $07 $08 $08 $07 $07 $09 $09 $FF
+    .DB $09 $09 $0A $0A $0B $0B $0C $0C $FF
+;   --------
 @msPacRight:
-    .DB $0A $0A $0B $0B $0A $0A $0C $0C $FF
+    .DB $0D $0D $0E $0E $0F $0F $10 $10 $FF
 @msPacLeft:
-    .DB $0D $0D $0E $0E $0D $0D $0F $0F $FF
+    .DB $11 $11 $12 $12 $13 $13 $14 $14 $FF
 @msPacUp:
-    .DB $10 $10 $11 $11 $10 $10 $12 $12 $FF
+    .DB $15 $15 $16 $16 $17 $17 $18 $18 $FF
+;   --------
 @pinkyRight:
-    .DB $13 $13 $14 $14 $13 $13 $FF
-@pinkyLeft:
-    .DB $15 $15 $16 $16 $15 $15 $FF
-@inkyRight:
-    .DB $17 $17 $18 $18 $17 $17 $FF
-@inkyLeft:
     .DB $19 $19 $1A $1A $19 $19 $FF
-@actClacker0:
-    .DB $1B $1B $1B $1D $1D $1D $1F $1F $1F $FF
+@pinkyLeft:
+    .DB $1B $1B $1C $1C $1B $1B $FF
+@inkyRight:
+    .DB $1D $1D $1E $1E $1D $1D $FF
+@inkyLeft:
+    .DB $1F $1F $20 $20 $1F $1F $FF
+;   --------
+@actClacker0:   ; $21
+    .DB $21 $21 $21 $23 $23 $23 $25 $25 $25 $FF
 @actClacker1:
-    .DB $1C $1C $1C $1E $1E $1E $20 $20 $20 $FF
+    .DB $22 $22 $22 $24 $24 $24 $26 $26 $26 $FF
 @actSign0:
-    .DB $21 $FF
-@actSign1:
-    .DB $22 $FF
-@heart:
-    .DB $23 $FF
-@storkHead:
-    .DB $24 $FF
-@storkBody:
-    .DB $25 $25 $25 $25 $26 $26 $26 $26 $FF
-@storkSack:
     .DB $27 $FF
-@jrPac:
+@actSign1:
     .DB $28 $FF
+@heart:
+    .DB $29 $FF
+@storkHead:
+    .DB $2A $FF
+@storkBody:
+    .DB $2B $2B $2B $2B $2C $2C $2C $2C $FF
+@storkSack:
+    .DB $2D $FF
+@jrPac:
+    .DB $2E $FF
 
 
 /*
@@ -262,6 +379,14 @@ msScene0ProgTable:
     .DW msScene0Prog0
     .DW msScene0Prog1
     .DW msScene0Prog2
+    .DW msScene0Prog3
+    .DW msScene0Prog4
+    .DW msScene0Prog5
+
+ottoScene0ProgTable:
+    .DW ottoScene0Prog0
+    .DW msScene0Prog1
+    .DW ottoScene0Prog2
     .DW msScene0Prog3
     .DW msScene0Prog4
     .DW msScene0Prog5
@@ -438,6 +563,68 @@ msScene2Prog5:
     PAUSE
     CLEARNUM
     SETPOS  $00 $00
+    CUTEND
+
+
+
+
+ottoScene0Prog0:
+;   DO ACT SIGN CLACKER
+    SETPOS  $00 $00
+    SETCHAR msSceneCharacters@actClacker0
+    SETN    $01
+    LOOP    $00 $00
+    SETPOS  $BD $52
+    SETN    $28
+    PAUSE
+    SETN    $16
+    LOOP    $00 $00
+    SETN    $16
+    PAUSE
+;   DO MS.PAC-MAN (OTTO)
+    SETPOS  $FF $54
+    SETCHAR msSceneCharacters@msPacRight
+    SETN    $7F
+    LOOP    $F0 $00
+    SETN    $7F
+    LOOP    $F0 $00
+    SETPOS  $00 $7F
+    SETCHAR msSceneCharacters@msPacLeft
+    SETN    $75
+    LOOP    $10 $00
+    SETN    $04
+    LOOP    $10 $F0
+    SETCHAR msSceneCharacters@msPacUp
+    SETN    $30
+    LOOP    $00 $F0
+    SETCHAR msSceneCharacters@msPacLeft
+    SETN    $10
+    LOOP    $00 $00
+    CUTEND
+
+
+ottoScene0Prog2:
+;   DO PAC-MAN (ANNA)
+    SETN    $5A
+    PAUSE
+    SETPOS  $00 $A4
+    SETCHAR msSceneCharacters@pacLeft
+    SETN    $7F
+    LOOP    $10 $00
+    SETN    $7F
+    LOOP    $10 $00
+    SETPOS  $FF $7F
+    SETCHAR msSceneCharacters@pacRight
+    SETN    $76
+    LOOP    $F0 $00
+    SETN    $04
+    LOOP    $F0 $F0
+    SETCHAR msSceneCharacters@pacUp
+    SETN    $30
+    LOOP    $00 $F0
+    SETCHAR msSceneCharacters@pacRight
+    SETN    $10
+    LOOP    $00 $00
     CUTEND
 
 

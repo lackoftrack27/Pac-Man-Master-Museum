@@ -52,39 +52,27 @@ sStateGameplayTable@dead00Mode:
 sStateGameplayTable@dead01Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
+    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
 @@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
-;   CLEAR PAC-MAN SPRITE AREA
-    LD A, $01
-    LD (pacSprControl), A
-    LD (pacman.sprTableNum), A  ; MOVE TO SUPER AREA
-;   REMOVE GHOSTS FROM SCREEN (LOGICALLY)
-    LD (blinky + X_WHOLE), A
-    LD (pinky + X_WHOLE), A
-    LD (inky + X_WHOLE), A
-    LD (clyde + X_WHOLE), A
-;   REMOVE GHOSTS FROM SCREEN (REAL)
-    LD HL, SPRITE_TABLE + $05 | VRAMWRITE ; $19
-    RST setVDPAddress
-    LD A, $F7
-    LD B, $04
--:
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    DJNZ -
-;   REMOVE FRUIT FROM SCREEN
-    LD HL, SPRITE_TABLE + $19 | VRAMWRITE
-    RST setVDPAddress
-    LD A, $F7
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
+;   REMOVE ACTORS FROM SCREEN
+    ; MOVE OFFSCREEN
+    LD H, A
+    LD L, A
+    LD (blinky + X_WHOLE), HL
+    LD (pinky + X_WHOLE), HL
+    LD (inky + X_WHOLE), HL
+    LD (clyde + X_WHOLE), HL
+    LD (fruitXPos), HL
+    LD (fruitYPos), HL
+    ; SET OFFSCREEN FLAGS
+    INC A
+    LD (blinky + OFFSCREEN_FLAG), A
+    LD (pinky + OFFSCREEN_FLAG), A
+    LD (inky + OFFSCREEN_FLAG), A
+    LD (clyde + OFFSCREEN_FLAG), A    
 ;   FRUIT CHECK
     ; CHECK IF LOW NIBBLE IS 0
     LD A, (currPlayerInfo.fruitStatus)
@@ -101,32 +89,6 @@ sStateGameplayTable@dead01Mode:
     LD (mainTimer0), A
 ;   NOTIFY PAC-MAN
     CALL pacGameTrans_dead
-;   LOAD PAC-MAN'S DEATH SPRITES
-    ; SKIP IF GAME ISN'T PAC-MAN
-    LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JR NZ, @@draw
-    ; TURN OFF VBLANK INTS (BUT NOT SCREEN!)
-    CALL turnOffVblankInts
-    ; ASSUME STYLE IS SMOOTH
-    LD HL, pacDeathTiles
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    JR Z, +     ; SKIP IF SO
-    ; ELSE, GET ARCADE GFX DATA, CHANGE BANK
-    LD HL, arcadeGFXData@pacDeath
-    LD A, ARCADE_BANK
-    LD (MAPPER_SLOT2), A
-+:
-    LD DE, SPRITE_ADDR + DEATH_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAMSafe
-    ; RESTORE BANK
-    LD A, SMOOTH_BANK
-    LD (MAPPER_SLOT2), A
-    ; MISSED LAST VBLANK, WAIT FOR NEXT
-    CALL waitForVblank
-    ; TURN VBLANKS INTS BACK ON
-    CALL turnOnScreen
 @@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
@@ -169,8 +131,8 @@ sStateGameplayTable@dead02Mode:
 ;   PLAY DEATH SOUND
     LD A, SFX_DEATH     ; ASSUME SFX FOR PAC-MAN
     LD B, A
-    LD A, (plusBitFlags)    ; ISOLATE MS. PAC BIT
-    AND A, $01 << MS_PAC
+    LD A, (plusBitFlags)    ; ISOLATE MS.PAC AND JR.PAC BITS
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
     ADD A, B            ; ADD TO MUSIC ID
     LD B, $01           ; CHANNEL 1
     CALL sndPlaySFX
@@ -195,22 +157,10 @@ sStateGameplayTable@dead02Mode:
 ;   SET DEATH FLAG
     INC A
     LD (currPlayerInfo.diedFlag), A
-;   TURN OFF VBLANK INTS (BUT NOT SCREEN!)
-    CALL turnOffVblankInts
-;   UPDATE TILEMAP IN RAM
-    LD HL, NAMETABLE
-    RST setVDPAddress
-    LD HL, mazeGroup1.tileMap
-    LD BC, _sizeof_mazeGroup1.tileMap
-    CALL copyFromVDP
-;   MISSED LAST VBLANK, WAIT FOR FRESH FRAME
-    CALL waitForVblank
 ;   CHECK IF THAT WAS LAST LIFE
     LD A, (currPlayerInfo.lives)
     OR A
     JR NZ, +    ; IF NOT, SKIP...
-;   TURN ON VBLANK INTS
-    CALL turnOnScreen
 ;   SWITCH TO GAME OVER
     LD HL, $01 * $100 + GAMEPLAY_GAMEOVER
     LD (subGameMode), HL

@@ -49,7 +49,7 @@ pacmanDemoPF:
 */
 pacmanReset:
 ;   PAC-MAN SPRITE TABLE NUMBER
-    LD A, 21
+    LD A, $01
     LD (pacman.sprTableNum), A
 ;   SET STATE
     LD A, PAC_NORMAL
@@ -58,11 +58,12 @@ pacmanReset:
     LD HL, pacmanDeathTimes
     LD (pacDeathTimePtr), HL
 ;   SET PAC-MAN'S X AND Y POSITION
-    LD HL, $C480    ; YX
+    LD HL, $0080
     LD (pacman.xPos), HL
-    XOR A
-    LD (pacman.subPixel), A
+    LD HL, $00C4
+    LD (pacman.yPos), HL
 ;   PELLET TIMER
+    XOR A
     LD (pacPelletTimer), A
 ;   PAC-MAN FACING LEFT
     INC A   ; $01
@@ -71,3 +72,117 @@ pacmanReset:
 ;   GENERAL ACTOR RESET
     LD IX, pacman
     JP actorReset
+
+
+
+
+pacTileStreaming:
+;   [182]
+;   -----
+    ; SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, $0B20 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C   ; VDP DATA PORT
+;   -----
+    LD A, (pacman + STATE)
+    CP A, PAC_DEAD
+    JP Z, @deathStream
+;   -----
+    ; GET POSITION
+    LD HL, normAniTbl
+    LD A, (pacman.currDir)
+    LD B, A
+    LD DE, pacman.xPos
+    RRCA
+    JP C, +
+    INC DE
+    INC DE
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    ADD A, A
+    ADD A, L
+    LD L, A
++:
+    LD A, (DE)
+    AND A, $0F
+    ADD A, L    ; HOPEFULLY NO OVERFLOW...
+    LD L, A
+    LD D, (HL)
+    ; DIRECTION * 32
+    LD A, B
+    RRCA
+    RRCA
+    RRCA
+    ; ADD ALL TO TABLE PTR
+    ADD A, D
+    LD E, A
+    LD D, $00
+    LD HL, (playerTileTblPtr)
+    ADD HL, DE
+    JP @writeToVRAM
+@deathStream:
+    LD HL, (pacDeathTimePtr)
+    LD DE, pacmanDeathTimes
+    OR A    ; CLEAR CARRY
+    SBC HL, DE
+    LD A, L
+    ADD A, A
+    ADD A, A
+    ADD A, A
+    LD E, A
+    LD D, $00
+    LD HL, (deathTileTblPtr)
+    ADD HL, DE
+@writeToVRAM:
+    ; SET BANK
+    LD A, UNCOMP_BANK
+    LD (MAPPER_SLOT2), A
+    ; TILE 0 [550]
+    LD E, L     ; DE = TILE TABLE PTR
+    LD D, H
+    LD L, (HL)  ; GET POINTER
+    INC DE
+    LD A, (DE)
+    LD H, A
+    INC DE
+.REPEAT $20     ; WRITE TILE DATA TO VRAM
+    OUTI
+.ENDR
+    ; TILE 1 [550]
+    LD L, E
+    LD H, D
+    LD L, (HL)
+    INC DE
+    LD A, (DE)
+    LD H, A
+    INC DE
+.REPEAT $20
+    OUTI
+.ENDR
+    ; TILE 2 [550]
+    LD L, E
+    LD H, D
+    LD L, (HL)
+    INC DE
+    LD A, (DE)
+    LD H, A
+    INC DE
+.REPEAT $20
+    OUTI
+.ENDR
+    ; TILE 3 [544]
+    LD L, E
+    LD H, D
+    LD L, (HL)
+    INC DE
+    LD A, (DE)
+    LD H, A
+.REPEAT $20
+    OUTI
+.ENDR
+    ; SET BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
+    RET

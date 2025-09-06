@@ -85,6 +85,7 @@ pacStateTable@update@normalMode:
     JR NZ, +     ; IF SO, SKIP...
     ; ELSE, AXIS IS Y
     INC HL
+    INC HL
 +:
     LD A, (HL)
     AND A, $07  ; MODULUS BY 8
@@ -113,12 +114,16 @@ pacStateTable@update@normalMode:
 ------------------------------------------------ 
 */
 @@@@tunnelCheck:
+;   SKIP IF GAME IS JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR NZ, @@@@getCollision
 ;   CHECK IF IN TUNNEL
     LD A, (pacman + CURR_X)
     CP A, $21
     JR C, +     ; LESS THAN
     CP A, $3B
-    JR C, @@@@getCollision
+    JR C, @@@@getCollision  ; IF NOT, PROCEED WITH NORMAL UPDATE
 +:
 ;   CHECK IF PLAYER MOVED LEFT
     LD A, (pacman.nextDir)
@@ -127,7 +132,7 @@ pacStateTable@update@normalMode:
 ;   CHECK IF PLAYER MOVED RIGHT
     CP A, DIR_RIGHT
     JR Z, @@@@prepareAxis
-    JR @@@@prepareVector
+    JP @@@@prepareVector
 /*
 ------------------------------------------------
     UPDATE - MAZE COLLISION SECTION
@@ -185,6 +190,7 @@ pacStateTable@update@normalMode:
     JR NZ, +     ; IF SO, SKIP...
 ;   ELSE, AXIS IS Y
     INC HL
+    INC HL  ;
 +:
     LD A, (HL)
 ;   CHECK IF PAC-MAN IS AT CENTER OF TILE
@@ -199,15 +205,15 @@ pacStateTable@update@normalMode:
     UPDATE - PREPARE FOR MOVEMENT
 ------------------------------------------------
 */
-@@@@prepareAxis:
+@@@@prepareAxis:    ; $1940
 ;   SET DIRECTION TO WANTED DIRECTION
     LD A, (pacman.nextDir)
     LD (pacman.currDir), A
-@@@@prepareVector:
+@@@@prepareVector:  ; $1950
 ;   SET WHICH AXIS TO APPLY MOVEMENT AND HOW
     ; CURRENT DIRECTION * 2
     LD A, (pacman.currDir)
-    LD D, A     ; SAVE DIRECTION
+    LD B, A     ; SAVE DIRECTION
     ADD A, A
     ; ADD TO TABLE
     LD HL, dirVectors
@@ -219,25 +225,40 @@ pacStateTable@update@normalMode:
 ------------------------------------------------
 */ 
 @@@@chooseAxis:
+    /*
 ;   ADD Y PART OF VECTOR TO POSITION
     LD A, (pacman.yPos)
     ADD A, (HL)
     LD (pacman.yPos), A
 ;   ADD X PART OF VECTOR TO POSITION
-    INC HL
     LD A, (pacman.xPos)
     ADD A, (HL)
     LD (pacman.xPos), A
+    */
+    EX DE, HL   ; DE: WANTED VECTOR
+;   ADD Y PART OF VECTOR TO POSITION
+    LD A, (DE)
+    LD HL, (pacman + Y_WHOLE)
+    CALL addToHLSigned
+    LD (pacman + Y_WHOLE), HL
+;   ADD X PART OF VECTOR TO POSITION
+    INC DE
+    LD A, (DE)
+    LD HL, (pacman + X_WHOLE)
+    CALL addToHLSigned
+    LD (pacman + X_WHOLE), HL    
 /*
 ------------------------------------------------
     UPDATE - APPLY PERPENDICULAR AXIS MOVEMENT TO PAC-MAN
 ------------------------------------------------
 */
+@@@@perAxisUpdate:
 ;   ASSUME PAC-MAN'S PERPENDICULAR AXIS IS X
     LD HL, pacman.xPos
-    BIT $00, D
+    BIT $00, B
     JR Z, +     ; IF SO, SKIP...
 ;   ELSE, THE PER. AXIS IS Y
+    INC HL
     INC HL
 +:
     LD A, (HL)
@@ -245,13 +266,29 @@ pacStateTable@update@normalMode:
     AND A, $07
     CP A, $04
     JR Z, @@@@updateCenters  ; IF SO, SKIP...
+    ;
+    LD DE, $0001
+    LD C, L
+    LD B, H
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    ;
     JR C, +     ; IF LESS THAN 3, SKIP...
 ;   IF AFTER CENTER, DECREMENT POSITION
-    DEC (HL)
-    JR @@@@updateCenters
+    ;DEC (HL)
+    ;JR @@@@updateCenters
+    LD DE, $FFFF
 +:
 ;   IF BEFORE CENTER, INCREMENT POSITION
-    INC (HL)
+    ;INC (HL)
+    ADD HL, DE
+    LD A, L
+    LD (BC), A
+    INC BC
+    LD A, H
+    LD (BC), A
 /*
 ------------------------------------------------
     UPDATE - UPDATE TILES IF PAC-MAN VISIBLY MOVED
@@ -260,60 +297,169 @@ pacStateTable@update@normalMode:
 @@@@updateCenters:
 ;   UPDATE ACTOR'S COLLISION TILES, CENTERS, ETC...
     CALL actorUpdate
-;   UPDATE VISUAL TILE CENTER
+;   UPDATE ACTOR'S DATA IN SPRITE TABLE
+
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR NZ, @@@@jrPtrUpdate
+;   --------------
+;   CONVERT COLLISION-SPACE TILE COORDS TO SCREEN-SPACE PIXEL COORDS (NON SCROLLING)
+;   --------------
     ; TILE Y CENTER POINT
     LD A, (pacman + CURR_Y)
-    SUB A, $21
+    SUB A, $21          ; COLLISION Y INDEX STARTS AT $21...
     CALL multiplyBy6
     ADD A, MIDTILE_Y    ; ADD 3 PIXELS (TILE Y MID POINT)
     LD (pacTileYCenter), A
     ; TILE X CENTER POINT
     LD A, (pacman + CURR_X)
     LD B, A
-    LD A, $3D
-    SUB A, B
+    LD A, $3D           ; COLLISION X INDEX STARTS AT $1E AND INCREASES GOING LEFT
+    SUB A, B            ; REVERSE ORDER AND CORRECT INDEX BY DOING ((X_START + X_LENGTH - 1) - X_TILE)
     CALL multiplyBy6
-    ADD A, MIDTILE_X    ; ADD 2 PIXELS (TILE X MID POINT)
+    ADD A, MIDTILE_X + $04  ; ADD MID POINT OFFSET, AND MAZE STARTS 4 PIXELS FROM LEFT EDGE
     LD (pacTileXCenter), A
-;   VRAM NAMETABLE POINTER UPDATE
-    ; LOAD BASE ADDRESS
-    LD DE, NAMETABLE
-    ; CALCULATE X TILE OFFSET
-    ADD A, $04  ; X_OFFSET
-    ; DIVIDE BY 8
-    AND A, $F8
+;   --------------
+;   VRAM NAMETABLE POINTER UPDATE (NON SCROLLING)
+;   --------------
+    ; GET X TILE (DIVIDE BY 8)
     RRCA
     RRCA
     RRCA
+    AND A, $1F
     ; MULTIPLY BY 2 (TILES ARE 2 BYTES)
     ADD A, A
     ; STORE IN BC
     LD B, $00
     LD C, A
-    ; CALCULATE Y TILE OFFSET
+    ; GET Y TILE (DIVIDE BY 8)
     LD A, (pacTileYCenter)
-    ; DIVIDE BY 8
-    AND A, $F8
     RRCA
     RRCA
     RRCA
+    AND A, $1F
     ; STORE IN HL
     LD H, $00
     LD L, A
     ; MULTIPLY BY 64 (EACH ROW IS 64 BYTES [32 TILES * 2])
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
+    XOR A
+    SRL H
+    RR L
+    RRA
+    SRL H
+    RR L
+    RRA
+    LD H, L
+    LD L, A
     ; ADD X AND Y TOGETHER
     ADD HL, BC
-    ; ADD TO NAMETABLE
-    ADD HL, DE
     ; STORE POINTER
     LD (tileMapPointer), HL
-;   TILE QUADRANT DERTERMINATION
+    ; ADD BASE RAM PTR
+    LD DE, mazeGroup1.tileMap
+    ADD HL, DE
+    LD (tileMapRamPtr), HL
+    ; UPDATE QUADRANT
+    JP @@@@quadCalc
+@@@@jrPtrUpdate:
+;   --------------
+;   CONVERT COLLISION-SPACE TILE COORDS TO SCREEN-SPACE PIXEL COORDS (SCROLLING)
+;   --------------
+    ; TILE Y CENTER POINT
+    LD A, (pacman + CURR_Y)
+    SUB A, $21              ; COLLISION Y INDEX STARTS AT $21...
+    CALL multiplyBy6
+    ADD A, $03 + $02    ; MID POINT + MAZE OFFSET
+    LD (pacTileYCenter), A
+    ; TILE X CENTER POINT
+    LD A, (pacman + CURR_X)
+    LD B, A
+    LD A, $57           ; COLLISION X INDEX STARTS AT $1E AND INCREASES GOING LEFT
+    SUB A, B            ; REVERSE ORDER AND CORRECT INDEX BY DOING ((X_START + X_LENGTH - 1) - X_TILE)
+    LD L, A
+    LD H, $00
+    CALL multBy6_16
+    LD DE, $03 - $0A    ; MID POINT - MAZE OFFSET
+    ADD HL, DE
+    LD A, L
+    LD (pacTileXCenter), A
+;   --------------
+;   RAM NAMETABLE POINTER UPDATE (SCROLLING)
+;   --------------
+    ; GET X TILE (DIVIDE BY 8)
+    SRL H
+    RR L
+    SRL H
+    RR L
+    SRL H
+    RR L
+    LD B, L     ; STORE IN B (RAM_COL)
+    PUSH BC     ; SAVE RAM_COL FOR LATER
+    ; GET Y TILE (DIVIDE BY 8)
+    LD A, (pacTileYCenter)
+    ; DIVIDE BY 8
+    RRCA
+    RRCA
+    RRCA
+    AND A, $1F
+    LD L, A     ; STORE IN H (RAM_ROW)
+    LD H, $00
+    PUSH HL     ; SAVE RAM_ROW FOR LATER
+    ; MULTIPLY BY 41 (TILES PER ROW)
+    CALL multBy41
+    ; ADD X AND Y
+    LD A, B
+    RST addToHL
+    ; MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
+    ADD HL, HL
+    ; STORE
+    LD DE, mazeGroup1.tileMap
+    ADD HL, DE
+    LD (tileMapRamPtr), HL
+;   --------------
+;   VRAM NAMETABLE POINTER UPDATE (SCROLLING)
+;   --------------
+    ; RAM_ROW PROCESS
+    POP HL  ; GET RAM_ROW (H)
+    INC L   ; APPLY 1 ROW OFFSET (TOP ROW ON SCREEN IS RESERVED FOR HUD)
+    ; MULTIPLY BY YTILE 64 (EACH ROW IS 64 BYTES [32 TILES * 2])
+    XOR A
+    SRL H
+    RR L
+    RRA
+    SRL H
+    RR L
+    RRA
+    LD H, L     ; RESULT IN HL
+    LD L, A
+    ; RAM_COL PROCESS
+    POP DE  ; GET RAM_COL (D)
+    LD E, D ; MOVE TO E
+    LD D, $00
+    ; ADJUST TO SCREEN VIEW
+    LD A, (jrScrollReal)
+    SRA A           ; SIGNED DIVIDE BY 8
+    SRA A
+    SRA A
+    NEG
+    ADD A, E        ; RAM_COL -= XSCROLL_TILE
+    AND A, $1F  ; LIMIT TO 0 - 31 (VALID COLUMN RANGE)
+    ; ADD LEFT MOST TILE
+    LD E, A
+    LD A, (jrLeftMostTile)
+    NEG
+    ADD A, E
+    AND A, $1F  ; LIMIT TO 0 - 31 (VALID COLUMN RANGE)
+    ADD A, A    ; MULTIPLY XTILE BY 2  (2 BYTES PER TILE)
+    LD E, A     ; STORE IN E
+    ; ADD X AND Y TOGETHER
+    ADD HL, DE
+    ; STORE VRAM POINTER
+    LD (tileMapPointer), HL
+@@@@quadCalc:
+;   --------------
+;   TILE QUADRANT DERTERMINATION (SCROLLING)
+;   --------------
 ;   |----|----|
 ;   |  0 |  2 |
 ;   |    |    |
@@ -322,53 +468,36 @@ pacStateTable@update@normalMode:
 ;   |  1 |  3 |
 ;   |    |    |
 ;   |----|----|
-    ; GET FLIP BITS FROM VRAM TILEMAP
+    ; GET FLIP BITS FROM RAM TILEMAP
+    LD HL, (tileMapRamPtr)
     INC HL
-    RST setVDPAddress
-    ; REG SETUP (B: RESULT, C: X-CHANGE, D: Y-CHANGE, E: FLIP BITS)
-    LD BC, $0002
-    LD D, $01
-    ; GET AND ISOLATE FLIP BITS
-    IN A, (VDPDATA_PORT)    ; GET HORIZONTAL/VERTICAL FLIP BITS
-    AND A, $06      ; KEEP ONLY THOSE BITS
-    LD E, A         ; SAVE IN E
-    JR Z, @@@@calcQuad ; IF BOTH BITS ARE CLEAR, PROCESS QUAD
-    ; ASSUME VERTICAL FLIP
-    INC B       ; ADD ONE TO QUAD
-    LD D, $FF   ; SET Y-CHANGE TO -1
-    BIT 1, E    ; CHECK IF HORIZONTAL BIT ISN'T SET
-    JR Z, @@@@calcQuad  ; IF SO, ONLY VERTICAL BIT IS SET. PROCESS QUAD
-    ; ASSUME HORIZONTAL FLIP
-    INC B       ; ADD ONE TO QUAD
-    LD C, $FE   ; SET X-CHANGE TO -2
-    LD D, $01   ; SET Y-CHANGE TO 1
-    BIT 2, E    ; CHECK IF VERTICAL BIT ISN'T SET
-    JR Z, @@@@calcQuad   ; IF SO, ONLY HORIZONTAL BIT IS SET. PROCESS QUAD
-    ; PREPARE FOR FLIP IN BOTH AXIS
-    INC B       ; ADD ONE TO QUAD
-    LD D, $FF   ; SET Y-CHANGE TO -1
-@@@@calcQuad:
-;   DO X
+    LD A, (HL)  ; GET HORIZONTAL/VERTICAL FLIP BITS
+    ; REG SETUP (B = XOR MASK, C = QX, D = $04, E = FLIP BITS)
+    LD E, A
+    LD D, $04
+    ; QX's XOR MASK
+    AND A, $02  ; XOR MASK = (FLIP & $02) << $01
+    ADD A, A
+    LD B, A
+    ; QX = ((POS ^ XOR_MASK) & $04) >> $02
     LD A, (pacTileXCenter)
-    ADD A, $04  ; ADD 4 (SCREEN OFFSET)
-    AND A, $07  ; MODULUS BY 8
-    CP A, $04   ; CHECK IF NUMBER IS 4 OR GREATER
-    JR C, +     ; IF NOT, SKIP
-    ; IF SO, ADD X-CHANGE
-    LD A, B     ; ADD X-CHANGE TO RESULT
-    ADD A, C    
-    LD B, A     ; STORE BACK INTO RESULT
-+:
-;   DO Y
+    XOR A, B
+    AND A, D
+    RRCA
+    LD C, A     ; C = QX << $01
+    ; QY's XOR MASK
+    LD A, E     ; XOR MASK = (FLIP & $04)
+    AND A, D
+    LD B, A
+    ; QY = ((POS ^ XOR_MASK) & $04) >> $02
     LD A, (pacTileYCenter)
-    AND A, $07  ; MODULUS BY 8
-    CP A, $04   ; CHECK IF NUMBER IS 4 OR GREATER
-    LD A, B     ; PUT RESULT IN A
-    JR C, +     ; IF NOT, SKIP
-    ; IF SO, ADD Y-CHANGE
-    ADD A, D    ; ADD TO RESULT
-+:
-;   STORE RESULT
+    XOR A, B
+    AND A, D
+    RRCA
+    RRCA
+    ; QUAD = QY | (QX << $01)
+    OR A, C
+    ; STORE RESULT
     LD (tileQuadrant), A
 @@@exit:
 ;   NO EXIT
@@ -428,6 +557,7 @@ pacStateTable@update@deadMode:
 ;   SET TIME VALUE
     LD A, (HL)
     LD (pacDeathTimer), A
+;   UPDATE ACTOR'S DATA IN SPRITE TABLE
     RET
 
 
@@ -445,97 +575,20 @@ pacStateTable@update@deadMode:
 
 /*
 ------------------------------------------------
-            NORMAL AND SUPER MODE DRAW
+NORMAL, SUPER, DEAD MODE DRAW [TILE STREAMING]
 ------------------------------------------------
 */
 pacStateTable@draw@normalMode:
 pacStateTable@draw@superMode:
-displayPacMan:
-    LD A, (plusBitFlags)
-    LD C, A
-;   SAVE CURRENT DIRECTION IN B
-    LD A, (pacman.currDir)
-    LD B, A
-;   DETERMINE FRAME THAT WILL BE DISPLAYED (CLOSED, HALF, OPEN)
-    LD HL, pacman.xPos  ; ASSUME PAC-MAN IS MOVE ALONG X-AXIS
-    BIT 0, B    ; CHECK IF PAC-MAN ACTUALLY IS
-    JR NZ, +   ; IF SO, SKIP TO MODULUS
-    INC HL      ; IF NOT, LOAD PAC-MAN'S Y POSITION
-+:
-    LD A, (HL)  ; GET POSITION
-;   CALCULATE TABLE INDEX
-    ; MODULUS POSITION BY 8, THEN DIVIDE BY 2
-    AND A, $07
-    RRA
-    LD D, A     ; SAVE IN D
-    ; MULTIPLY DIRECTION BY 4
-    LD A, B
-    ADD A, A
-    ADD A, A
-    ; ADD POSITION AND DIRECTION
-    ADD A, D
-    ; MULTIPLY BY 4 (EACH SPRITE IS 4 BYTES)
-    ADD A, A
-    ADD A, A
-;   ADD TABLE INDEX TO BASE ADDRESS
-    LD HL, pacSpriteTable
-    BIT 1, C
-    JR Z, +
-    LD HL, msPacSpriteTable
-+:
-    RST addToHL
-;   PREPARE X AND Y
-    LD IX, pacman
-    CALL convPosToScreen
-;   GET SPRITE NUMBER
-    LD A, (pacman.sprTableNum)
-;   DRAW SPRITE
-    JP display4TileSprite
-
-
-    
-
-/*
-------------------------------------------------
-                DEAD MODE DRAW
-------------------------------------------------
-*/
 pacStateTable@draw@deadMode:
+displayPacMan:
+;   CONVERT POSITION
     LD IX, pacman
-;   GET FRAME BY FINDING DIFFERENCE
-    LD HL, (pacDeathTimePtr)
-    LD BC, pacmanDeathTimes
-    OR A    ; CLEAR CARRY
-    SBC HL, BC
-    LD A, L
-;   CHECK IF GAME IS MS. PAC
-    LD HL, plusBitFlags
-    BIT 1, (HL)
-    JR NZ, msDeadDraw   ; IF SO, SKIP
-;   PREPARE TO DRAW
-    LD HL, pacDeathTileDefs
-@deadDraw:
-;   CONVERT NUMBER TO OFFSET
-    ADD A, A
-    ADD A, A
-;   ADD OFFSET TO ADDRESS
-    RST addToHL
-;   LOAD X AND Y
     CALL convPosToScreen
-;   LOAD SPRITE'S TABLE NUMBER
-    LD A, (pacman.sprTableNum)
-;   DRAW
-    JP display4TileSprite    ; IF FLAG IS SET, DISPLAY AS 4 TILE SPRITE
-msDeadDraw:
-;   CHECK TO SEE IF ANIMATION IS DONE
-    CP A, $0B
-    RET Z       ; IF SO, END
-;   PREPARE TO DRAW
-    LD HL, msPacDeathTileDefs   ; LOAD DEATH TILE DEFINITIONS
-;   CONVERT NUMBER TO OFFSET
-    AND A, $03
-    JR pacStateTable@draw@deadMode@deadDraw
-
+;   DISPLAY SPRITE
+    LD A, $01               ; FIXED SPRITE ID
+    LD HL, playerTileList   ; FIXED TILE LIST
+    JP display4TileSprite
 
 
 /*
@@ -563,6 +616,6 @@ pacStateTable@draw@bigMode:
     LD IX, pacman
     CALL convPosToScreen
 ;   GET SPRITE NUMBER
-    LD A, (pacman.sprTableNum)
+    LD A, $01
 ;   DISPLAY SPRITE
     JP display9TileSprite     ; 9 TILE SPRITE

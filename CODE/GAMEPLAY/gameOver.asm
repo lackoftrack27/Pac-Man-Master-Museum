@@ -14,14 +14,33 @@ sStateGameplayTable@gameoverMode:
 ;   SET TIMER
     LD A, GOVER_TIMER_LEN
     LD (mainTimer0), A
-;   REMOVE PAC-MAN FROM SCREEN
+;   REMOVE ALL SPRITES
     LD HL, SPRITE_TABLE + $01 | VRAMWRITE
     RST setVDPAddress
     LD A, $F7
+    LD B, $07
+-:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
+    DJNZ - 
+;   WRITE "PLAYER ONE/TWO" TILES TO VRAM
+    ; SET VDP ADDRESS
+    LD HL, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
+    RST setVDPAddress
+    ; GET CORRECT TILES
+    LD HL, mazeTxtTilePLAYER
+    ; WRITE TO VRAM
+    LD A, UNCOMP_BANK
+    LD (MAPPER_SLOT2), A
+    LD BC, VDPDATA_PORT
+    OTIR
+    LD B, $03 * $20
+    OTIR
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
++:
 ;   DISPLAY "PLAYER ONE" OR "PLAYER TWO" IF IN 2 PLAYER MODE
     ; CHECK IF TWO PLAYER MODE IS ENABLED
     LD A, (playerType)
@@ -39,7 +58,7 @@ sStateGameplayTable@gameoverMode:
     OUT (VDPDATA_PORT), A
 @@draw:
 ;   DRAW 1UP
-    CALL draw1UP    ; !!!
+    CALL draw1UP
 @@update:
 ;   DECREMENT TIMER 0
     LD HL, mainTimer0

@@ -5,6 +5,51 @@
 */
 
 
+
+
+
+
+
+multBy29:
+;   HL * 29 (32 - 02 - 01)
+    LD E, L
+    LD D, H
+    ADD HL, HL
+    PUSH HL
+    ADD HL, HL 
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
+    SBC HL, DE
+    POP DE
+    SBC HL, DE
+    RET
+
+multBy6_16:
+;   HL * 06 (04 + 02)
+    ADD HL, HL
+    LD E, L
+    LD D, H
+    ADD HL, HL
+    ADD HL, DE
+    RET
+
+
+multBy41:
+;   HL * 41 (32 + 08 + 01)
+    LD E, L
+    LD D, H
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
+    PUSH HL
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, DE
+    POP DE
+    ADD HL, DE
+    RET
+
 /*
     INFO: MULTIPLIES A UNSIGNED 8-BIT NUMBER BY 6
     INPUT: A - FACTOR
@@ -16,6 +61,20 @@ multiplyBy6:
     LD B, A
     ADD A, A
     ADD A, B
+    RET
+
+
+addToHLSigned:
+    OR A
+    JP P, +
+    DEC H
++:
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    LD A, (HL)
     RET
 
 
@@ -40,7 +99,7 @@ squareNumber:
     INFO: MULTIPLIES TWO 8-BIT NUMBERS
     INPUT: H - FACTOR, E - FACTOR
     OUTPUT: HL - PRODUCT
-    USES: AF, HL, DE
+    USES: F, HL, DE
 */
 multiply8Bit:
 ;   INIT. LOOP
@@ -82,7 +141,7 @@ randNumGen:
 ;   DETERMINE DATA OFFSET
     LD DE, rngDataOffset    ; ASSUME PAC-MAN (NON PLUS) GAME DATA
     LD A, (plusBitFlags)    ; CHECK IF NON PLUS GAME IS BEING PLAYED
-    BIT PLUS, A
+    AND A, $01 << PLUS
     JR Z, +                 ; IF SO, SKIP
     SET 5, D                ; ELSE, ADD $2000 TO POINT TO PLUS GAME DATA
 +:
@@ -94,7 +153,7 @@ randNumGen:
     ; GET VALUE AT "RANDOM" INDEX
     LD E, (HL)
     ; RESTORE BANK
-    SUB A, SMOOTH_BANK
+    LD A, SMOOTH_BANK
     LD (MAPPER_SLOT2), A
     ; RETURN VALUE
     LD A, E

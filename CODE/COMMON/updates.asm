@@ -19,7 +19,9 @@ generalGameplayUpdate:
     CP A, GAMEPLAY_DEAD00
     RET Z
 ;   IF GHOST IS BEING EATEN, CHANGE ITS STATE (OG) [ONLY EXECUTED WHEN EATING IS DONE]
-    CALL ghostUpdateDeadState
+    LD A, (eatSubState)
+    OR A
+    CALL M, ghostUpdateDeadState
 ;   UPDATE GHOSTS THAT ARE GOING HOME
     CALL ghostToHomeUpdate
 ;   GHOST POINTS UPDATE (SHOW / REMOVE) IF POINTS ARE SHOWING, END AFTER
@@ -44,7 +46,9 @@ generalGameplayUpdate:
 ;   UPDATE ALL GHOSTS (THAT ARE OUTSIDE OF HOME)
     CALL ghostOutHomeUpdate
 ;   CONTROL SUPER TIMER (ONLY IN SUPER MODE)
-    CALL superTimerUpdate
+    LD A, (pacPoweredUp)
+    OR A
+    CALL NZ, superTimerUpdate
 ;   CHECK IF GHOSTS CAN LEAVE HOME (DOT COUNTER)
     JP ghostDotReleaser
 
@@ -124,7 +128,7 @@ getInput:
     LD C, A
 ;   CHECK WHICH PLAYER IS PLAYING
     LD A, (playerType)
-    BIT 1, A
+    AND A, $01 << $01
     JR NZ, +    ; IF PLAYER 2, SKIP...
 ;   GET INPUTS FROM PLAYER 1 (LEFT, RIGHT, UP, DOWN)
     ; ASSUME LEFT IS PRESSED
@@ -169,7 +173,7 @@ getInput:
     BIT 7, B
     JR NZ, @setWanted
     ; NO DIRECTION WAS PRESSED
-    JR @noDir
+    JP @noDir
 
 
 
@@ -183,8 +187,8 @@ getInput:
 addToScore:
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
-    CP A, M_STATE_GAMEPLAY
-    RET NZ  ; IF SO, EXIT...
+    OR A
+    RET Z  ; IF SO, EXIT...
     LD DE, currPlayerInfo.score
 ;   ADD FIRST TWO DIGITS OF BOTH NUMBERS
     LD A, (DE)
@@ -203,24 +207,25 @@ addToScore:
     ADC A, $00  ; ADD CARRY IF NEED BE
     DAA         ; CORRECT BCD BALUE (PROBABLY NOT NEEDED)
     LD (DE), A  ; STORE
+;   UPDATE TILEMAP BUFFER
+    CALL scoreTileMapUpdate
 ;   CHECK IF EXTRA LIFE WAS ALREADY GIVEN
     LD A, (currPlayerInfo.awarded1UPFlag)
     OR A
-    JR NZ, @compareHS   ; IF SO, SKIP...
+    JP NZ, @compareHS   ; IF SO, SKIP...
 ;   CHECK IF CURRENT SCORE IS GREATER OR EQUAL TO THE SCORE REQUIRED TO GET EXTRA LIFE
     ; COMPARE UPPER BYTES
-    LD A, (DE)  ; POINTED TO currPlayerInfo.score + 2
+    LD A, (currPlayerInfo.score + 2)
     LD B, A
     LD A, (bonusValue + 2)
     CP A, B    
-    JR C, +     ; CARRY SET IF SCORE > BONUS
-    JR NZ, @compareHS       ; IF NOT EQUAL, SKIP
+    JP C, +     ; CARRY SET IF SCORE > BONUS
+    JP NZ, @compareHS       ; IF NOT EQUAL, SKIP
     ; IF UPPER BYTE IS EQUAL, COMPARE LOWER WORDS
-    LD HL, (bonusValue)
-    LD BC, (currPlayerInfo.score)
-    SBC HL, BC  ; CARRY SET IF SCORE > BONUS (CARRY CLEARED)
-    JR Z, +     ; IF SCORE AND BONUS MATCH, GIVE EXTRA LIFE
-    JR NC, @compareHS       ; IF SCORE ISN'T GREATER THAN BONUS, SKIP
+    LD BC, (bonusValue)
+    LD HL, (currPlayerInfo.score)
+    SBC HL, BC
+    JP C, @compareHS
 +:
     ; INCREASE LIFE COUNT
     LD HL, currPlayerInfo.lives
@@ -228,14 +233,18 @@ addToScore:
     ; SET FLAG ASWELL
     LD HL, currPlayerInfo.awarded1UPFlag
     INC (HL)
+    ; PLAY 1UP SOUND
+    LD A, SFX_BONUS
+    LD B, $00       ; CHANNEL 0
+    CALL sndPlaySFX
 @compareHS:
 ;   COMPARE SCORE TO HIGH SCORE
     ; COMPARE UPPER BYTES
-    LD A, (DE)  ; POINTED TO currPlayerInfo.score + 2
+    LD A, (currPlayerInfo.score + 2)
     LD B, A
     LD A, (highScore + 2)
     SUB A, B    
-    JR C, +     ; CARRY SET IF SCORE > HIGHSCORE
+    JP C, +     ; CARRY SET IF SCORE > HIGHSCORE
     RET NZ      ; IF NOT EQUAL, RETURN
     ; IF UPPER BYTE IS EQUAL, COMPARE LOWER WORDS
     LD HL, (highScore)
@@ -250,6 +259,96 @@ addToScore:
     LD (highScore + 2), A
     RET
 
+
+
+scoreTilemapRstBuffer:
+    LD HL, scoreTileMapBuffer ; AREA IS CLEARED WITH $11FF (12 BYTES)
+    LD DE, $1100 | MASK_TILE
+.REPEAT $06
+    LD (HL), E
+    INC HL
+    LD (HL), D
+    INC HL
+.ENDR
+    LD A, HUDZERO_INDEX
+    LD (scoreTileMapBuffer + $08), A    ; DIGIT 4
+    LD (scoreTileMapBuffer + $0A), A    ; DIGIT 5
+    RET
+
+scoreTileMapUpdate:
+;   SCORE TILEMAP UPDATE ROUTINE
+    LD BC, $000F   ; LEADING ZERO FLAG / NIBBLE BITMASK
+    LD DE, scoreTileMapBuffer
+    LD HL, currPlayerInfo.score + 2
+;   317 CYCLES
+    ; DIGIT 0 (LEFT MOST)
+    LD A, (HL)
+    RRCA
+    RRCA
+    RRCA
+    RRCA
+    AND A, C
+    ADD A, B
+    JP Z, +
+    SUB A, B
+    ADD A, HUDZERO_INDEX
+    LD (DE), A
+    INC B
++:
+    INC DE
+    INC DE
+    ; DIGIT 1
+    LD A, (HL)
+    AND A, C
+    ADD A, B
+    JP Z, +
+    SUB A, B
+    ADD A, HUDZERO_INDEX
+    LD (DE), A
+    INC B
++:
+    INC DE
+    INC DE
+    DEC HL
+    ; DIGIT 2
+    LD A, (HL)
+    RRCA
+    RRCA
+    RRCA
+    RRCA
+    AND A, C
+    ADD A, B
+    JP Z, +
+    SUB A, B
+    ADD A, HUDZERO_INDEX
+    LD (DE), A
+    INC B
++:
+    INC DE
+    INC DE
+    ; DIGIT 3
+    LD A, (HL)
+    AND A, C
+    ADD A, B
+    JP Z, +
+    SUB A, B
+    ADD A, HUDZERO_INDEX
+    LD (DE), A
++:
+    INC DE
+    INC DE
+    DEC HL
+    ; DIGIT 4 (ZERO IS ALWAYS DRAWN)
+    LD A, (HL)
+    RRCA
+    RRCA
+    RRCA
+    RRCA
+    AND A, C
+    ADD A, HUDZERO_INDEX
+    LD (DE), A
+    ; DIGIT 5 IS ALWAYS ZERO
+    RET
 
 
 /*
@@ -296,65 +395,43 @@ powDotCyclingUpdate:
     CP A, $24       ; $09 << $02
     JR Z, @refresh  ; IF SO, SKIP
 ;   CALCULATE PALETTE FROM TABLE
+    LD DE, powDotPalette
     LD HL, powDotPalTable
     RST addToHL
-    LD DE, powDotPalette
-    LD A, (mazePalette + BGPAL_PDOT1)   ; GET MAX COLOR FROM PALETTE
-    LD C, A
-    LD B, $04
+    LD IXH, $04
 -:
-    LD IXH, C
     LD A, (HL)
     OR A
-    JR Z, ++
-    LD IXH, $00
-    ; R
-    LD A, C
-    AND A, $03
-    SUB A, (HL)
-    JR NC, +
+    JP Z, @@decBy0
+    DEC A
+    JP Z, @@decBy1
+    DEC A
+    JP Z, @@decBy2
+@@decBy3:
     XOR A
+    JP +        ; 63
+@@decBy2:
+    LD A, (mazePalette + BGPAL_PDOT1)
+    LD BC, colorDecTable@decBy2
+    ADD A, C
+    LD C, A
+    LD A, (BC)
+    JP +        ; 97
+@@decBy1:
+    LD A, (mazePalette + BGPAL_PDOT1)
+    LD BC, colorDecTable
+    ADD A, C
+    LD C, A
+    LD A, (BC)
+    JP +        ; 83
+@@decBy0:
+    LD A, (mazePalette + BGPAL_PDOT1)   ; 34
 +:
-    OR A, IXH
-    LD IXH, A
-    ; G
-    LD A, C
-    RRCA
-    RRCA
-    AND A, $03
-    SUB A, (HL)
-    JR NC, +
-    XOR A
-+:
-    RLCA
-    RLCA
-    OR A, IXH
-    LD IXH, A
-    ; B
-    LD A, C
-    RRCA
-    RRCA
-    RRCA
-    RRCA
-    AND A, $03
-    SUB A, (HL)
-    JR NC, +
-    XOR A
-+:
-    RLCA
-    RLCA
-    RLCA
-    RLCA
-    OR A, IXH
-    LD IXH, A
-++:
-    ; WRITE TO NEW COLOR TO BUFFER
-    LD A, IXH
     LD (DE), A
-    ; PREPARE FOR NEXT LOOP
     INC HL
     INC DE
-    DJNZ -
+    DEC IXH
+    JP NZ, -
 ;   UPDATE TABLE COUNTER
     LD A, (powDotFrameCounter)
     ADD A, $04
@@ -397,22 +474,23 @@ mazeUpdate:
     SUB A, $02          ; CHECK IF TILE WAS 0/1 (EMPTY/WALL)
     RET C   ; IF SO, END
 ;   SETUP VARS
-    LD C, VDPDATA_PORT      ; SET C FOR DATA PORT
-    LD HL, (tileMapPointer) ; SET VDP ADDRESS TO TILE'S VRAM LOCATION
-    RST setVDPAddress
+    LD HL, (tileMapRamPtr)      ; POINTER WITHIN TILEMAP IN RAM
 ;   JUMP IF AT POWER DOT
-    JR NZ, @atPowerDot    ; JUMP IF POWER DOT WAS ATE (WAS 3, NOW 1)
+    JR NZ, @atPowerDot          ; JUMP IF POWER DOT WAS ATE (WAS 3, NOW 1)
 ;   ELSE, A REGULAR DOT WAS ATE (WAS 2, NOW 0)
     ; SET TILE BUFFER ADDRESS
-    LD (tileBufferAddress), HL
+    LD DE, (tileMapPointer)
+    LD (tileBufferAddress), DE  ; STORE ACTUAL VDP ADDRESS
     ; USE TILE INDEX AS OFFSET INTO RAM TABLE
-    LD HL, tileQuadrant     ; GET ADDRESS OF TILE QUAD INTO HL (DONE HERE TO SLOW VDP ACCESS)
-    IN A, (C)   ; GET INDEX (ONLY NEED LOWER 8 BITS)
+    LD A, (HL)
+    INC HL
+    EX DE, HL   ; SAVE VRAM PTR IN DE
     ADD A, A    ; MULTIPLY BY 4 (EVERY TILE IS 4 BYTES LONG)
     ADD A, A
-    ADD A, (HL)    ; ADD QUADRANT NUMBER TO OFFSET (DETERMINES WHICH AREA PAC-MAN INTERACTED WITH)
+    LD HL, tileQuadrant ; GET ADDRESS OF TILE QUAD INTO HL
+    ADD A, (HL)         ; ADD QUADRANT NUMBER TO OFFSET (DETERMINES WHICH AREA PAC-MAN INTERACTED WITH)
     ; ADD OFFSET TO BASE TABLE
-    LD HL, mazeEatenTbl     ; LOAD BASE TABLE ADDRESS AND SET LOW BYTE TO OFFSET
+    LD H, hiByte(mazeEatenTbl)  ; LOAD BASE TABLE ADDRESS AND SET LOW BYTE TO OFFSET
     LD L, A
     ; SET INDEX IN BUFFER
     LD A, (HL)  ; GET VALUE AT OFFSET
@@ -426,8 +504,9 @@ mazeUpdate:
     RLCA
     RLCA
     AND A, $06  ; CLEAR ALL BITS EXCEPT FLIP FLAGS
-    IN C, (C)   ; GET FLIPPING IN C
-    XOR A, C    ; XOR WITH FLIP FLAGS OF CURRENT TILE
+    LD B, A
+    LD A, (DE)
+    XOR A, B    ; XOR WITH FLIP FLAGS OF CURRENT TILE
     LD (tileBuffer + 2), A  ; STORE AS HIGH BYTE
     ; SET OFFSET
     XOR A
@@ -437,6 +516,13 @@ mazeUpdate:
     LD (tileBufferCount), A
     ; SET PAC-MAN'S DOT DELAY TIMER
     LD (pacPelletTimer), A  ; 0.83333 FOR PAL
+    ; UPDATE TILEMAP IN VRAM
+    LD HL, (tileMapRamPtr)
+    LD A, (tileBuffer + 1)
+    LD (HL), A
+    INC HL
+    LD A, (tileBuffer + 2)
+    LD (HL), A
     ; ADD TO SCORE
     LD HL, $0010
     CALL addToScore
@@ -444,54 +530,77 @@ mazeUpdate:
     JP @updateCollision
 @atPowerDot:
 ;   A POWER DOT HAS BEEN EATEN
-    IN F, (C)   ; SKIP INDEX
-    ; SET HL TO BASE ADDRESS OF POWER DOT TABLE (DONE HERE TO SLOW VDP ACCESS)
-    LD HL, mazePowTbl
-    NOP
-    ; GET TILEMAP INFO AT ADDRESS
-    IN A, (C)   ; SAVE FLIPPING IN A
+    ; GET UPPER BYTE OF TILE
+    INC HL
+    LD A, (HL)
     ; DETERMINE WHICH POWER DOT PAC-MAN ATE
-    AND A, $60  ; BITS 6, 5 DETERMINE WHICH POWER DOT WAS EATEN
-    ; PUT BITS 6, 5 IN POSITION OF BITS 0, 1
+    AND A, $E0  ; BITS 7, 6, 5 DETERMINE WHICH POWER DOT WAS EATEN
+    ; PUT BITS 7, 6, 5 IN POSITION OF BITS 2, 1, 0
     RLCA
     RLCA
     RLCA
     ; ADD POWER DOT NUMBER TO BASE TABLE ADDRESS TO GET POWER DOT OFFSET WITHIN TABLE
+    LD H, hiByte(mazePowTbl)
     LD L, A     ; LOW BYTE IS 0, SO JUST OVERWRITE LOW BYTE
     LD L, (HL)  ; OVERWRITE LOW BYTE AGAIN WITH VALUE AT OFFSET
     ; NOW POINTING TO INFO FOR POWER DOT PAC-MAN IS CURRENTLY ON
     ; GET DOT INFO
     LD B, (HL)      ; SETUP COUNTER FOR LOOP
+    LD C, $FF       ; COUNTERACT LDI's DECREMENT
     LD DE, tileBufferCount
     LDI ; COPY COUNT
-    LDI ; COPY LOW BYTE OF ABSOLUTE VRAM ADDRESS
-    LDI ; COPY HIGH BYTE OF ABSOLUTE VRAM ADDRESS
+        ; GET ROW AND COL OF POWER DOT
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    INC HL
+    PUSH HL ; SAVE PDOT TABLE POINTER
+    PUSH DE ; SAVE RAM/COL
+        ; CALCULATE RAM PTR
+    EX DE, HL   ; HL: ROW/COL, DE: N/A
+    CALL rowColToRamPtr
+    PUSH HL
+    POP IX      ; IX = BASE RAM PTR
+        ; CALCULATE VRAM PTR
+    POP HL  ; GET BACK RAM/COL
+    CALL rowColToVramPtr
+    LD (tileBufferAddress), HL
+        ; GET BACK PDOT TABLE POINTER
+    POP HL
     ; PREPARE FOR LOOP
     LD DE, tileBuffer
     ; HL: MAZE DOT POW TABLE POINTER
     ; DE: TILE BUFFER POINTER
 -:
     ; SET VRAM OFFSET OF CURRENT TILE IN LIST
-    LDI             ; COPY VRAM OFFSET TO TILE BUFFER        
-    DEC DE          ; POINT BACK TO VRAM OFFSET IN TILE BUFFER
+    LD A, (HL)
+    INC HL
+    LD (DE), A
+    BIT 7, A
+    JR Z, +
+    SUB A, $52 - $40
+    LD (DE), A
+    ADD A, $52 - $40
++:
     PUSH HL         ; SAVE POSITION OF POW DOT TABLE (NOW POINTING TO QUAD)
     ; ADDRESS OF QUAD IS ON STACK
-    LD C, VDPDATA_PORT
-    ; ADD OFFSET TO BASE ADDRESS
-    LD HL, (tileBufferAddress)
-    LD A, (DE)
+    ; ADD OFFSET TO BASE RAM PTR
+    PUSH IX
+    POP HL      ; HL = BASE RAM PTR
     RST addToHL
-    RST setVDPAddress
+    PUSH HL
+    POP IY      ; IY = (BASE + OFFSET ADDRESS) IN RAM TILEMAP
+    INC HL
+    LD C, (HL)  ; HIGH BYTE: FLIP FLAGS, ETC
     ; GET TILE INFO
     POP HL      ; RESTORE POW DOT TABLE ADDRESS (POINTING TO QUAD)
     PUSH HL     ; SAVE BACK ONTO STACK (QUAD ADDRESS)
-    IN A, (C)   ; GET TILE INDEX
     ; USE TILE INDEX AS OFFSET INTO RAM TABLE
     ADD A, A    ; MULTIPLY BY 4 (EVERY TILE IS 4 BYTES LONG)
     ADD A, A
     ADD A, (HL) ; ADD QUADRANT NUMBER TO OFFSET (DETERMINES WHICH AREA PAC-MAN INTERACTED WITH)
     ; ADD OFFSET TO BASE TABLE
-    LD HL, mazeEatenTbl    ; LOAD BASE TABLE ADDRESS AND SET LOW BYTE TO OFFSET
+    LD H, hibyte(mazeEatenTbl)  ; LOAD BASE TABLE ADDRESS AND SET LOW BYTE TO OFFSET
     LD L, A
     ; SET INDEX IN BUFFER
     LD A, (HL)  ; GET VALUE AT OFFSET
@@ -499,6 +608,7 @@ mazeUpdate:
     AND A, $3F  ; REMOVE FLIP BITS
     INC DE      ; POINT TO LOW BYTE OF TILE IN TILE BUFFER
     LD (DE), A      ; STORE AS LOW BYTE
+    LD (IY + 0), A
     ; SET FLIPPING IN BUFFER
     LD A, L     ; GET ORIGINAL VALUE
     ; PUT FLIP FLAGS (BIT 6, 7) IN SAME SPOT AS VRAM (BIT 1, 2)
@@ -506,10 +616,10 @@ mazeUpdate:
     RLCA
     RLCA
     AND A, $06  ; CLEAR ALL BITS EXCEPT FLIP FLAGS
-    IN L, (C)   ; GET HORIZONTAL/VERTICAL FLIPPING
-    XOR A, L    ; XOR WITH FLIP FLAGS OF CURRENT TILE
+    XOR A, C    ; XOR WITH FLIP FLAGS OF CURRENT TILE
     INC DE      ; POINT TO HIGH BYTE OF TILE IN TILE BUFFER
     LD (DE), A  ; STORE AS HIGH BYTE
+    LD (IY + 1), A
     ; PREPARE FOR NEXT LOOP
     INC DE      ; POINT TO VRAM OFFSET FOR NEXT TILE IN LIST
     POP HL      ; RESTORE QUAD ADDRESS BACK INTO HL
@@ -530,10 +640,8 @@ mazeUpdate:
     XOR A
     LD (flashCounter), A
     LD (ghostPointIndex), A
-    ; CHANGE PAC-MAN'S SPRITE NUMBER
-    INC A   ; $01
-    LD (pacman.sprTableNum), A
     ; SWITCH STATE TO SUPER
+    INC A
     LD (pacPoweredUp), A
     ; NOTIFY ACTORS
     CALL pacGameTrans_super
@@ -556,16 +664,21 @@ mazeUpdate:
     SUB A, $21
     LD L, A
     LD H, $00
-    ; MULTIPLY Y TILE BY 16 (COLLISION MAP IS 32 TILES HORIZONTAL, 1 TILE PER NIBBLE)
+    ; MULTIPLY BY EITHER 16 (PAC/MS.) OR 29 (JR)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +
+    CALL multBy29
+    JP @addX
++:
     ADD HL, HL
     ADD HL, HL
     ADD HL, HL
     ADD HL, HL
+@addX:
     ; ADD X TILE TO OFFSET
     LD A, (pacman + CURR_X)
-    LD B, A
-    LD A, $3D
-    SUB A, B
+    SUB A, $1E
     LD E, A ; EVEN/ODD FLAG
     RRA     ; DIVIDE BY 2 (NIBBLE FORMAT)
     RST addToHL
@@ -596,14 +709,27 @@ mazeUpdate:
     ; SET TILE BUFFER FLAG
     LD A, $01
     LD (tileBufferFlag), A
-    ; DECREMENT DOT COUNTER
-    LD HL, currPlayerInfo.dotCount
-    INC (HL)
+    ; UPDATE PLAYER'S DOT COUNT
+    CALL updatePlayerDotCount
     ; UPDATE GHOSTS' DOT COUNTERS (IF NECESSARY)
     CALL ghostUpdateDotCounters
     ; PLAY DOT EATEN SFX
-    LD A, (currPlayerInfo.dotCount)
     LD HL, ch2SoundControl
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +
+    ;   JR.PAC PROCESS
+    SET 0, (HL)
+    RES 1, (HL)
+    LD A, (pacPelletTimer)
+    SRL A
+    RET Z
+    RES 0, (HL)
+    SET 1, (HL)
+    RET
++:
+    ; PLAY DOT EATEN SFX
+    LD A, (currPlayerInfo.dotCount)
     RRCA    ; PLAY DIFFERENT SOUND DEPENDING ON ODD/EVEN DOT COUNT
     JR C, +
     SET 0, (HL)
@@ -615,17 +741,16 @@ mazeUpdate:
     RET
 
 
+
+
 /*
     INFO: UPDATES SUPER TIMER
     INPUT: NONE
     OUTPUT: NONE
     USES: AF, HL, IX
 */
+
 superTimerUpdate:
-;   CHECK IF SUB GAME MODE IS SUPER 
-    LD A, (pacPoweredUp)
-    OR A
-    RET Z   ; IF NOT, EXIT
 ;   CHECK IF ALL GHOSTS ARE EATEN
     LD IX, blinky + EDIBLE_FLAG + (_sizeof_ghost * 3 - $7F)
     LD A, (IX - (_sizeof_ghost * 3 - $7F))
@@ -661,9 +786,6 @@ superTimerUpdate:
 ;   TURN OFF GHOST FLASH
     LD HL, flashCounter
     RES 5, (HL)
-;   CHANGE PAC-MAN'S SPRITE NUMBER
-    LD A, 21
-    LD (pacman.sprTableNum), A
     RET
 
 
@@ -693,3 +815,132 @@ allDotsEatenCheck:
     LD HL, $01 * $100 + GAMEPLAY_COMP00
     LD (subGameMode), HL
     RET
+
+
+
+setLineCountJR:
+;   CHECK GAME STATE
+    LD A, (mainGameMode)
+    CP A, M_STATE_ATTRACT
+    JR NZ, +    ; SET LINE COUNTER IF IN GAMEPLAY OR CUTSCENE
+    LD A, (subGameMode)
+    CP A, ATTRACT_TITLE
+    RET Z       ; EXIT IF ON TITLE SCREEN
+    CP A, ATTRACT_OPTIONS
+    RET Z       ; EXIT IF ON OPTIONS SCREEN
++:
+;   SET LINE COUNTER
+    LD A, $07
+    OUT (VDPCON_PORT), A
+    LD A, $8A
+    OUT (VDPCON_PORT), A
+    RET
+
+
+
+
+;   $28 <-> $00 <-> $D8
+updateJRScroll:
+;   CHECK GAME STATE
+    LD A, (mainGameMode)
+    CP A, M_STATE_ATTRACT
+    JR NZ, +
+    LD A, (subGameMode)
+    CP A, ATTRACT_TITLE
+    RET Z       ; EXIT IF ON TITLE SCREEN
+    CP A, ATTRACT_OPTIONS
+    RET Z       ; EXIT IF ON OPTIONS SCREEN
++:
+;   UPDATE REAL SCROLL VALUE
+    ; NEW TO OLD
+    LD A, (jrScrollReal)
+    LD (jrOldScrollReal), A
+    ; SCALE PAC-MAN'S POS TO 3/4 USING TABLE
+        ; POS -> INDEX
+    LD A, (pacman + X_WHOLE)
+    LD L, A
+    LD A, (pacman + X_WHOLE + 1)
+    LD H, A
+    ADD HL, HL
+        ; ADD HIGH BYTES
+    LD A, H
+    ADD A, hibyte(jrScaleTable)
+    LD H, A
+        ; GET VALUE
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    ; GET NEW SCROLL VALUE FROM TABLE
+    LD A, H
+    ADD A, hiByte(jrRealScrollTable)
+    LD H, A
+    LD A, (HL)
+    LD (jrScrollReal), A
+;   UPDATE LEFT MOST TILE (FROM TABLE)
+    LD H, hibyte(jrLeftTileTable)
+    LD L, A
+    LD A, (HL)
+    LD (jrLeftMostTile), A
+;   UPDATE CAMERA POS
+    LD A, (jrScrollReal)
+    LD B, A
+    LD A, $28   ; MAX SCROLL
+    SUB A, B
+    LD (jrCameraPos), A
+;   UPDATE ACTOR OFFSCREEN FLAGS
+    LD IX, blinky
+    CALL actorOffScreenCheck
+    LD IX, pinky
+    CALL actorOffScreenCheck
+    LD IX, inky
+    CALL actorOffScreenCheck
+    LD IX, clyde
+    CALL actorOffScreenCheck
+    ;FRUIT
+;   DETERMINE WHICH COLUMN TO UPDATE
+    LD A, (jrScrollReal)
+    ADD A, $02
+    AND A, $F8  ; ADD OFFSET THAN ROUND DOWN TO CLOSEST MULT OF 8
+    NEG
+    RRCA
+    RRCA
+    RRCA
+    AND A, $1F
+    LD (jrColumnToUpdate), A
+;   UPDATE SCROLL FLAG
+    LD A, (jrScrollReal)
+    LD B, A
+    LD A, (jrOldScrollReal)
+    XOR A, B
+    AND A, $F8
+    RET Z
+    LD A, $01
+    LD (updateColFlag), A
+    RET
+
+
+;   USES:   AF, HL
+updatePlayerDotCount:
+;   CHECK IF GAME IS JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, @incNormalDot ; IF SO, JUST INCREMENT NORMAL DOT COUNT
+;   INCREMENT JR DOT COUNT
+    LD HL, (currPlayerInfo.jrDotCount)
+    INC HL
+    LD (currPlayerInfo.jrDotCount), HL
+;   CHECK IF JR DOT COUNT IS ODD
+    LD A, (currPlayerInfo.jrDotCount)
+    RRCA
+    RET NC  ; IF NOT, END
+;   CHECK IF NORMAL DOT COUNT == $F4
+    LD A, (currPlayerInfo.dotCount)
+    CP A, $F4
+    RET Z   ; IF SO, END
+;   ELSE, ALSO INCREMENT NORMAL DOT COUNT
+@incNormalDot:
+    LD HL, currPlayerInfo.dotCount
+    INC (HL)
+    RET
+    

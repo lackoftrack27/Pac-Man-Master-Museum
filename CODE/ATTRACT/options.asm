@@ -164,7 +164,7 @@ sStateAttractTable@optionsMode:
     LD A, (DE)
     DEC A
     JP P, +     ; UNDERFLOW CHECK
-    LD A, MUS_INTER2_MS - SFX_STOP
+    LD A, MUS_INTER2_JR - SFX_STOP
 +:
     LD (DE), A
     ; UPDATE TILEMAP
@@ -176,7 +176,7 @@ sStateAttractTable@optionsMode:
     ; INCREMENT SND ID
     LD A, (DE)
     INC A
-    CP A, MUS_INTER2_MS - SFX_STOP + 1
+    CP A, MUS_INTER2_JR - SFX_STOP + 1
     JR C, +     ; OVERFLOW CHECK
     XOR A
 +:
@@ -219,7 +219,7 @@ sStateAttractTable@optionsMode:
     RET Z   ; IF NOT, END
     ; TOGGLE FLAG
     LD A, (plusBitFlags)
-    XOR A, STYLE_0 << $01
+    XOR A, $01 << STYLE_0
     LD (plusBitFlags), A
     ; TOGGLE LINE ITEM
     LD A, (DE)

@@ -39,11 +39,6 @@ loadTileAssets:
     BIT PLUS, A
     JR NZ, +    
 ;   UNIQUE PAC-MAN TILE ASSETS
-    ; PAC-MAN
-    LD HL, pacmanTiles
-    LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
     ; GHOSTS
     LD HL, ghostTiles
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
@@ -60,11 +55,6 @@ loadTileAssets:
     JP zx7_decompressVRAM
 +:
 ;   UNIQUE PLUS TILE ASSETS
-    ; PAC-MAN PLUS
-    LD HL, pacmanTiles@plus
-    LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
     ; GHOSTS PLUS
     LD HL, ghostTiles@plus
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
@@ -86,11 +76,6 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    ; MS. PAC-MAN
-    LD HL, msPacTiles
-    LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
 ;   LOAD ASSETS DEPENDING ON GAME TYPE
     LD A, (plusBitFlags)
     BIT PLUS, A
@@ -108,6 +93,14 @@ loadTileAssets:
     ; GHOST POINTS
     LD HL, ghostPointTiles
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    LD A, (plusBitFlags)
+    BIT OTTO, A
+    RET Z
+    ; OTTO GHOSTS
+    LD HL, ottoGhostTiles
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
     JP zx7_decompressVRAM
     ; -----------------------------
 +:
@@ -123,6 +116,14 @@ loadTileAssets:
     ; GHOST POINTS PLUS
     LD HL, ghostPointTiles@plus
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    LD A, (plusBitFlags)
+    BIT OTTO, A
+    RET Z
+    ; OTTO GHOSTS PLUS
+    LD HL, ottoGhostTiles@plus
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
     JP zx7_decompressVRAM
     ; -----------------------------
 @arcade:
@@ -148,11 +149,6 @@ loadTileAssets:
     BIT PLUS, A
     JR NZ, +    
 ;   UNIQUE PAC-MAN TILE ASSETS
-    ; PAC-MAN
-    LD HL, arcadeGFXData@pacman
-    LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
     ; GHOSTS
     LD HL, arcadeGFXData@ghosts
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
@@ -168,15 +164,10 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    JR @end
+    JP @end
     ; -----------------------------
 +:
 ;   UNIQUE PLUS TILE ASSETS
-    ; PAC-MAN PLUS
-    LD HL, arcadeGFXData@pacmanPlus
-    LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
     ; GHOSTS PLUS
     LD HL, arcadeGFXData@ghostsPlus
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
@@ -204,11 +195,6 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    ; MS. PAC-MAN
-    LD HL, arcadeGFXData@msPacman
-    LD DE, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
 ;   LOAD ASSETS DEPENDING ON GAME TYPE
     LD A, (plusBitFlags)
     BIT PLUS, A
@@ -226,6 +212,14 @@ loadTileAssets:
     ; GHOST POINTS
     LD HL, arcadeGFXData@ghostPoints
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    LD A, (plusBitFlags)
+    BIT OTTO, A
+    JR Z, @end
+    ; OTTO GHOSTS
+    LD HL, arcadeGFXData@ottoGhosts
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
     JR @end
@@ -246,6 +240,14 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
+    LD A, (plusBitFlags)
+    BIT OTTO, A
+    JR Z, @end
+    ; OTTO GHOSTS PLUS
+    LD HL, arcadeGFXData@ottoGhostsPlus
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
 @end:
     LD A, SMOOTH_BANK
     LD (MAPPER_SLOT2), A
@@ -264,10 +266,13 @@ loadTileAssets:
     USES: AF, DE, HL
 */
 loadMaze:
-;   CHECK IF GAME IS MS. PAC
+;   CHECK IF GAME IS MS.PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
-    JR NZ, +    ; IF SO, SKIP
+    JR NZ, @msMazes     ; IF SO, SKIP
+;   CHECK IF GAME IS JR.PAC
+    BIT JR_PAC, A
+    JR NZ, @jrMazes     ; IF SO, SKIP
 ;   LOAD PAC-MAN MAZE DATA
     ; LOAD MAZE TILES (LOAD EVERY TIME!)
     LD HL, maze0Tiles
@@ -293,7 +298,7 @@ loadMaze:
     LD HL, mazeCollsionData
     LD DE, mazeGroup1.collMap
     JP zx7_decompress
-+:
+@msMazes:
 ;   LOAD MS. PAC-MAN MAZE DATA
     ; LOAD MAZE TILES (LOAD EVERY TIME!)
     LD HL, msMazeTilesTable
@@ -324,3 +329,51 @@ loadMaze:
     CALL getMazeIndex
     LD DE, mazeGroup1.collMap
     JP zx7_decompress
+@jrMazes:
+;   LOAD JR.PAC-MAN MAZE DATA
+    ; SWITCH TO JR MAZE BANK
+    LD A, JRMAZE_BANK
+    LD (MAPPER_SLOT2), A
+    ; LOAD MAZE TILES (LOAD EVERY TIME!)
+    LD HL, jrmaze0Tiles
+    LD DE, BACKGROUND_ADDR | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
+    LD HL, jrmaze0DotTable
+    LD DE, mazeEatenTbl
+    CALL zx7_decompress
+    ; LOAD POWER DOT TABLE (LOAD EVERY TIME!)
+    LD HL, jrmaze0PowTable
+    LD DE, mazePowTbl
+    CALL zx7_decompress
+    ; CHECK IF PLAYER HAS DIED
+    LD A, (currPlayerInfo.diedFlag)
+    OR A
+    JR NZ, +    ; IF SO, END
+    ; LOAD MAZE TILEMAP DATA
+    LD HL, jrmaze0TileMap
+    LD DE, mazeGroup1.tileMap
+    CALL zx7_decompress
+    ; LOAD MAZE COLLISION DATA
+    LD HL, jrmaze0ColData
+    LD DE, mazeGroup1.collMap
+    CALL zx7_decompress
++:
+    ; REVERT BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
+    RET
+
+
+loadHudTiles:
+;   LOAD HUD TEXT TILES
+    LD HL, hudTextTiles     ; ASSUME PAC-MAN / MS.PAC-MAN HUD
+    ; SKIP IF GAME ISN'T JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +
+    LD HL, jrHudTextTiles   ; JR.PAC'S HUD TILES
++:
+    LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE
+    JP zx7_decompressVRAM
+

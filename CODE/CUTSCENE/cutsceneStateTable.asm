@@ -14,7 +14,15 @@ sStateCutsceneTable:
     .DW $0000           ; 03
     .DW @msScene0       ; 04
     .DW @msScene1       ; 05
-    .DW @msScene2       ; 06 
+    .DW @msScene2       ; 06
+    .DW $0000           ; 07
+    
+    .DW $0000           ; 07
+    .DW $0000           ; 07
+    .DW $0000           ; 07
+    ;.DW @jrScene0       ; 08
+    ;.DW @jrScene1       ; 09
+    ;.DW @jrScene2       ; 0A
 
 
 /*

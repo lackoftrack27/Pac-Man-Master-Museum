@@ -13,16 +13,16 @@ taskListTable:
 
 blinkyPF:
     LD IX, blinky
-    JR ghostPathFindingAI
+    JP ghostPathFindingAI
 pinkyPF:
     LD IX, pinky
-    JR ghostPathFindingAI
+    JP ghostPathFindingAI
 inkyPF:
     LD IX, inky
-    JR ghostPathFindingAI
+    JP ghostPathFindingAI
 clydePF:
     LD IX, clyde
-    JR ghostPathFindingAI
+    JP ghostPathFindingAI
 pacmanPF:
     LD IX, pacman
     JP pacmanDemoPF
@@ -52,16 +52,22 @@ ghostPathFindingAI:
     CALL setupPathFinding
 ;   CHECK IF GHOST IS EDIBLE
     BIT 0, (IX + EDIBLE_FLAG)
-    JR Z, +     ; IF NOT, SKIP
-    ; CHECK IF GHOST IS ALIVE
+    JP Z, ++     ; IF NOT, SKIP
+;   CHECK IF GHOST IS ALIVE
     BIT 0, (IX + ALIVE_FLAG)
-    JR NZ, @scaredPathfind  ; IF SO, DO SCARED PATHFIND
-    ; ELSE, MAKE GHOST GO HOME
+    JP NZ, @scaredPathfind  ; IF SO, DO SCARED PATHFIND
+;   ELSE, MAKE GHOST GO HOME
     LD HL, $2C2E
+    ; CHANGE TARGET IF GAME IS JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP Z, +
+    LD HL, $2B3B
++:
     LD (IX + TARGET_X), L
     LD (IX + TARGET_Y), H
     JP @normalPathFinding
-+:
+++:
 ;   JUMP TO TARGET ALGORITHM BASED ON GHOST
     LD HL, ghostTargetTable
     LD A, (IX + ID)
@@ -81,7 +87,8 @@ ghostPathFindingAI:
     LD HL, $FFFF
     LD (lowestDist), HL
     ; SET ID ADDRESS
-    LD HL, workArea + RIGHT_ID
+    ;LD HL, workArea + RIGHT_ID
+    LD HL, PATHFIND_TILES_PTR + RIGHT_ID
     LD (idAddress), HL
     ; SET NEW DIRECTION
     LD A, (IX + CURR_DIR)
@@ -96,12 +103,12 @@ ghostPathFindingAI:
     LD A, (HL)
     AND A, $03      ; ONLY CARE ABOUT LOWEST 2 BITS
     DEC A           ; CHECK IF TILE IS WALL (IF ID WAS 1)
-    JR Z, @prepareNextLoop  ; IF SO, SKIP...
+    JP Z, @prepareNextLoop  ; IF SO, SKIP...
     ; CHECK IF TILE IS NOT IN REVERSE DIRECTION
     LD B, (IX + REVE_DIR)
     LD A, (counter)
     SUB A, B
-    JR Z, @prepareNextLoop
+    JP Z, @prepareNextLoop
     ; CALCULATE DY (TARGET_Y - DIR_Y)
     DEC HL  ; POINT TO Y OF CURRENT TILE
     LD B, (HL)
@@ -127,7 +134,7 @@ ghostPathFindingAI:
     EX DE, HL
     OR A    ; CLEAR CARRY
     SBC HL, DE
-    JR C, @prepareNextLoop      ; IF NOT, SKIP...
+    JP C, @prepareNextLoop      ; IF NOT, SKIP...
     ; ELSE, DISTANCE IS NOW NEW LOWEST
     LD (lowestDist), DE
     ; ALSO, SET NEW DIRECTION TO COUNTER
@@ -145,7 +152,7 @@ ghostPathFindingAI:
     DEC (HL)
     JP P, -     ; KEEP GOING IF NO OVERFLOW
 ;   SET NEW DIRECTION
-    JR @setNewDirection
+    JP @setNewDirection
 /*
 --------------------------------------------
             SCARED PATHFINDING
@@ -157,6 +164,7 @@ ghostPathFindingAI:
     ; (workArea + 62): NEW DIRECTION
     ; GET RANDOM NUMBER
     CALL randNumGen
+@jrScatterJump:
     ; LIMIT IT TO 0 - 3
     AND A, $03
     ; CONVERT NUMBER FROM HOW DIRECTIONS ARE ORDERED IN THE OG GAME [0,1,2,3] -> [3,2,1,0]
@@ -168,24 +176,25 @@ ghostPathFindingAI:
     LD (newDir), A
     ; CHECK IF TILE IS IN REVERSE DIRECTION
     CP A, (IX + REVE_DIR)
-    JR Z, @clockwiseChange  ; IF SO, CHANGE DIRECTION IN CLOCKWISE ORDER AND TRY AGAIN
+    JP Z, @clockwiseChange  ; IF SO, CHANGE DIRECTION IN CLOCKWISE ORDER AND TRY AGAIN
     ; CONVERT NUMBER INTO OFFSET
     LD B, A     ; MULTIPLY BY 3
     ADD A, A
     ADD A, B
     ; ADD OFFSET TO BASE ID ADDRESS
-    LD HL, workArea + UP_ID
+    ;LD HL, workArea + UP_ID
+    LD HL, PATHFIND_TILES_PTR + UP_ID
     RST addToHL
     ; CHECK IF TILE IS WALKABLE
     AND A, $03      ; ONLY CARE ABOUT LOWEST 2 BITS
     DEC A           ; CHECK IF TILE IS WALL (IF ID WAS 1)
-    JR NZ, @setNewDirection ; IF NOT, STOP LOOP
+    JP NZ, @setNewDirection ; IF NOT, STOP LOOP
     ; ELSE, CHANGE DIRECTION IN CLOCKWISE ORDER AND TRY AGAIN
 @clockwiseChange:
     LD A, (newDir)
     DEC A
     AND A, $03
-    JR -
+    JP -
 /*
 --------------------------------------------
             CONFIRM NEW DIRECTION
@@ -212,19 +221,24 @@ blinkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
     AND A, $01
-    JR NZ, @chase  ; IF SO, SET TARGET TO BE PAC-MAN
+    JP NZ, @chase  ; IF SO, SET TARGET TO BE PAC-MAN
 ;   IF NOT, HE MUST BE IN SCATTER...
     ; CHECK IF DIFF STATE ISN'T 0
     LD A, (difficultyState)
     OR A
-    JR NZ, @chase   ; IF SO, SET TARGET TO CHASE
+    JP NZ, @chase   ; IF SO, SET TARGET TO CHASE
 @scatter:
-    ; BLINKY'S SCATTER TARGET IS UPPER RIGHT CORNER
+    ; BLINKY'S SCATTER TARGET IS UPPER RIGHT CORNER (PAC-MAN ONLY)
     LD HL, $1D22
-    ; CHECK IF GAME IS MS. PAC
+    ; CHECK IF GAME IS PAC-MAN
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    CALL NZ, getRandCorner  ; IF SO, MAKE TARGET A RANDOM CORNER
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
+    JP Z, @@setScatter  ; IF SO, SKIP
+    ; DO APPROPRIATE FUNCTION
+    AND A, $01 << JR_PAC
+    JP NZ, getRandTargetJr  ; JR.PAC'S RANDOM ALG (DOESN'T NEED TO RETURN HERE)
+    CALL getRandCorner      ; MS.PAC'S RANDOM ALG
+@@setScatter:
     LD (blinky + TARGET_X), HL
     RET
 @chase:
@@ -244,14 +258,19 @@ pinkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
     AND A, $01
-    JR NZ, @chase  ; IF SO, PREPARE CHASE TARGET
+    JP NZ, @chase  ; IF SO, PREPARE CHASE TARGET
 @scatter:
-    ; SET TARGET TO UPPER LEFT CORNER
+    ; SET TARGET TO UPPER LEFT CORNER (PAC-MAN ONLY)
     LD HL, $1D39
-    ; CHECK IF GAME IS MS. PAC
+    ; CHECK IF GAME IS PAC-MAN
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    CALL NZ, getRandCorner  ; IF SO, MAKE TARGET A RANDOM CORNER
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
+    JP Z, @@setScatter  ; IF SO, SKIP
+    ; DO APPROPRIATE FUNCTION
+    AND A, $01 << JR_PAC
+    JP NZ, getRandTargetJr  ; JR.PAC'S RANDOM ALG (DOESN'T NEED TO RETURN HERE)
+    CALL getRandCorner      ; MS.PAC'S RANDOM ALG
+@@setScatter:
     LD (pinky + TARGET_X), HL
     RET
 @chase:
@@ -292,10 +311,19 @@ inkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
     AND A, $01
-    JR NZ, @chase   ; IF SO, PREPARE CHASE TARGET
+    JP NZ, @chase   ; IF SO, PREPARE CHASE TARGET
 @scatter:
-    ; SET TARGET TO BOTTOM RIGHT CORNER
+    ; SET TARGET TO BOTTOM RIGHT CORNER (PAC-MAN/MS.PAC-MAN)
     LD HL, $4020
+    ; CHECK IF GAME IS PAC-MAN OR MS.PAC-MAN
+    LD A, (plusBitFlags)
+    CP A, $01 << JR_PAC
+    JP C, @@setScatter  ; IF SO, SKIP
+    ; DO APPROPRIATE FUNCTION
+    AND A, $01 << JR_PAC
+    JP NZ, getRandTargetJr  ; JR.PAC'S RANDOM ALG (DOESN'T NEED TO RETURN HERE)
+    CALL getRandCorner      ; CRAZY OTTO RANDOM ALG
+@@setScatter:
     LD (inky + TARGET_X), HL
     RET
 @chase:
@@ -346,10 +374,15 @@ clydeTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
     AND A, $01
-    JR NZ, @chase  ; IF SO, PREPARE CHASE TARGET
+    JP NZ, @chase  ; IF SO, PREPARE CHASE TARGET
 @scatter:
-    ; SET TARGET TO BOTTOM LEFT CORNER
+    ; SET TARGET TO BOTTOM LEFT CORNER (PAC-MAN/MS.PAC-MAN/JR.PAC-MAN)
     LD HL, $403B
+    ; CHECK IF GAME IS CRAZY OTTO
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    CALL NZ, getRandCorner  ; CRAZY OTTO RANDOM ALG
+@@setScatter:
     LD (clyde + TARGET_X), HL
     RET
 @chase:
@@ -377,7 +410,7 @@ clydeTarget:
     LD BC, $40
     OR A    ; CLEAR CARRY
     SBC HL, BC
-    JR C, @scatter  ; IF SO, CLYDE WILL USE SCATTER TARGET
+    JP C, @scatter  ; IF SO, CLYDE WILL USE SCATTER TARGET
     ; ELSE, CLYDE WILL USE BLINKY'S CHASE TARGET (PAC-MAN)
     LD HL, (pacman + CURR_X)
     LD (clyde + TARGET_X), HL
@@ -396,16 +429,19 @@ setupPathFinding:
 ;   COPY NEXT TILE TO CURRENT TILE IN WORKAREA
     LD L, (IX + NEXT_X)
     LD H, (IX + NEXT_Y)
-    LD (workArea + CURR_X), HL
+    ;LD (workArea + CURR_X), HL
+    LD (PATHFIND_TILES_PTR + CURR_X), HL
 ;   UPDATE SURROUNDING BUFFER TILES
     PUSH IX
-    LD IX, workArea
+    ;LD IX, workArea
+    LD IX, PATHFIND_TILES_PTR
     CALL updateCollTiles
     POP IX
     RET 
 
 
 /*
+    INFO: SELECTS A RANDOM CORNER AS TARGET GIVEN THE CURRENT MAZE (MS.PAC-MAN ONLY)
     USES: AF, HL, R
 */
 getRandCorner:
@@ -418,3 +454,23 @@ getRandCorner:
 ;   GET CORNER FROM TABLE
     RST addToHL
     JP getDataAtHL
+
+
+
+
+/*
+    INFO: SELECTS A RANDOM DIRECTION (JR.PAC-MAN ONLY)
+    USES: AF, H, R
+*/
+getRandTargetJr:
+;   GET RANDOM NUMBER
+;   & $3F, THEN % $07
+    LD A, R
+    AND A, $3F
+    LD H, $07
+-:
+    SUB A, H
+    JP NC, -
+    ADD A, H
+;   USE AS INITIAL DIRECTION IN EDIBLE PATHFINDING ALG
+    JP ghostPathFindingAI@jrScatterJump

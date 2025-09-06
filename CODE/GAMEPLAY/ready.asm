@@ -16,11 +16,16 @@ sStateGameplayTable@ready00Mode:
     XOR A
     LD (isNewState), A
 ;   PLAY START MUSIC
+    LD HL, plusBitFlags
     LD A, MUS_START ; ASSUME MUSIC FOR PAC-MAN
-    LD B, A
-    LD A, (plusBitFlags)    ; ISOLATE MS. PAC BIT
-    AND A, $01 << MS_PAC
-    ADD A, B        ; ADD TO MUSIC ID
+    BIT MS_PAC, (HL)
+    JR Z, +
+    LD A, MUS_START_MS
++:
+    BIT JR_PAC, (HL)
+    JR Z, +
+    LD A, MUS_START_JR
++:
     CALL sndPlayMusic
 ;   DRAW "PLAYER ONE"
     CALL drawPlayerTilemap
@@ -35,16 +40,21 @@ sStateGameplayTable@ready00Mode:
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
-;   REMOVE A LIFE
-    CALL removeLifeonScreen
 ;   ERASE PLAYER TEXT
-    LD HL, SPRITE_TABLE + $1E | VRAMWRITE
+    LD HL, SPRITE_TABLE + $01 | VRAMWRITE
     RST setVDPAddress
     LD A, $F7
-    LD B, $08
--:
+.REPEAT $08
     OUT (VDPDATA_PORT), A
-    DJNZ -
+.ENDR
+;
+    LD HL, SPRITE_ADDR + PAC_VRAM + $80 | VRAMWRITE
+    RST setVDPAddress
+    LD HL, workArea
+    LD BC, $80 * $100 + VDPDATA_PORT
+    OTIR
+;   REMOVE A LIFE
+    CALL removeLifeonScreen
 ;   SET SUBSTATE TO READY01, SET NEW-STATE-FLAG
     LD HL, $01 * $100 + GAMEPLAY_READY01
     LD (subGameMode), HL
@@ -65,6 +75,11 @@ sStateGameplayTable@ready01Mode:
 @@enter:
 ;   LOAD STATE TIMER
     LD A, READY01_TIMER_LEN          ; SET TIMER 0 FOR HOW LONG THIS STATE WILL LAST
+    LD HL, plusBitFlags
+    BIT JR_PAC, (HL)
+    JR Z, +
+    LD A, READY01_TIMER_LEN_JR
++:
     LD (mainTimer0), A
 ;   CLEAR NEW STATE FLAG
     XOR A
@@ -84,9 +99,6 @@ sStateGameplayTable@ready01Mode:
     LD A, (currPlayerInfo.diedFlag)
     OR A
     CALL NZ, removeLifeonScreen ; IF SO, DECREMENT LIFE
-;   SIGNAL TO CLEAR SUPER PAC-MAN SPRITE AREA
-    LD A, $02
-    LD (pacSprControl), A
 @@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw

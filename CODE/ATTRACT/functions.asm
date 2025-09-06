@@ -89,18 +89,48 @@ plus_setNametableArea:
 */
 titleToggleModes:
 ;   TOGGLE MODES (GAME)
+    ; INCREMENT TO NEXT GAME
     LD A, (plusBitFlags)
-    XOR A, $01 << MS_PAC
+    ADD A, $02
+    LD (plusBitFlags), A
+    ; CHECK IF GAME MODE IS 6 (OVER LIMIT)
+    AND A, ($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
+    CP A, $0C
+    JR Z, +
+    CP A, $06
+    JR NZ, @noToggle
+    ; SET TO OTTO
+    LD A, (plusBitFlags)
+    AND A, ~($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
+    OR A, ($01 << MS_PAC | $01 << OTTO)
+    LD (plusBitFlags), A
+    JR @noToggle
++:
+    ; RESET GAME MODE BACK TO 0
+    LD A, (plusBitFlags)
+    AND A, ~($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
     LD (plusBitFlags), A
 @noToggle:
     LD A, (plusBitFlags)
 ;   CHANGE BASE SPRITE TABLE ADDR
-    AND A, $01 << MS_PAC    ; ADD $10 IF GAME IS NOW MS. PAC-MAN
+    AND A, ($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
+    RRCA
     ADD A, A
     ADD A, A
     ADD A, A
-    LD HL, titlePacman
-    RST addToHL
+    CP A, $28
+    JR NZ, +
+    LD A, $18
++:
+    LD D, $00
+    LD E, A
+    LD HL, titleCharTblSmooth
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    JR Z, +
+    LD HL, titleCharTblArcade
++:
+    ADD HL, DE
     LD (pacBase), HL
 ;   FALL THROUGH
 
@@ -131,6 +161,8 @@ playCreditSnd:
     LD A, SFX_CREDIT
     CALL sndPlaySFX
 -:
+    CALL sndProcess
+    HALT
 ;   CHECK IF CURRENTLY PLAYING SELECT SOUND
     LD A, (chan2 + SND_ID)
     CP A, SFX_CREDIT
@@ -262,6 +294,8 @@ generalIntroSetup00:
 ;   SET TIMER
     LD A, ATT00_TIMER_LEN
     LD (mainTimer0), A
+;   SETUP PLAYER TILE POINTERS
+    CALL setupTilePtrs
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen
 ;   CLEAR TILEMAP AND SPRITE TABLE
@@ -312,11 +346,11 @@ generalIntroSetup01:
     CALL powDotCyclingUpdate@refresh
 ;   DRAW STATIC HUD ELEMENTS
     ; 1UP
-    CALL draw1UP
+    CALL draw1UPDemo
     ; "HIGH SCORE" AND "SCORE"
     CALL drawScoresText
     ; SCORE AND HIGH SCORE
-    CALL drawScores
+    ;CALL drawScores
 ;   TURN ON DISPLAY
     CALL waitForVblank
     JP turnOnScreen

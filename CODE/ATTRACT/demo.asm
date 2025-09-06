@@ -10,13 +10,13 @@ sStateAttractTable@demoInputCheck:
     JR NZ, +        ; IF SO, EXIT BACK TO TITLE
 ;   CYCLE 'GAME OVER' SPRITES TO PREVENT DROPPING
     ; GET XN DATA INTO BUFFER
-    LD HL, SPRITE_TABLE_XN + ($26 * $02)
+    LD HL, SPRITE_TABLE_XN + ($19 * $02)
     RST setVDPAddress
     LD HL, workArea + $20
     LD BC, $0C * $100 + VDPDATA_PORT
     INIR
     ; RESET VDP ADDRESS FOR LATER
-    LD HL, SPRITE_TABLE_XN + ($26 * $02) | VRAMWRITE
+    LD HL, SPRITE_TABLE_XN + ($19 * $02) | VRAMWRITE
     RST setVDPAddress
     ; ROTATE CIRCULAR BUFFER TO RIGHT
     LD HL, workArea + $2A
@@ -39,6 +39,8 @@ sStateAttractTable@demoInputCheck:
     ; WRITE BUFFER TO SPRITE TABLE
     LD BC, $0C * $100 + VDPDATA_PORT
     OTIR
+;   ALWAYS DISPLAY "1UP"
+    CALL draw1UPDemo
 ;   USE GAMEPLAY ROUTINES FOR DEMO
     LD HL, sStateGameplayTable
     LD A, (subGameMode)

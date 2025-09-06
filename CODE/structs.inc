@@ -7,6 +7,7 @@
 .STRUCT playerInfo
     score dsb 3
     dotCount db
+    jrDotCount: dw
     levelTablePtr dw
     level db
     lives db
@@ -26,11 +27,11 @@
 
 ;   ACTOR STRUCT (PAC-MAN AND GHOSTS)
 .STRUCT actor
-    ; SUBPIXEL VALUE USED TO REDUCE SPEEDS TO 3/4
+    ; X SUBPIXEL VALUE (ONLY USED FOR PAC-MAN'S INTRO & CUTSCENES)
     subPixel db
     ; PIXEL VALUE OF ON SCREEN POSITION (LOGICAL - 8px TILES)
-    xPos db
-    yPos db
+    xPos dw
+    yPos dw
     ; DIRECTION OF ACTOR
     currDir db  ; 0 - UP, 1 - LEFT, 2 - DOWN, 3 - RIGHT
     ; NEXT DIRECTION ACTOR WILL TAKE
@@ -43,6 +44,8 @@
     newStateFlag db
     ; STATE ID
     state db
+    ;
+    offScreenFlag db
     ; COLLISION TILES OF ACTOR
     ; ORDER: UP, LEFT, DOWN, RIGHT, CURRENT, NEXT, TARGET
     collisionTiles INSTANCEOF tilePos 7
@@ -94,6 +97,17 @@
 
 ; UNIQUE MAZE DATA FOR EACH PLAYER
 .STRUCT mazePlayerInfo
-    collMap dsb 810     ; NON-SCROLLING: 496 BYTES
+    collMap dsb 870     ; NON-SCROLLING: 496 BYTES
     tileMap dsb 1886    ; NON-SCROLLING: 1536 BYTES
+.ENDST
+
+
+.STRUCT msPacCutsceneControl
+    ptrList     dsb $0C ; 6 POINTERS TO INDEPENDENT PROGRAMS
+    timerList   dsb $06 ; TIMERS FOR EACH PROGRAM
+    charList    dsb $0C ; POINTERS FOR EACH PROGRAM'S CHARACTER (OBJECT)
+    tempPosList dsb $0C ; TEMP POSITIONS FOR EACH PROGRAM (fractional?)
+    posList     dsb $0C ; POSITIONS FOR EACH PROGRAM (WHERE OBJECT IS DISPLAYED)
+    doneList    dsb $06 ; FLAGS FOR EACH PROGRAM (SIGNIFIES WHEN PROGRAM IS DONE)
+    charOffsetList  dsb $06 ; OFFSET INTO PROGRAM'S CHARACTER'S POINTER (WHICH SPRITE TO DISPLAY OF CHARACTER)
 .ENDST

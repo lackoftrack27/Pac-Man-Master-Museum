@@ -10,6 +10,7 @@
     OUTPUT: NONE
     USES: AF, BC, DE, HL, IX
 */
+/*
 sprOverflowCheck:
 ;   OBJECT FLICKER UPDATER
 ;   BITS 0 - 4: OBJECT FLICKER BITS (0 - BLINKY, 1 - PINKY, 2 - INKY, 3 - CLYDE, 4 - FRUIT)
@@ -80,7 +81,7 @@ sprOverflowCheck:
 +:
     ; FRUIT Y
     INC HL
-    LD A, (fruitPos + 1)
+    LD A, (fruitYPos)
     LD (HL), A
 ;   SETUP LOOP
     INC DE                  ; Y POSITION PTR
@@ -148,6 +149,7 @@ sprOverflowCheck:
 +:
     LD (HL), $00    ; CLEAR FLAGS
     RET
+*/
 
 
 
@@ -177,16 +179,21 @@ getbgPalPtr:
     LD A, (plusBitFlags)
     BIT MS_PAC, A
     JR NZ, @msSection   ; IF SO, SKIP
+;   CHECK IF GAME IS JR.PAC
+    BIT JR_PAC, A
+    JR NZ, @jrSection   ; IF SO, SKIP
+;   ----------------------------------------
     LD HL, bgPalPac     ; ASSUME GAME IS PAC-MAN
 ;   CHECK IF GAME IS PLUS (PAC-MAN)
-    BIT 0, A
+    BIT PLUS, A
     RET Z               ; IF NOT, END
     LD HL, bgPalPlus    ; ELSE, LOAD PAL DATA FOR PLUS
     RET
+;   ----------------------------------------
 @msSection:
 ;   CHECK IF GAME IS PLUS
     LD HL, msLevelPalTable      ; ASSUME GAME IS NORMAL
-    BIT 0, A
+    BIT PLUS, A
     JR Z, +                     ; IF NOT, SKIP
     LD HL, msLevelPalTable@plus ; LOAD TABLE FOR PLUS VERSION
 +:
@@ -212,6 +219,36 @@ getbgPalPtr:
     JR NC, -
     ADD A, $15  ; ADD BACK 21
     JR @@msGetPal
+;   ----------------------------------------
+@jrSection:
+;   CHECK IF GAME IS PLUS
+    LD HL, jrLevelPalTable      ; ASSUME GAME IS NORMAL
+    BIT PLUS, A
+    JR Z, +                     ; IF NOT, SKIP
+    LD HL, jrLevelPalTable@plus ; LOAD TABLE FOR PLUS VERSION
++:
+;   CHECK IF LEVEL IS GREATER THAN 21
+    LD A, (currPlayerInfo.level)
+    CP A, $15
+    JR NC, +    ; IF SO, REDUCE
+@@jrGetPal:
+;   GET PALETTE FOR CURRENT LEVEL
+    RST addToHL
+    ; GET DATA AND DOUBLE IT
+    ADD A, A
+    ; ADD TO PALETTE TABLE
+    LD HL, jrPalTable
+    RST addToHL
+    ; GET PALETTE
+    JP getDataAtHL
+;   LEVEL REDUCTION
++:
+    SUB A, $15  ; SUBTRACT 21
+-:
+    SUB A, $10  ; SUBTRACT 10 UNTIL NEGATIVE
+    JR NC, -
+    ADD A, $15  ; ADD BACK 21
+    JR @@jrGetPal
 
 
 
@@ -246,11 +283,9 @@ cpyMazePalToRam:
     OUTPUT: NONE
     USES: AF, B, DE, HL
 */
+
+/*
 pacSprCmdProcess:
-;   CHECK FOR SPRITE COMMAND
-    LD A, (pacSprControl)
-    OR A
-    RET Z   ; IF NO COMMAND, END
 ;   PROCESS COMMAND
     LD B, A ; SAVE INTO B
     ; CLEAR SPRITE COMMAND
@@ -276,3 +311,34 @@ pacSprCmdProcess:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     RET
+*/
+
+
+setupTilePtrs:
+;   PLAYER TILE DEFINITION TABLE SETUP
+    LD HL, playerTileTblList
+    LD A, (plusBitFlags)
+    AND A, $1F
+    ADD A, A
+    LD E, A
+    LD D, $00
+    ADD HL, DE
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    LD (playerTileTblPtr), HL
+;   DEATH TILE DEFINITION TABLE SETUP
+    LD HL, deathTileTblList
+    LD A, (plusBitFlags)
+    AND A, $1E
+    LD E, A
+    LD D, $00
+    ADD HL, DE
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    LD (deathTileTblPtr), HL
+    RET
+    

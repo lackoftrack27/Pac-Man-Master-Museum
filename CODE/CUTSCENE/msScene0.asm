@@ -11,6 +11,11 @@ sStateCutsceneTable@msScene0:
 @@enter:
 ;   CUTSCENE 1 SETUP FOR MS. PAC
     LD HL, msScene0ProgTable
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, ottoScene0ProgTable
++:
     CALL msCutSetup
 ;   PLAY MUSIC
     LD A, MUS_INTER0_MS

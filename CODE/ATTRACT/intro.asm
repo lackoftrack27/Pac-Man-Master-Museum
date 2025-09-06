@@ -15,8 +15,19 @@ sStateAttractTable@introMode:
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, introTileData
     CALL zx7_decompressVRAM
+    LD DE, BACKGROUND_ADDR + ($77 * $20) | VRAMWRITE
+    LD HL, introTileData@otto
+    CALL zx7_decompressVRAM
 ;   LOAD BG PALETTE TO RAM
+    ; CLEAR MS.PAC BIT (FOR CRAZY OTTO)
+    LD A, (plusBitFlags)
+    PUSH AF
+    AND A, ~($01 << MS_PAC)
+    LD (plusBitFlags), A
     CALL cpyMazePalToRam
+    ; RESTORE BIT FLAGS
+    POP AF
+    LD (plusBitFlags), A
 ;   LOAD BACKGROUND (MAZE) PALETTE (JUST FOR POWER DOT)
     CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
     LD HL, $0000 | CRAMWRITE
@@ -37,6 +48,8 @@ sStateAttractTable@introMode:
     CALL msIntroDisplayText
 ;   GENERAL INTRO MODE SETUP 2
     CALL generalIntroSetup01
+    LD A, $01
+    LD (sprFlickerControl), A
 @@draw:
 ;   POWER PELLET PALETTE CYCLING
     CALL drawPowDots
@@ -63,6 +76,7 @@ sStateAttractTable@introMode:
     ; UPDATE POWER DOT PALETTE CYCLE
     CALL powDotCyclingUpdate
     ; DISPLAY PAC-MAN
+    CALL pacTileStreaming
     CALL displayPacMan
     ; DISPLAY GHOSTS
     LD IX, blinky
@@ -74,7 +88,9 @@ sStateAttractTable@introMode:
     LD IX, clyde
     CALL ghostStateTable@draw@gotoExit
     ; DISPLAY GHOST POINTS (IF NEEDED)
-    CALL drawGhostPoints
+    LD A, (ghostPointSprNum)
+    OR A
+    CALL NZ, drawGhostPoints
 ;   UPDATE FUNCTION TABLE
 @@@stateJump:
 ;   CONVERT STATE INTO OFFSET
@@ -136,7 +152,13 @@ showBlinky:
     LD A, ATT00_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY BLINKY
+    ; DISPLAY OTTO GHOST IF GAME IS OTTO
     LD HL, ghostNormalTileDefs@blinky + ($06 * $04)    ; RIGHT 0
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, ottoGhostSNTileDefs@blinky + ($06 * $04)    ; RIGHT 0
++:
     LD A, 17 + 4
     LD DE, (24 + 16) * $100 + 21
     JP display4TileSprite
@@ -150,8 +172,14 @@ showShadowText:
 ;   DISPLAY TEXT
     LD HL, NAMETABLE + ($07 * 2) + ($03 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introShadowText
-    LD B, 6
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introMadDogText
++:
+    LD B, 7
     JP msIntroDisplayText
 
 
@@ -163,7 +191,13 @@ showBlinkyText:
 ;   DISPLAY TEXT
     LD HL, NAMETABLE + ($0F * 2) + ($03 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introBlinkyText
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introPlatoText
++:
     LD B, 7
     JP msIntroDisplayText
 
@@ -174,7 +208,13 @@ showPinky:
     LD A, ATT00_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY PINKY
+    ; DISPLAY OTTO GHOST IF GAME IS OTTO
     LD HL, ghostNormalTileDefs@pinky + ($06 * $04)    ; RIGHT 0
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, ottoGhostSNTileDefs@pinky + ($06 * $04)    ; RIGHT 0
++:
     LD A, 17 + 8                        ; SPRITE NUMBER
     LD DE, (24 + 16) * $100 + 21 + 18   ; XY POSITION
     JP display4TileSprite
@@ -188,7 +228,13 @@ showSpeedyText:
 ;   DISPLAY TEXT
     LD HL, NAMETABLE + ($07 * 2) + ($05 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introSpeedyText
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introKillerText
++:
     LD B, 6
     JP msIntroDisplayText
 
@@ -201,8 +247,14 @@ showPinkyText:
 ;   DISPLAY TEXT
     LD HL, NAMETABLE + ($0F * 2) + ($05 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introPinkyText
-    LD B, 6
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introDarwinText
++:
+    LD B, 7
     JP msIntroDisplayText
 
 
@@ -212,7 +264,13 @@ showInky:
     LD A, ATT00_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY INKY
+    ; DISPLAY OTTO GHOST IF GAME IS OTTO
     LD HL, ghostNormalTileDefs@inky + ($06 * $04)    ; RIGHT 0
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, ottoGhostSNTileDefs@inky + ($06 * $04)    ; RIGHT 0
++:
     LD A, 17 + 12                       ; SPRITE NUMBER
     LD DE, (24 + 16) * $100 + 21 + 36   ; X/Y POSITION
     JP display4TileSprite
@@ -226,7 +284,13 @@ showBashfulText:
 ;   DISPLAY TEXT
     LD HL, NAMETABLE + ($07 * 2) + ($07 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introBashfulText
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introBruteText
++:
     LD B, 7
     JP msIntroDisplayText
    
@@ -239,8 +303,14 @@ showInkyText:
 ;   DISPLAY TEXT
     LD HL, NAMETABLE + ($0F * 2) + ($07 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introInkyText
-    LD B, 5
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introFreudText
++:
+    LD B, 6
     JP msIntroDisplayText
 
 
@@ -250,7 +320,13 @@ showClyde:
     LD A, ATT00_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY CLYDE
+    ; DISPLAY OTTO GHOST IF GAME IS OTTO
     LD HL, ghostNormalTileDefs@clyde + ($06 * $04)    ; RIGHT 0
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, ottoGhostSNTileDefs@clyde + ($06 * $04)    ; RIGHT 0
++:
     LD A, 17 + 16
     LD DE, (24 + 16) * $100 + 21 + 54
     JP display4TileSprite
@@ -265,7 +341,13 @@ showPokeyText:
     ; ROW 0
     LD HL, NAMETABLE + ($07 * 2) + ($09 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introPokeyText@row0
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introSamText@row0
++:
     LD B, 5
     CALL msIntroDisplayText
     ; ROW 1
@@ -286,15 +368,21 @@ showClydeText:
     ; ROW 0
     LD HL, NAMETABLE + ($0F * 2) + ($09 * $40) | VRAMWRITE
     RST setVDPAddress
+    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
     LD HL, introClydeText@row0
-    LD B, 6
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JR Z, +
+    LD HL, introNewtonText@row0
++:
+    LD B, 7
     CALL msIntroDisplayText
     ; ROW 1
     EX DE, HL
     LD HL, NAMETABLE + ($0F * 2) + ($0A * $40) | VRAMWRITE
     RST setVDPAddress
     EX DE, HL   ; ROW 1
-    LD B, 6
+    LD B, 7
     JP msIntroDisplayText
 
 
@@ -337,15 +425,22 @@ showNamco:
     LD HL, NAMETABLE + ($09 * 2) + ($15 * $40) | VRAMWRITE
     LD DE, introNamcoText
     LD B, $07
-    ; CHECK IF GAME IS PLUS
+    ; CHECK IF GAME IS OTTO
+    LD A, (plusBitFlags)
+    BIT OTTO, A
+    JR Z, +
+    LD DE, introGencompText ; "GENCOMP"
+    JR @writeLogo
++:
+    ; CHECK IF GAME IS PLUS (PAC-MAN ONLY)
     LD A, (plusBitFlags)
     BIT PLUS, A
-    JR Z, +     ; IF NOT, SKIP
+    JR Z, @writeLogo    ; IF NOT, SKIP
     ; ELSE, DISPLAY "@ BALLY MIDWAY 1980,1982"
     LD HL, NAMETABLE + ($03 * 2) + ($15 * $40) | VRAMWRITE
     LD DE, introBallyMidway
     LD B, $13
-+:
+@writeLogo:
     RST setVDPAddress
     EX DE, HL
     CALL msIntroDisplayText
@@ -370,72 +465,28 @@ introActorSetup:
     LD A, $FF
     LD (ghostPointIndex), A
     XOR A
+    LD (fruitYPos), A
     LD (ghostPointSprNum), A
-;   CLEAR SUB POSITIONS
-    LD (pacman.subPixel), A
-    LD (blinky.subPixel), A
-    LD (pinky.subPixel), A
-    LD (inky.subPixel), A
-    LD (clyde.subPixel), A
-;   CLEAR GHOST FLAGS
-    LD (blinky + EDIBLE_FLAG), A
-    LD (blinky + INVISIBLE_FLAG), A
-    LD (pinky + EDIBLE_FLAG), A
-    LD (pinky + INVISIBLE_FLAG), A
-    LD (inky + EDIBLE_FLAG), A
-    LD (inky + INVISIBLE_FLAG), A
-    LD (clyde + EDIBLE_FLAG), A
-    LD (clyde + INVISIBLE_FLAG), A
-;   BLINKY ID
-    LD (blinky.id), A
-;   PAC-MAN SPRITE TABLE START
-    INC A   ; $01
-    LD (pacman.sprTableNum), A
-;   DIRECTIONS (FACING LEFT)
-    LD (pacman.currDir), A
-    LD (pacman.nextDir), A
-    LD (blinky.currDir), A
-    LD (blinky.nextDir), A
-    LD (pinky.currDir), A
-    LD (pinky.nextDir), A
-    LD (inky.currDir), A
-    LD (inky.nextDir), A
-    LD (clyde.currDir), A
-    LD (clyde.nextDir), A
-;   PINKY ID
-    LD (pinky.id), A
-;   INKY ID
-    INC A   ; $02
-    LD (inky.id), A
-;   CLYDE ID
-    INC A   ; $03
-    LD (clyde.id), A
-;   BLINKY SPR TABLE
-    LD A, 05
-    LD (blinky.sprTableNum), A
-;   PINKY SPR TABLE
-    LD A, 09
-    LD (pinky.sprTableNum), A
-;   INKY SPR TABLE
-    LD A, 13
-    LD (inky.sprTableNum), A
-;   CLYDE SPR TABLE
-    LD A, 17
-    LD (clyde.sprTableNum), A
-;   PAC-MAN POSITION
-    LD HL, $9408    ; YX
-    LD (pacman.xPos), HL
-;   GHOST POSITIONS
-    LD HL, $9400    ; YX
-    LD (blinky.xPos), HL
-    LD (pinky.xPos), HL
-    LD (inky.xPos), HL
-    LD (clyde.xPos), HL
-;   GHOST POINTS
-    LD (ghostPointXpos), HL
-;   CLEAR FRUIT POS
-    LD HL, $0000
-    LD (fruitPos), HL
+    LD (ghostPointXpos), A
+    LD A, $94
+    LD (ghostPointYpos), A
+;   ACTOR SETUP
+    LD IX, blinky
+    XOR A
+    CALL msIntroSetupGhost
+    LD IX, pinky
+    LD A, $01
+    CALL msIntroSetupGhost
+    LD IX, inky
+    LD A, $02
+    CALL msIntroSetupGhost
+    LD IX, clyde
+    LD A, $03
+    CALL msIntroSetupGhost
+    LD IX, pacman
+    LD A, $FF
+    CALL msIntroSetupGhost
+    LD (IX + X_WHOLE), $08
     RET
 
 
@@ -481,15 +532,18 @@ runFromGhosts:
     LD (pacPelletTimer), A  ; HALF OF THE TIME SET IN ACTUAL GAME DUE TO SINGLE UPDATE HERE
     RET
 +:
+;   RETURN TO THIS FUNCTION
+    LD HL, eatGhosts@updateActorTiles
+    PUSH HL
 ;   DECREMENT STATE (COUNTERACT INCREMENT IN UPDATE)
     LD HL, introSubState
     DEC (HL)
 ;   MOVE ALL ACTORS TOWARDS POWER DOT
     ; PAC-MAN
     LD DE, ATT_PAC_SPEED00  ; MOVES SLIGHTLY SLOWER THAN GHOSTS
-    LD HL, (pacman.subPixel)
+    LD HL, (pacman + SUBPIXEL)
     ADD HL, DE
-    LD (pacman.subPixel), HL
+    LD (pacman + SUBPIXEL), HL
     ; CALCULATE TILE
     LD IX, pacman
     CALL updateCurrTile
@@ -499,30 +553,30 @@ runFromGhosts:
     RET C   ; IF NOT, END
     ; MOVE BLINKY
     LD DE, ATT_GHO_SPEED00
-    LD HL, (blinky.subPixel)
+    LD HL, (blinky + SUBPIXEL)
     ADD HL, DE
-    LD (blinky.subPixel), HL
+    LD (blinky + SUBPIXEL), HL
     ; CHECK IF PAC-MAN HAS REACHED WANTED TILE (PINKY)
     CP A, $23
     RET C   ; IF NOT, END
     ; MOVE PINKY
-    LD HL, (pinky.subPixel)
+    LD HL, (pinky + SUBPIXEL)
     ADD HL, DE
-    LD (pinky.subPixel), HL
+    LD (pinky + SUBPIXEL), HL
     ; CHECK IF PAC-MAN HAS REACHED WANTED TILE (INKY)
     CP A, $25
     RET C   ; IF NOT, END
     ; MOVE INKY
-    LD HL, (inky.subPixel)
+    LD HL, (inky + SUBPIXEL)
     ADD HL, DE
-    LD (inky.subPixel), HL
+    LD (inky + SUBPIXEL), HL
     ; CHECK IF PAC-MAN HAS REACHED WANTED TILE (CLYDE)   
     CP A, $27
     RET C   ; IF NOT, END
     ; MOVE CLYDE
-    LD HL, (clyde.subPixel)
+    LD HL, (clyde + SUBPIXEL)
     ADD HL, DE
-    LD (clyde.subPixel), HL
+    LD (clyde + SUBPIXEL), HL
     RET
 
 
@@ -548,27 +602,27 @@ ghostHeadStart:
     INC (HL)    ; COUNTERACT NEXT DECREMENT
     ; MOVES SLIGHTLY SLOWER THAN GHOSTS
     LD DE, ATT_PAC_SPEED00
-    LD HL, (pacman.subPixel)
+    LD HL, (pacman + SUBPIXEL)
     ADD HL, DE
-    LD (pacman.subPixel), HL
+    LD (pacman + SUBPIXEL), HL
 +:
     ; BLINKY
     LD DE, ATT_GHO_SPEED01
-    LD HL, (blinky.subPixel)
+    LD HL, (blinky + SUBPIXEL)
     ADD HL, DE
-    LD (blinky.subPixel), HL
+    LD (blinky + SUBPIXEL), HL
     ; PINKY
-    LD HL, (pinky.subPixel)
+    LD HL, (pinky + SUBPIXEL)
     ADD HL, DE
-    LD (pinky.subPixel), HL
+    LD (pinky + SUBPIXEL), HL
     ; INKY
-    LD HL, (inky.subPixel)
+    LD HL, (inky + SUBPIXEL)
     ADD HL, DE
-    LD (inky.subPixel), HL
+    LD (inky + SUBPIXEL), HL
     ; CLYDE
-    LD HL, (clyde.subPixel)
+    LD HL, (clyde + SUBPIXEL)
     ADD HL, DE
-    LD (clyde.subPixel), HL
+    LD (clyde + SUBPIXEL), HL
     ; UPDATE TILES
     JR eatGhosts@updateActorTiles
 
@@ -616,26 +670,26 @@ eatGhosts:
 ;   MOVE ALL ACTORS
     ; PAC-MAN
     LD DE, ATT_PAC_SPEED01
-    LD HL, (pacman.subPixel)
+    LD HL, (pacman + SUBPIXEL)
     ADD HL, DE
-    LD (pacman.subPixel), HL
+    LD (pacman + SUBPIXEL), HL
     ; BLINKY
     LD DE, ATT_GHO_SPEED01
-    LD HL, (blinky.subPixel)
+    LD HL, (blinky + SUBPIXEL)
     ADD HL, DE
-    LD (blinky.subPixel), HL
+    LD (blinky + SUBPIXEL), HL
     ; PINKY
-    LD HL, (pinky.subPixel)
+    LD HL, (pinky + SUBPIXEL)
     ADD HL, DE
-    LD (pinky.subPixel), HL
+    LD (pinky + SUBPIXEL), HL
     ; INKY
-    LD HL, (inky.subPixel)
+    LD HL, (inky + SUBPIXEL)
     ADD HL, DE
-    LD (inky.subPixel), HL
+    LD (inky + SUBPIXEL), HL
     ; CLYDE
-    LD HL, (clyde.subPixel)
+    LD HL, (clyde + SUBPIXEL)
     ADD HL, DE
-    LD (clyde.subPixel), HL
+    LD (clyde + SUBPIXEL), HL
 @updateActorTiles:
 ;   UPDATE CURRENT TILE FOR ALL ACTORS
     LD IX, pacman

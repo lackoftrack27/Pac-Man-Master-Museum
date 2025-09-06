@@ -7,28 +7,50 @@
 titleArrowTable:
     .DB $01 + (SPRITE_ADDR / TILE_SIZE), $02 + (SPRITE_ADDR / TILE_SIZE)
 
-;   MACROS FOR PAC-MEN TILE LISTS
-.MACRO pacSprDefsTitle  ARGS, VAL
-;   RIGHT
-    .db VAL+$07, VAL+$16, VAL+$08, VAL+$17 ; HALF
-    .db VAL, VAL+$11, BLANK_TILE, BLANK_TILE             ; OPEN
-    .db VAL+$07, VAL+$16, VAL+$08, VAL+$17 ; HALF
-    .db VAL+$0E, VAL+$16, VAL+$0A, VAL+$17 ; CLOSED
-.ENDM
 
-.MACRO msPacSprDefsTitle  ARGS, VAL
-;   RIGHT
-    .DB VAL+$08, VAL+$1E, VAL+$09, VAL+$1F  ; HALF
-    .DB VAL+$00, VAL+$16, VAL+$01, VAL+$17  ; OPEN
-    .DB VAL+$08, VAL+$1E, VAL+$09, VAL+$1F  ; HALF
-    .DB VAL+$0F, VAL+$1E, VAL+$10, VAL+$23  ; CLOSED
-.ENDM
+titleCharTblSmooth:
+;   PAC-MAN SMOOTH [00] 00
+    .DW pacSNTileTbl@titlePtr        ; HALF
+    .DW pacSNTileTbl@titlePtr + $08  ; OPEN
+    .DW pacSNTileTbl@titlePtr        ; HALF
+    .DW pacSNTileTbl@titlePtr + $18  ; CLOSED
+;   MS.PAC-MAN SMOOTH [08] 02
+    .DW msSNTileTbl@titlePtr + $08  ; HALF
+    .DW msSNTileTbl@titlePtr        ; OPEN
+    .DW msSNTileTbl@titlePtr + $08  ; HALF
+    .DW msSNTileTbl@titlePtr + $10  ; CLOSED
+;   JR.PAC-MAN SMOOTH [10] 04
+    .DW pacSNTileTbl@titlePtr        ; HALF
+    .DW pacSNTileTbl@titlePtr + $08  ; OPEN
+    .DW pacSNTileTbl@titlePtr        ; HALF
+    .DW pacSNTileTbl@titlePtr + $18  ; CLOSED
+;   CRAZY OTTO SMOOTH [18] 0A
+    .DW ottoSNTileTbl@titlePtr + $10    ; CLOSED
+    .DW ottoSNTileTbl@titlePtr + $08    ; HALF 0
+    .DW ottoSNTileTbl@titlePtr          ; OPEN
+    .DW ottoSNTileTbl@titlePtr + $18    ; HALF 1
 
-titlePacman:
-    pacSprDefsTitle     ($03 + SPRITE_ADDR / TILE_SIZE)
-titlemsPacman:
-    msPacSprDefsTitle   ($1D + SPRITE_ADDR / TILE_SIZE)
-
+titleCharTblArcade:
+;   PAC-MAN ARCADE [00] 00
+    .DW pacANTileTbl@titlePtr        ; HALF
+    .DW pacANTileTbl@titlePtr + $08  ; OPEN
+    .DW pacANTileTbl@titlePtr        ; HALF
+    .DW pacANTileTbl@titlePtr + $18  ; CLOSED
+;   MS.PAC-MAN ARCADE [08] 02
+    .DW msANTileTbl@titlePtr + $08  ; HALF
+    .DW msANTileTbl@titlePtr        ; OPEN
+    .DW msANTileTbl@titlePtr + $08  ; HALF
+    .DW msANTileTbl@titlePtr + $10  ; CLOSED
+;   JR.PAC-MAN ARCADE [10] 04
+    .DW pacANTileTbl@titlePtr        ; HALF
+    .DW pacANTileTbl@titlePtr + $08  ; OPEN
+    .DW pacANTileTbl@titlePtr        ; HALF
+    .DW pacANTileTbl@titlePtr + $18  ; CLOSED
+;   CRAZY OTTO ARCADE [18] 0A
+    .DW ottoANTileTbl@titlePtr + $10    ; CLOSED
+    .DW ottoANTileTbl@titlePtr + $08    ; HALF 0
+    .DW ottoANTileTbl@titlePtr          ; OPEN
+    .DW ottoANTileTbl@titlePtr + $18    ; HALF 1
 
 /*
 ----------------------------------------------
@@ -87,9 +109,9 @@ optionTileMaps:
 introNicknameText:
     .DB $01 $02 $03 $04 $05 $06 $07 $08 $09 $0A $0B $0C $0D $0E $0F $10
 
-;   -SHADOW                     @ [07, 03]      6
+;   -SHADOW                     @ [07, 03]      7
 introShadowText:
-    .DB $11 $12 $13 $14 $15 $16
+    .DB $11 $12 $13 $14 $15 $16 $00
 
 ;   "BLINKY"                    @ [15, 03]      7
 introBlinkyText:
@@ -99,17 +121,17 @@ introBlinkyText:
 introSpeedyText:
     .DB $1E $1F $20 $21 $22 $23
 
-;   "PINKY"                     @ [15, 05]      6
+;   "PINKY"                     @ [15, 05]      7
 introPinkyText:
-    .DB $24 $25 $26 $27 $28 $29
+    .DB $24 $25 $26 $27 $28 $29 $00
 
 ;   -BASHFUL                    @ [07, 07]      7
 introBashfulText:
     .DB $2A $2B $2C $2D $2E $2F $30
 
-;   "INKY"                      @ [15, 07]      5
+;   "INKY"                      @ [15, 07]      6
 introInkyText:
-    .DB $31 $32 $33 $34 $35     
+    .DB $31 $32 $33 $34 $35 $00 
 
 ;   -POKEY                      @ [07, 09]      5
 introPokeyText:
@@ -118,12 +140,12 @@ introPokeyText:
 @row1:
     .DB $3F $40 $41 $42 $43
 
-;   "CLYDE"                     @ [15, 09]      6
+;   "CLYDE"                     @ [15, 09]      7
 introClydeText:
 @row0:
-    .DB $3A $3B $3C $3D $3E $39
+    .DB $3A $3B $3C $3D $3E $39 $00
 @row1:
-    .DB $44 $45 $46 $47 $48 $49
+    .DB $44 $45 $46 $47 $48 $49 $00
 
 ;   POINTS                      @ [09, 15]      7
 introPointsText:
@@ -150,6 +172,52 @@ introPowDot:
     .DB $4A
 @row1:
     .DB $4B
+
+;
+;   CRAZY OTTO (SUBSET OF PAC-MAN'S ATTRACT)
+;
+
+;   -MAD DOG                    @ [07, 03]      7
+introMadDogText:
+    .DB $78 $79 $7A $7B $7C $7D $7E
+
+;   "PLATO"                     @ [15, 03]      7
+introPlatoText:
+    .DB $7F $80 $81 $82 $83 $84 $00
+
+;   -KILLER                     @ [07, 05]      6
+introKillerText:
+    .DB $85 $86 $87 $88 $89 $8A
+
+;   "DARWIN"                    @ [15, 05]      7
+introDarwinText:
+    .DB $8B $8C $8D $8E $8F $90 $91
+
+;   -BRUTE                      @ [07, 07]      7
+introBruteText:
+    .DB $92 $93 $94 $95 $96 $00 $00
+
+;   "FREUD"                     @ [15, 07]      6
+introFreudText:
+    .DB $97 $98 $99 $9A $9B $9C     
+
+;   -SAM                        @ [07, 09]      5
+introSamText:
+@row0:
+    .DB $00 $9D $9E $9F $00
+@row1:
+    .DB $A7 $A8 $A9 $AA $00
+
+;   "NEWTON"                    @ [15, 09]      7
+introNewtonText:
+@row0:
+    .DB $A0 $A1 $A2 $A3 $A4 $A5 $A6
+@row1:
+    .DB $AB $AC $AD $AE $AF $B0 $B1
+
+;   GENCOMP                     @ [09, $15]     7
+introGencompText:
+    .DB $B2 $B3 $B4 $B5 $B6 $B7 $B8
 
 /*
 ----------------------------------------------

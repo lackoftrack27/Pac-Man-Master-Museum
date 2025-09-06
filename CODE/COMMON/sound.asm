@@ -14,6 +14,10 @@
 processGhostSFX:
 ;   STORE ADDRESS OF SOUND CONTROL IN HL
     LD HL, ghostSoundControl
+;   SKIP EYE CHECK IF GAME IS CRAZY OTTO
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JP NZ, @frightCheck
 ;   CHECK IF ANY GHOST IS SHOWING EYES
     ; LOOP PREP
     LD B, $04       ; LOOP COUNTER
@@ -26,11 +30,12 @@ processGhostSFX:
     ; CHECK NEXT GHOST
     ADD IX, DE
     DJNZ -      ; IF NOT 0, LOOP
-    INC B           ; CHANNEL 1
+@frightCheck:
+    LD B, $01   ; CHANNEL 1
 ;   CHECK IF SUPER
     LD A, (pacPoweredUp)
     OR A
-    JR Z, +    ; IF NOT, SKIP
+    JR Z, @sirenCheck   ; IF NOT, SKIP
 ;   CHECK IF FRIGHT SOUND IS ALREADY PLAYING
     BIT 5, (HL)
     RET NZ  ; IF SO, END
@@ -40,34 +45,30 @@ processGhostSFX:
     LD A, SFX_FRIGHT
     LD D, A
     LD A, (plusBitFlags)
-    AND A, ($01 << MS_PAC)
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
     ADD A, D
     JP sndPlaySFX
-+:
+@sirenCheck:
 ;   PREPARE SOUND ID AND SOUND CONTROL DETERMINATION
-    LD DE, SFX_SIREN0 * $100 + $08 ; SOUND CONTROL TYPE TO 8
+    LD DE, SFX_SIREN4 * $100 + $08 ; SOUND CONTROL TYPE TO 8
 ;   CHECK CURRENT DOT COUNT
     LD A, (currPlayerInfo.dotCount)
     ; CHECK IF LESS THAN 16
     CP A, $E4
     JR NC, @setSiren ; IF SO, SKIP...
-    DEC E   ; 08 -> 06
-    DEC E   
+    LD DE, SFX_SIREN3 * $100 + $06
     ; CHECK IF LESS THAN 32
     CP A, $D4
     JR NC, @setSiren ; IF SO, SKIP...
-    DEC E   ; 06 -> 04
-    DEC E
+    LD DE, SFX_SIREN2 * $100 + $04
     ; CHECK IF LESS THAN 64
     CP A, $B4
     JR NC, @setSiren ; IF SO, SKIP...
-    DEC E   ; 04 -> 02
-    DEC E
+    LD DE, SFX_SIREN1 * $100 + $02
     ; CHECK IF LESS THAN 128
     CP A, $74
     JR NC, @setSiren ; IF SO, SKIP...
-    DEC E   ; 02 -> 00
-    DEC E
+    LD DE, SFX_SIREN0 * $100 + $00
 @setSiren:
 ;   CHECK IF DETERMINED SOUND CONTROL MATCHES GHOST'S
     LD A, E
@@ -75,13 +76,9 @@ processGhostSFX:
     RET Z   ; IF SO, END
 ;   SET NEW SOUND CONTROL TYPE
     LD (HL), A
-;   ADD SOUND CONTROL TO SOUND ID
-    LD A, D
-    ADD A, E
-;   ADD 1 DEPENDING ON GAME
-    LD D, A
+;   ADD 1/2 DEPENDING ON GAME
     LD A, (plusBitFlags)
-    AND A, ($01 << MS_PAC)
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
     RRCA
     ADD A, D
     JP sndPlaySFX
@@ -95,7 +92,7 @@ processGhostSFX:
     LD A, SFX_EYES
     LD B, A
     LD A, (plusBitFlags)
-    AND A, ($01 << MS_PAC)
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
     ADD A, B
     LD B, $01       ; CHANNEL 1
     JP sndPlaySFX
@@ -129,17 +126,16 @@ processChan2SFX:
     LD A, D
     LD HL, @data
     RST addToHL
-    ;LD A, (HL)
 ;   ADDITIONAL STUFF
-    ; SKIP +2 FOR FRUIT AND BOUNCE SFX
+    ; SKIP +2/+4 FOR FRUIT AND BOUNCE SFX
     CP A, SFX_FRUIT
     JR Z, +
     CP A, SFX_BOUNCE
     JR Z, +
-    ; ADD 2 IF GAME IS MS. PAC
+    ; ADD 2/4 DEPENDING ON GAME
     LD B, A
     LD A, (plusBitFlags)    ; ISOLATE MS. PAC BIT
-    AND A, ($01 << MS_PAC)
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
     ADD A, B                ; ADD TO MUSIC ID
 +:
 ;   CHECK IF SOUND IS ALREADY PLAYING

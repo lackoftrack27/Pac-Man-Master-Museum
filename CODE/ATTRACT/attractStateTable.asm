@@ -5,7 +5,6 @@
 */
 ;       TITLE / ALL
 .DEFINE     lineMode            workArea
-.DEFINE     pacType             workArea + 1    ; 2 BYTES
 .DEFINE     pacAniCounter       workArea + 3
 .DEFINE     pacPos              workArea + 5    ; 2 BYTES
 .DEFINE     pacBase             workArea + $0A  ; 2 BYTES
@@ -49,7 +48,8 @@ sStateAttractTable:
     .dw @introMode          ; 07
     .dw @demoInputCheck     ; 08 [GAME OVER]
     .DW @msIntroMode        ; 09
-
+    .dw @introMode          ; 0A    CRAZY OTTO
+    .DW $0000;@jrIntroMode
 
 /*
 ----------------------------------------------
@@ -67,5 +67,5 @@ sStateAttractTable:
 
 .UNDEFINE   lineMode
 .UNDEFINE   introSubState, marqueePalBuffer
-.UNDEFINE   pacType, pacAniCounter, pacPos, pacBase
+.UNDEFINE   pacAniCounter, pacPos, pacBase
 

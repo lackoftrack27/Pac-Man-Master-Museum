@@ -54,19 +54,22 @@ sStateGameplayTable@comp01Mode:
     LD (isNewState), A
 ;   CLEAR FRUIT STATUS
     LD (currPlayerInfo.fruitStatus), A
-;   REMOVE GHOSTS FROM SCREEN
-    LD (blinky + Y_WHOLE), A
-    LD (pinky + Y_WHOLE), A
-    LD (inky + Y_WHOLE), A
-    LD (clyde + Y_WHOLE), A
-;   REMOVE FRUIT FROM SCREEN
-    LD HL, SPRITE_TABLE + $19 | VRAMWRITE
-    RST setVDPAddress
-    LD A, $F7
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
+;   REMOVE ACTORS FROM SCREEN
+    ; MOVE OFFSCREEN
+    LD H, A
+    LD L, A
+    LD (blinky + X_WHOLE), HL
+    LD (pinky + X_WHOLE), HL
+    LD (inky + X_WHOLE), HL
+    LD (clyde + X_WHOLE), HL
+    LD (fruitXPos), HL
+    LD (fruitYPos), HL
+    ; SET OFFSCREEN FLAGS
+    INC A
+    LD (blinky + OFFSCREEN_FLAG), A
+    LD (pinky + OFFSCREEN_FLAG), A
+    LD (inky + OFFSCREEN_FLAG), A
+    LD (clyde + OFFSCREEN_FLAG), A  
 ;   TURN MAZE WHITE
     LD HL, BGPAL_WALLS | CRAMWRITE
     RST setVDPAddress
@@ -156,8 +159,8 @@ sStateGameplayTable@comp01Mode:
 +:
 ;   SETUP CUTSCENE STATE
     ; SET SUBSTATE
-    LD A, (plusBitFlags)    ; ADD 4 IF GAME IS MS. PAC
-    AND A, $01 << MS_PAC
+    LD A, (plusBitFlags)    ; ADD 0/4/8 DEPENDING ON GAME
+    AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
     RLCA
     ADD A, B
     LD (subGameMode), A

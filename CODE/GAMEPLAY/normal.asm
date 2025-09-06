@@ -6,14 +6,11 @@
 sStateGameplayTable@normalMode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
+    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
 @@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
-;   CLEAR SUPER PAC-MAN SPRITE AREA (WHEN COMING FROM SUPER MODE)
-    LD A, $02
-    LD (pacSprControl), A
 ;   MAKE MAZE VISIBLE (IF NEEDED)
     ; CHECK IF INVISIBLE FLAG IS SET
     LD HL, plusBitFlags
@@ -28,8 +25,18 @@ sStateGameplayTable@normalMode:
     LD BC, BGPAL_PDOT0 * $100 + VDPDATA_PORT    ; DO UP TO, BUT NOT INCLUDING, 1ST POW DOT COLOR
     OTIR
 @@draw:
+;   OFF
+    LD A, $A0
+    OUT (VDPCON_PORT), A
+    LD A, $81
+    OUT (VDPCON_PORT), A
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
+;   ON
+    LD A, $E0
+    OUT (VDPCON_PORT), A
+    LD A, $81
+    OUT (VDPCON_PORT), A
 @@update:
 ;   CHECK FOR ALL DOTS EATEN
     CALL allDotsEatenCheck

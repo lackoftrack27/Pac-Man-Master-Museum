@@ -7,11 +7,11 @@
     SLOTSIZE    $4000
     SLOT 2  $8000       ; ROM (PAGED)
     SLOTSIZE    $0600
-    SLOT 3  $C000       ; GENERAL RAM AREA 0
-    SLOTSIZE    $1960
+    SLOT 3  $C000       ; GENERAL RAM
+    SLOTSIZE    $19D8
     SLOT 4  $C600       ; MAZE RAM
-    SLOTSIZE    $A0
-    SLOT 5  $DF60       ; GENERAL RAM AREA 1
+    SLOTSIZE    $28
+    SLOT 5  $DFD8       ; STACK END
 .ENDME
 
 ;   128KB IN TOTAL

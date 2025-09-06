@@ -15,14 +15,29 @@ checkEatenFruit:
 ;   CHECK IF GAME IS MS. PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
-    JR NZ, +
+    JR NZ, @msCheck
+    BIT JR_PAC, A
+    JR NZ, @jrCheck
 ;   CHECK IF PAC-MAN HAS EATEN FRUIT (PAC-MAN)
-    LD HL, (pacman.xPos)    ; YX
-    LD DE, (fruitPos)
+    ; X
+    LD HL, (pacman.xPos)
+    LD A, (pacman.yPos)
+    LD H, A
+    LD DE, (fruitXPos)
+    LD A, (fruitYPos)
+    LD D, A
     OR A    ; CLEAR CARRY
     SBC HL, DE
     RET NZ  ; IF NOT, END
 @ateFruit:
+    ; ADJUST FRUIT POSITION IF GAME IS PAC-MAN
+    LD A, (plusBitFlags)
+    AND A, $01 << MS_PAC | $01 << JR_PAC | $01 << OTTO
+    JR NZ, +
+    LD A, (fruitXPos)
+    ADD A, $02
+    LD (fruitXPos), A
++:
     ; SET LOW NIBBLE TO 2 (FRUIT POINTS)
     LD HL, currPlayerInfo.fruitStatus
     INC (HL)
@@ -39,29 +54,56 @@ checkEatenFruit:
     ; ADD TO SCORE
     LD HL, (fruitScoreVal)
     JP addToScore
-+:
+@msCheck:
 ;   COMPARE PAC-MAN'S POSITION TO MOVING FRUIT'S
-    LD HL, (pacman.xPos)
-    LD DE, (fruitPos)
-    ; CHECK Y
-    LD A, H
-    SUB A, D
+    ; CHECK X
+    LD A, (pacman.xPos)
+    LD DE, (fruitXPos)
+    SUB A, E
     ADD A, $03
     CP A, $06
     RET NC  ; IF NOT WITHIN RANGE, EXIT
-    ; CHECK X
-    LD A, L
+    ; CHECK Y
+    LD A, (pacman.yPos)
+    LD DE, (fruitYPos)
     SUB A, E
     ADD A, $03
     CP A, $06
     RET NC  ; IF NOT WITHIN RANGE, EXIT
 ;   CENTER Y POS WITHIN MAZE WALLS (FOR SCORE)
-    LD A, D
+    LD A, E
     AND A, ~$07 ; ROUND DOWN TO CLOSEST MULTIPLE OF 8
     ADD A, $04  ; ALIGN WITHIN MAZE WALLS   
-    LD (fruitPos + 1), A
+    LD (fruitYPos), A
 ;   FINISH UP (SCORE, TIMER, ETC)
     JR checkEatenFruit@ateFruit
+@jrCheck:
+;   COMPARE PAC-MAN'S POSITION TO MOVING FRUIT'S
+    ; CHECK X
+    LD HL, (pacman.xPos)
+    LD DE, (fruitXPos)
+    OR A
+    SBC HL, DE
+    LD DE, $0004
+    ADD HL, DE
+    LD DE, $0008
+    SBC HL, DE
+    RET NC  ; IF NOT WITHIN RANGE, EXIT
+    ; CHECK Y
+    LD A, (pacman.yPos)
+    LD DE, (fruitYPos)
+    SUB A, E
+    ADD A, $04
+    CP A, $08
+    RET NC  ; IF NOT WITHIN RANGE, EXIT
+;   CENTER Y POS WITHIN MAZE WALLS (FOR SCORE)
+    LD A, E
+    AND A, ~$07 ; ROUND DOWN TO CLOSEST MULTIPLE OF 8
+    ADD A, $04  ; ALIGN WITHIN MAZE WALLS   
+    LD (fruitYPos), A
+;   FINISH UP (SCORE, TIMER, ETC)
+    JR checkEatenFruit@ateFruit
+
 
 
 
@@ -111,7 +153,8 @@ fruitUpdate:
     LD (HL), A
     ; CLEAR FRUIT POSITION
     LD HL, $0000
-    LD (fruitPos), HL
+    LD (fruitXPos), HL
+    LD (fruitYPos), HL
     RET
 +:
 ;   DON'T UPDATE DURING EAT
@@ -122,6 +165,8 @@ fruitUpdate:
     LD A, (plusBitFlags)
     BIT MS_PAC, A
     JR NZ, msFruitUpdate    ; IF SO, SKIP
+    BIT JR_PAC, A
+    JP NZ, jrFruitUpdate
 ;   CHECK IF FRUIT AND FRUIT POINTS AREN'T ACTIVE (ON SCREEN)
     LD A, $0F
     AND A, (HL) ; CHECK IF LOW NIBBLE IS 0 (NO FRUIT OR SCORE POINTS)
@@ -144,8 +189,10 @@ fruitUpdate:
     ; PREPARE FRUIT/POINTS/SCORE
     CALL prepareFruit
     ; SET FIXED FRUIT POSITION
-    LD HL, $9480
-    LD (fruitPos), HL
+    LD HL, $0080
+    LD (fruitXPos), HL
+    LD HL, $0094
+    LD (fruitYPos), HL
     ; SET TIMER FOR 10 SECONDS
     LD HL, FRUIT_TIME
     LD (mainTimer3), HL
@@ -169,9 +216,14 @@ msFruitUpdate:
     RST addToHL
     RST getDataAtHL
     ; ADD TO FRUIT POSITION
-    LD DE, (fruitPos)
-    ADD HL, DE
-    LD (fruitPos), HL
+        ; X
+    LD A, (fruitXPos)
+    ADD A, L
+    LD (fruitXPos), A
+        ; Y
+    LD A, (fruitYPos)
+    ADD A, H
+    LD (fruitYPos), A
     ; INCREMENT BOUNCE
     LD HL, fruitPathBounce
     INC (HL)
@@ -234,12 +286,12 @@ msFruitUpdate:
     CALL setupFruitPath
     ; SET UP STARTING FRUIT POSITION
     INC HL
-    LD E, (HL)  ; X
+    LD A, (HL)  ; X
+    LD (fruitXPos), A
     INC HL
-    LD D, (HL)  ; Y
-    LD (fruitPos), DE
+    LD A, (HL)  ; Y
+    LD (fruitYPos), A
     RET
-
 
 /*
     INFO: PREPARE NEXT PATH FOR FRUIT TO TAKE (MS. PAC-MAN ONLY)
@@ -250,7 +302,7 @@ msFruitUpdate:
 prepNextFruitPath:
 ;   CHECK IF FRUIT HAS FINISHED PATH (IS NOW OFFSCREEN)
     LD HL, currPlayerInfo.fruitStatus
-    LD A, (fruitPos)
+    LD A, (fruitXPos)
     CP A, $F4   ; EXITED FROM LEFT SIDE
     JP Z, fruitUpdate@timerExpired
     CP A, $0C   ; EXITED FROM RIGHT SIDE
@@ -299,6 +351,13 @@ doGhostPath:
     JR setupFruitPath@ghostSkip ; FINISH UP
 
 
+;   ----------------------------------
+;       JR. PAC-MAN FRUIT CODE
+;   ----------------------------------
+jrFruitUpdate:
+    RET
+
+
 
 /*
     INFO: PREPARE TO RELEASE FRUIT IN LEVEL
@@ -312,6 +371,8 @@ prepareFruit:
     LD A, (plusBitFlags)
     BIT MS_PAC, A
     JR NZ, @msSetFruit  ; IF SO, SETUP FRUIT DIFFERENTLY
+    BIT JR_PAC, A
+    JR NZ, @jrSetFruit
 ;   ---------------
 ;   PAC-MAN FRUIT SETUP
 ;   ---------------
@@ -391,4 +452,9 @@ prepareFruit:
     RST addToHL
     RST getDataAtHL
     LD (fruitScoreVal), HL
+    RET
+;   ---------------
+;   JR. PAC-MAN FRUIT SETUP
+;   ---------------
+@jrSetFruit:
     RET

@@ -32,35 +32,6 @@ sStateAttractTable@titleMode:
     LD DE, SPRITE_ADDR + TILE_SIZE | VRAMWRITE
     LD HL, titleArrowData
     CALL zx7_decompressVRAM
-    ; LOAD DEPENDING ON STYLE
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    JR NZ, +    ; SKIP IF ARCADE
-    ; PAC-MAN [SMOOTH]
-    LD HL, pacmanTiles
-    LD DE, SPRITE_ADDR + ($03 * TILE_SIZE) | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; MS. PAC-MAN [SMOOTH]
-    LD HL, msPacTiles
-    LD DE, SPRITE_ADDR + ($1D * TILE_SIZE) | VRAMWRITE
-    CALL zx7_decompressVRAM
-    JR ++
-+:
-    ; ARCADE BANK ACCESS
-    LD A, ARCADE_BANK
-    LD (MAPPER_SLOT2), A
-    ; PAC-MAN [ARCADE]
-    LD HL, arcadeGFXData@pacman
-    LD DE, SPRITE_ADDR + ($03 * TILE_SIZE) | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; MS. PAC-MAN [ARCADE]
-    LD HL, arcadeGFXData@msPacman
-    LD DE, SPRITE_ADDR + ($1D * TILE_SIZE) | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; REVERT TO SMOOTH BANK
-    LD A, SMOOTH_BANK
-    LD (MAPPER_SLOT2), A
-++:
 ;   LOAD BACKGROUND TILES
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, titleTileData
@@ -82,8 +53,7 @@ sStateAttractTable@titleMode:
     CALL Z, plus_clrNametableArea
 ;   SET SELECTOR SPRITE
     CALL titleToggleModes@noToggle
-    LD HL, (pacBase)
-    LD (pacType), HL
+    LD HL, playerTileList
     LD DE, P1_SPR_POS
     LD (pacPos), DE
     XOR A
@@ -98,21 +68,30 @@ sStateAttractTable@titleMode:
     CALL turnOnScreen
 @@draw:
 ;   DRAW SELECTOR SPRITE
-    LD HL, (pacType)
+    LD HL, playerTileList
     LD DE, (pacPos)
     XOR A
     CALL display4TileSprite
 @@update:
+    ; SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, $0B20 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C   ; VDP DATA PORT
 ;   UPDATE SELECTOR SPRITE ANIMATION
     LD A, (pacAniCounter)
-    AND A, $0F              ; LIMIT TO $00 - $10
-    RRA                     ; ROUND DOWN TO PREVIOUS MULTIPLE OF 4
-    RRA
-    ADD A, A
+    AND A, $0F
+    SRL A
+    SRL A
     ADD A, A
     LD HL, (pacBase)        ; ADD TO BASE SPRITE TABLE
     RST addToHL
-    LD (pacType), HL        ; STORE
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    CALL pacTileStreaming@writeToVRAM
     LD HL, pacAniCounter    ; INCREMENT COUNTER
     INC (HL)
 ;   DECREMENT INACTIVITY TIMER
@@ -122,15 +101,19 @@ sStateAttractTable@titleMode:
 ;   CHECK IF TIMER IS 0
     LD A, L
     OR A, H
-    JR NZ, +    ; IF NOT, SKIP...
+    JR NZ, @@@titleUpdate   ; IF NOT, SKIP...
     ; ELSE, GO TO ATTRACT MODE
     LD HL, $01 * $100 + ATTRACT_INTRO
     LD A, (plusBitFlags)
-    AND A, $01 << MS_PAC
+    AND A, ($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
+    BIT OTTO, A
+    JR Z, +
+    LD A, $03
++:
     RST addToHL
     LD (subGameMode), HL
     RET
-+:
+@@@titleUpdate:
 ;   GET JUST PRESSED INPUTS
     CALL getPressedInputs
 ;   PREP FOR LINE PROCESSING

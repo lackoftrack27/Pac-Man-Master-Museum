@@ -65,11 +65,16 @@ plus_fruitSuper:
 ;   RESET GHOST FLASH COUNTER
     XOR A
     LD (flashCounter), A
-;   CHANGE PAC-MAN'S SPRITE NUMBER
-    INC A   ; $01
-    LD (pacman.sprTableNum), A
 ;   SET GHOST POINT INDEX TO START AT 1 (400)
+    INC A
     LD (ghostPointIndex), A
+;   SET INVISIBLE FLAGS OF GHOSTS
+    LD (blinky + INVISIBLE_FLAG), A
+    LD (pinky + INVISIBLE_FLAG), A
+    LD (inky + INVISIBLE_FLAG), A
+    LD (clyde + INVISIBLE_FLAG), A
+;   SWITCH STATE TO SUPER
+    LD (pacPoweredUp), A
 ;   NOTIFY ACTORS
     CALL pacGameTrans_super
     LD IX, blinky
@@ -80,14 +85,6 @@ plus_fruitSuper:
     CALL ghostGameTrans_super
     LD IX, clyde
     CALL ghostGameTrans_super
-;   SET INVISIBLE FLAGS OF GHOSTS
-    LD A, $01
-    LD (blinky + INVISIBLE_FLAG), A
-    LD (pinky + INVISIBLE_FLAG), A
-    LD (inky + INVISIBLE_FLAG), A
-    LD (clyde + INVISIBLE_FLAG), A
-;   SWITCH STATE TO SUPER
-    LD (pacPoweredUp), A
 ;   SET POWER DOT'S TIME
     LD HL, (plusFruitSuperTime)
     LD (mainTimer1), HL

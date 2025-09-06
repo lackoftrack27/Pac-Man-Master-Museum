@@ -35,11 +35,18 @@
     startingLives: db   ; 1, 2, 3, 5
     speedUpFlag: db     ; 0 - OFF, 1 - ON
 ;   PAC PLUS
-    ; BIT 0, 1: 0 - PAC-MAN, 1 - PLUS, 2 - MS.PAC-MAN, 3 - UNDEFINED
+    ; BIT 0, 1: 0 - PAC-MAN, 1 - PLUS, 2 - MS.PAC-MAN, 3 - JR. PAC-MAN
     ; BIT 7: TURN MAZE INVISIBLE
     plusBitFlags: db
     plusRNGValue: db
     plusFruitSuperTime: dw
+;   JR PAC
+    jrCameraPos: db
+    jrOldScrollReal: db
+    jrScrollReal: db
+    jrLeftMostTile: db
+    jrColumnToUpdate: db
+    updateColFlag: db
 ;   GAMEPLAY MODE STUFF
     ; INFO FOR CURRENT PLAYER
     currPlayerInfo INSTANCEOF playerInfo
@@ -57,7 +64,9 @@
     ; BIT 1: 0 - CURRENT PLAYER IS P1, 1 - CURRENT PLAYER IS P2
     playerType: db
 ;   FRUIT RELATED VARS
-    fruitPos: dw    ; XY
+    fruitSprTableNum: db
+    fruitXPos: dw
+    fruitYPos: dw
     fruitTileDefPtr: dw
     fruitPointTDefPtr: dw
     fruitScoreVal: dw
@@ -65,7 +74,7 @@
     fruitPathBounce: db
     fruitPathPtr: dw
 ;   GHOST POINTS RELATED VARS
-    ghostPointXpos: db
+    ghostPointXpos: dw
     ghostPointYpos: db
     ghostPointSprNum: db
     ghostPointIndex: db
@@ -83,13 +92,15 @@
     spdPatternSuper: dsb 4
     spdPatternPtr: dw
     inputFlag: db
-    pacSprControl: db   ; 0: NONE, 1: CLEAR NORMAL SPR AREA, 2: CLEAR SUPER SPR AREA
     ; VISUAL
     pacTileXCenter: db
     pacTileYCenter: db
-    tileMapPointer: dw
+    tileMapPointer: dw  ; POINTER FOR USE WITH TILEMAP IN VRAM
+    tileMapRamPtr: dw   ; POINTER FOR USE WITH TILEMAP IN RAM (BOTH ARE THE SAME IN NON-SCROLLING GAMES)
     tileQuadrant: db    ; 0 - 3
-    lifeHudPtr: dw
+    playerTileTblPtr: DW
+    deathTileTblPtr: DW
+    scoreTileMapBuffer: DSB $0C
 ;   GLOBAL GHOST STUFF
     globalDotCounter: db
     frameCounter: db
@@ -125,6 +136,8 @@
     ;taskListStart: dw
     taskListEnd: dw
     taskListArea: dsb 8
+;   MS. PAC-MAN / JR. PAC-MAN CUTSCENE CONTROL
+    cutsceneControl INSTANCEOF msPacCutsceneControl
 ;   SOUND RELATED VARS
     ghostSoundControl: db   ; BITS 0-2: SIREN TYPE, BIT 3: FRIGHT, BIT 4: EYES, BIT 5: NEW SOUND
     sndNoiseType: db
@@ -133,10 +146,20 @@
     chan1 INSTANCEOF sndChannel
     chan2 INSTANCEOF sndChannel
     chan3 INSTANCEOF sndChannel
+;   TEMPORARY RAM FOR WHATEVER NEEDS IT
+    workArea: dsb $A0 - $15
+;   
+    pfWorkTiles INSTANCEOF tilePos 7
 .ENDS
 
 
-;   STARTS AT $C600 [SIZE: $1960]
+;.RAMSECTION "Sprite Table Buffer" SLOT 3 ORG $0500 FORCE
+;    sprTableBuffer: dsb $100
+;.ENDS
+
+
+
+;   STARTS AT $C600 [SIZE: $19D8]
 .RAMSECTION "mazeRam" SLOT 4
 ;   STATIC MAZE TABLES
     mazeEatenTbl: dsb $100        ; [BYTE ALIGNED]
@@ -150,8 +173,7 @@
     mazeGroup2 INSTANCEOF mazePlayerInfo
 .ENDS
 
-;   STARTS AT $DF60 [SIZE: $A0]
-.RAMSECTION "workArea" SLOT 5
-;   TEMPORARY RAM FOR WHATEVER NEEDS IT
-    workArea: dsb $A0
+;   STARTS AT $DFD8 [SIZE: $28]
+.RAMSECTION "stackArea" SLOT 5
+    stackList: dsb $28          ; NOT REALLY USED, JUST PLACEHOLDER FOR STACK PTR
 .ENDS

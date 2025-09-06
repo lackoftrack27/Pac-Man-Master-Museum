@@ -30,8 +30,8 @@ getMazeIndex:
     SUB A, $0D
 -:
     SUB A, $08
-    JR NC, -
+    JP NC, -
     ADD A, $0D
-    JR @lookup
+    JP @lookup
 @dataLUT:
     .DB 0 0 1 1 1 2 2 2 2 3 3 3 3

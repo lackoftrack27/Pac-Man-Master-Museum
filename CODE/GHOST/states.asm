@@ -13,11 +13,11 @@
 */
 ghostStateTable@update@scatter:
 ;   CHECK STATE
-    BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    JR Z, @@@update      ; IF NOT, SKIP TRANSITION 
+    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
+    ;JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
     ; STATE IS NO LONGER NEW
-    LD (IX + NEW_STATE_FLAG), $00
+    ;LD (IX + NEW_STATE_FLAG), $00
 @@@update:
 /*
 ------------------------------------------------
@@ -32,34 +32,34 @@ ghostStateTable@update@scatter:
 ;   CHECK IF SLOWDOWN BIT OF TILE ID IS SET
     LD HL, SPD_PATT_SLOW_00
     BIT 2, (IX + CURR_ID)
-    JR Z, +     ; IF NOT, SKIP...
+    JP Z, +     ; IF NOT, SKIP...
     ; CHECK IF GAME IS MS.PAC
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JR Z, @@@@execSpdPattern    ; IF NOT, SKIP NEXT CHECK
+    AND A, $01 << MS_PAC
+    JP Z, @@@@execSpdPattern    ; IF NOT, SKIP NEXT CHECK
     ; CHECK IF LEVEL IS 3 OR GREATER
     LD A, (currPlayerInfo.level)
     CP A, $03
-    JR C, @@@@execSpdPattern    ; IF NOT, USE SLOW SPEED PATTERN
+    JP C, @@@@execSpdPattern    ; IF NOT, USE SLOW SPEED PATTERN
 +:
 ;   CHECK IF GHOST IS SCARED
     LD HL, SPD_PATT_SCARED_00
     BIT 0, (IX + EDIBLE_FLAG)
-    JR NZ, @@@@execSpdPattern    ; IF SO, USE SCARED SPEED PATTERN
+    JP NZ, @@@@execSpdPattern    ; IF SO, USE SCARED SPEED PATTERN
 ;   CHECK IF GHOST IS BLINKY
     LD HL, SPD_PATT_NORM_00
     LD A, (IX + ID)
     OR A
-    JR NZ, @@@@execSpdPattern   ; IF NOT, USE NORMAL SPEED PATTERN
+    JP NZ, @@@@execSpdPattern   ; IF NOT, USE NORMAL SPEED PATTERN
+;   CHECK IF DIFF FLAG IS 1
+    LD A, (difficultyState)
+    LD HL, spdPatternDiff0
+    RRCA
+    JP C, + ; IF SO, USE FIRST DIFF SPEED PATTERN
 ;   CHECK IF DIFF FLAG IS 2
     LD HL, spdPatternDiff1
-    LD A, (difficultyState)
-    BIT 1, A
-    JR NZ, +                    ; IF SO, USE SECOND DIFF SPEED PATTERN
-;   CHECK IF DIFF FLAG IS 1
-    LD HL, spdPatternDiff0
-    BIT 0, A
-    JR NZ, +                    ; IF SO, USE FIRST DIFF SPEED PATTERN
+    RRCA
+    JP C, + ; IF SO, USE SECOND DIFF SPEED PATTERN
     LD HL, SPD_PATT_NORM_00
 ;   ADD SPEED PATTERN OFFSET TO GHOST'S ADDRESS
 @@@@execSpdPattern:
@@ -77,22 +77,24 @@ ghostStateTable@update@scatter:
 ;   CHECK IF AT CENTER OF TILE
     LD A, (IX + X_WHOLE)
     BIT 0, (IX + CURR_DIR) ; 00 - UP, 01 - LEFT, 02 - DOWN, 03 - RIGHT
-    JR NZ, +
+    JP NZ, +
     LD A, (IX + Y_WHOLE)
 +:
     AND A, $07
     CP A, $04
-    JR NZ, @@@@prepareAxis
+    JP NZ, @@@@prepareAxis
 ;   GHOST IS AT CENTER POINT OF TILE
     ; CHECK IF GHOST IS ABOUT TO TELEPORT
-    CALL actorWarpCheck
-    JR C, ++    ; IF SO, SKIP PATHFINDING
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    CALL Z, actorWarpCheck
+    JP C, ++    ; IF SO, SKIP PATHFINDING
     ; CHECK IF GHOST IS SCARED
     BIT 0, (IX + EDIBLE_FLAG)
-    JR NZ, +    ; IF SO, SKIP NEXT CHECK
+    JP NZ, +    ; IF SO, SKIP NEXT CHECK
     ; CHECK IF GHOST IS AT TILE WHERE IT DOESN'T PATHFIND
     BIT 3, (IX + NEXT_ID)   ; CHECK IF BIT 3 OF TILE ID IS SET
-    JR NZ, ++   ; IF SO, SKIP
+    JP NZ, ++   ; IF SO, SKIP
 +:
     ; SET PATHFINDING FLAG (WILL DO PATHFINDING ON NEXT MOVE)
     LD A, (IX + ID)
@@ -100,7 +102,7 @@ ghostStateTable@update@scatter:
 ++:
     ; CHECK IF GHOST MUST REVERSE DIRECTION
     BIT 0, (IX + REVE_FLAG)
-    JR Z, + ; IF NOT, DON'T SET NEXT DIRECTION TO REVERSE DIRECTION
+    JP Z, + ; IF NOT, DON'T SET NEXT DIRECTION TO REVERSE DIRECTION
     ; CLEAR REVERSE FLAG
     LD (IX + REVE_FLAG), $00
     ; SET NEXT DIRECTION TO REVERSE DIRECTION
@@ -121,19 +123,36 @@ ghostStateTable@update@scatter:
 ------------------------------------------------
 */
 @@@@prepareAxis:
+    LD HL, dirVectors
     ; CONVERT CURRENT DIRECTION INTO OFFSET
     LD A, (IX + CURR_DIR)
     ADD A, A
-    ; ADD OFFSET TO VECTOR TABLE
-    LD HL, dirVectors
-    RST addToHL
-    ; HL NOW POINTS TO CORRECT MOVEMENT FOR CURRENT DIRECTION
+    LD E, A
+    LD D, $00
+    ADD HL, DE  ; HL NOW POINTS TO CORRECT MOVEMENT FOR CURRENT DIRECTION
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - APPLY MAIN AXIS MOVEMENT TO GHOST
 ------------------------------------------------
 */ 
 @@@@chooseAxis:
+    EX DE, HL   ; DE: WANTED VECTOR
+;   ADD Y PART OF VECTOR TO POSITION
+    LD A, (DE)
+    LD L, (IX + Y_WHOLE)
+    LD H, (IX + Y_WHOLE + 1)
+    CALL addToHLSigned
+    LD (IX + Y_WHOLE), L
+    LD (IX + Y_WHOLE + 1), H
+;   ADD X PART OF VECTOR TO POSITION
+    INC DE
+    LD A, (DE)
+    LD L, (IX + X_WHOLE)
+    LD H, (IX + X_WHOLE + 1)
+    CALL addToHLSigned
+    LD (IX + X_WHOLE), L
+    LD (IX + X_WHOLE + 1), H
+    /*
 ;   ADD Y PART OF VECTOR TO POSITION
     LD A, (IX + Y_WHOLE)
     ADD A, (HL)
@@ -143,6 +162,7 @@ ghostStateTable@update@scatter:
     LD A, (IX + X_WHOLE)
     ADD A, (HL)
     LD (IX + X_WHOLE), A
+    */
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - UPDATE TILES
@@ -165,19 +185,28 @@ ghostStateTable@update@scatter:
 */
 ghostStateTable@update@gotoHome:
 ;   CHECK STATE
-    BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    JR Z, @@@update      ; IF NOT, SKIP TRANSITION 
+    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
+    ;JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
 @@@update:
 ;   MOVE GHOST
     CALL ghostStateTable@update@scatter@@@update@chkCenterPoint
 ;   CHECK IF GHOST IS AT HOME ENTRENCE
-    LD L, (IX + X_WHOLE)    ; HL: YX
+    LD L, (IX + X_WHOLE)
     LD H, (IX + Y_WHOLE)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, +
+;   PAC-MAN/MS.PAC-MAN CHECKING
     LD DE, $6480
-    OR A        ; CLEAR CARRY
     SBC HL, DE
-    RET NZ      ; IF NOT, EXIT
+    JP Z, @@@exit
+    RET
++:
+;   JR.PAC-MAN CHECKING
+    LD DE, $5CE8
+    SBC HL, DE
+    RET NZ
 @@@exit:
 ;   SWITCH TO "GOTO CENTER" MODE
     INC (IX + STATE)
@@ -194,11 +223,11 @@ ghostStateTable@update@gotoHome:
 */
 ghostStateTable@update@gotoCenter:
 ;   CHECK STATE
-    BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    JR Z, @@@update      ; IF NOT, SKIP TRANSITION 
+    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
+    ;JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
 ;   STATE IS NO LONGER NEW
-    LD (IX + NEW_STATE_FLAG), $00
+    ;LD (IX + NEW_STATE_FLAG), $00
 @@@update:
 ;   FORCE GHOST TO GO DOWN
     LD (IX + CURR_DIR), DIR_DOWN
@@ -206,20 +235,30 @@ ghostStateTable@update@gotoCenter:
 ;   MOVE GHOST
     CALL ghostStateTable@update@scatter@@@update@prepareAxis
 ;   CHECK IF GHOST'S Y IS AT HOME ENTRENCE
-    LD A, (IX + Y_WHOLE)
-    CP A, $80
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    LD A, $80
+    JP Z, +
+    SUB A, $08
++:
+    CP A, (IX + Y_WHOLE)
     RET NZ  ; IF NOT, EXIT
 @@@exit:
 ;   SET VARS FOR BLINKY AND PINKY HERE
     LD A, (IX + ID)
     CP A, $02
-    JR NC, +     ; SKIP IF INKY OR CLYDE
+    JP NC, ++     ; SKIP IF INKY OR CLYDE
     ; GHOST ISN'T VISIBLY SCARED (EDIBLE)
     LD (IX + EDIBLE_FLAG), $00
     ; GHOST IS ALIVE
     LD (IX + ALIVE_FLAG), $01
     ; SET TILE POSITION
     LD HL, $2F2E
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP Z, +
+    LD HL, $2E3B
++:
     LD (IX + NEXT_X), L
     LD (IX + NEXT_Y), H
     LD (IX + CURR_X), L
@@ -229,7 +268,7 @@ ghostStateTable@update@gotoCenter:
     CALL getTileID
     LD (IX + NEXT_ID), A
     LD (IX + CURR_ID), A
-+:
+++:
 ;   ASSUME STATE FOR GOTO_REST
     INC (IX + STATE)
 ;   SET STATE FLAG
@@ -255,7 +294,7 @@ ghostStateTable@update@gotoCenter:
 ghostStateTable@update@gotoRest:
 ;   CHECK STATE
     BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    JR Z, @@@update      ; IF NOT, SKIP TRANSITION 
+    JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
 ;   STATE IS NO LONGER NEW
     LD (IX + NEW_STATE_FLAG), $00
@@ -273,8 +312,14 @@ ghostStateTable@update@gotoRest:
     LD A, $90   ; ASSUME GHOST IS INKY, SO SET FOR HIS REST POSITION
     ; CHECK IF GHOST IS INKY
     BIT 0, (IX + ID)
-    JR Z, +
+    JP Z, +
     LD A, $70   ; IF NOT, SET FOR CLYDE'S REST POSITION
++:
+    ; FURTHER CHANGE POS IF GAME IS JR.PAC
+    LD HL, plusBitFlags
+    BIT JR_PAC, (HL)
+    JP Z, +
+    ADD A, $68  ; WON'T OVERFLOW, MAP ISN'T BIG ENOUGH TO WORRY ABOUT 8TH BIT
 +:
 ;   CHECK IF GHOST IS AT REST SPOT
     CP A, (IX + X_WHOLE)
@@ -293,8 +338,15 @@ ghostStateTable@update@gotoRest:
 ;   SET TILE POSITION FOR INKY OR CLYDE HERE
     LD HL, $2F30    ; INKY
     BIT 0, (IX + ID)
-    JR Z, +         ; 02 - INKY, 03 - CLYDE
+    JP Z, +         ; 02 - INKY, 03 - CLYDE
     LD HL, $2F2C    ; CLYDE
++:
+    ; CHANGE POS IF GAME IS JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP Z, +
+    LD DE, $FF0D
+    ADD HL, DE
 +:
     ; SET TILE POSITION
     LD (IX + NEXT_X), L
@@ -317,21 +369,26 @@ ghostStateTable@update@gotoRest:
 */
 ghostStateTable@update@rest:
 ;   CHECK STATE
-    BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    JR Z, @@@update                 ; IF NOT, SKIP TRANSITION 
+    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
+    ;JR Z, @@@update                 ; IF NOT, SKIP TRANSITION 
 @@@enter:
 ;   STATE IS NO LONGER NEW
-    LD (IX + NEW_STATE_FLAG), $00
+    ;LD (IX + NEW_STATE_FLAG), $00
 @@@update:
 ;   CHECK IF GHOST NEEDS TO REVERSE
     LD A, (IX + Y_WHOLE)
+    LD HL, plusBitFlags
+    BIT JR_PAC, (HL)
+    JP Z, +
+    ADD A, $08
++:
     CP A, $78   ; (TOP OF HOUSE)
-    JR Z, +     ; IF SO, REVERSE
+    JP Z, @@@@reverseDir     ; IF SO, REVERSE
     CP A, $80   ; (BOTTOM OF HOUSE)
-    JR Z, +     ; IF SO, REVERSE
+    JP Z, @@@@reverseDir     ; IF SO, REVERSE
 ;   MOVE GHOST
     JP ghostStateTable@update@scatter@@@update@prepareAxis
-+:
+@@@@reverseDir:
 ;   REVERSE DIRECTION
     LD A, (IX + CURR_DIR)
     XOR A, $02
@@ -351,7 +408,7 @@ ghostStateTable@update@rest:
 ghostStateTable@update@gotoExit:
 ;   CHECK STATE
     BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    JR Z, @@@update      ; IF NOT, SKIP TRANSITION 
+    JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
     ; STATE IS NO LONGER NEW
     LD (IX + NEW_STATE_FLAG), $00
@@ -359,10 +416,10 @@ ghostStateTable@update@gotoExit:
     LD A, (IX + ID)
     CP A, $02
     LD A, DIR_UP    ; ASSUME GHOST IS BLINKY OR PINKY (FLAGS NOT TOUCHED)
-    JR C, +         ; IF SO, THEY ARE ALREADY AT THE CORRECT Y POSITION, SO SKIP...
+    JP C, +         ; IF SO, THEY ARE ALREADY AT THE CORRECT Y POSITION, SO SKIP...
     ; SET DIRECTION DEPENDING ON GHOST
     LD A, DIR_RIGHT   ; ASSUME GHOST IS INKY (GOING RIGHT)
-    JR Z, +         ; IF SO, SET DIRECTION
+    JP Z, +         ; IF SO, SET DIRECTION
     LD A, DIR_LEFT   ; ELSE, GHOST IS CLYDE (GOING LEFT)
 +:
     LD (IX + CURR_DIR), A
@@ -371,19 +428,30 @@ ghostStateTable@update@gotoExit:
 ;   MOVE GHOST
     CALL ghostStateTable@update@scatter@@@update@prepareAxis
 ;   CHECK IF GHOST IS OUT OF HOME
-    LD A, (IX + Y_WHOLE)
-    CP A, $64
-    JR Z, +     ; IF SO, SKIP...
+    LD HL, plusBitFlags
+    LD A, $64
+    ; MODIFY POS IF GAME IS JR.PAC
+    BIT JR_PAC, (HL)
+    JP Z, +
+    SUB A, $08
++:
+    CP A, (IX + Y_WHOLE)
+    JP Z, ++
 ;   CONTINUE MOVING TOWARDS HOME EXIT
     ; CHECK GHOST IS AT CENTER OF HOUSE IN X AXIS
-    LD A, (IX + X_WHOLE)
-    CP A, $80
+    LD A, $80
+    ; MODIFY POS IF GAME IS JR.PAC
+    BIT JR_PAC, (HL)
+    JP Z, +
+    ADD A, $68
++:
+    CP A, (IX + X_WHOLE)
     RET NZ
     ; ELSE, SET DIRECTION TO BE UP AND START MOVING TOWARDS EXIT IN Y AXIS
     LD (IX + CURR_DIR), DIR_UP
     LD (IX + NEXT_DIR), DIR_UP
     RET
-+:
+++:
 ;   PREPARE TO LEAVE HOME
     ; SET NEW STATE FLAG
     LD (IX + NEW_STATE_FLAG), $01
@@ -392,6 +460,12 @@ ghostStateTable@update@gotoExit:
     LD (IX + STATE), A
 ;   SET TILE POSITION
     LD HL, $2C2E
+    ; CHANGE POS IF GAME IS JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP Z, +
+    LD HL, $2B3B
++:
     LD (IX + NEXT_X), L
     LD (IX + NEXT_Y), H
 ;   SET TILE ID
@@ -417,15 +491,15 @@ ghostStateTable@update@gotoExit:
 ghostStateTable@draw@scatter:
 ghostStateTable@draw@rest:
 ghostStateTable@draw@gotoExit:
-;   CHECK IF GHOST SHOULD BE INVISIBLE (PLUS)
-    BIT 0, (IX + INVISIBLE_FLAG)
+;   CHECK IF GHOST SHOULD BE INVISIBLE (PLUS) OR IS OFFSCREEN
+    LD A, (IX + INVISIBLE_FLAG)
+    OR A, (IX + OFFSCREEN_FLAG)
     JP NZ, ghostSpriteFlicker@emptySprite   ; IF SO, DISPLAY NOTHING
 ;   GHOST IS INVSIBLE WHEN BEING EATEN
     LD A, (ghostPointSprNum)
-    CP A, (IX + SPR_NUM)
+    DEC A
+    CP A, (IX + ID)
     JP Z, ghostSpriteFlicker@emptySprite
-;   DO SPRITE FLICKER PROCESSING
-    CALL ghostSpriteFlicker
 ;   CHECK IF GHOST IS VISIBLY SCARED
     BIT 0, (IX + EDIBLE_FLAG)
     JP Z, displayGhostNormal    ; IF NOT, DISPLAY NORMAL SPRITES
@@ -438,7 +512,10 @@ ghostStateTable@draw@gotoCenter:
 ghostStateTable@draw@gotoRest:
 ;   INVISIBLE FLAG ALWAYS RESET
     LD (IX + INVISIBLE_FLAG), $00
-;   DO SPRITE FLICKER PROCESSING
-    CALL ghostSpriteFlicker
+;   DISPLAY NOTHING IF OFFSCREEN FLAG IS SET OR IF GAME IS CRAZY OTTO
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    OR A, (IX + OFFSCREEN_FLAG)
+    JP NZ, ghostSpriteFlicker@emptySprite   ; IF SO, DISPLAY NOTHING
 ;   DISPLAY SCARED SPRITES
     JP displayGhostEyes

@@ -47,6 +47,7 @@ gamePlayInit:
 ;   TURN OFF DISPLAY
     CALL turnOffScreen
 ;   LOAD HUD TEXT TILES....
+    CALL loadHudTiles
 ;   CLEAR TILE BUFFER FLAG
     XOR A
     LD (tileBufferFlag), A  ; WHY IS THIS CLEARED HERE?
@@ -68,13 +69,27 @@ gamePlayInit:
 +:
     LD (currPlayerInfo.lives), A
 ;   SET DIFFICULTY TO NORMAL OR HARD
-    LD HL, levelTableNormal
+    ; USE DIFFERENT TABLE DEPENDING ON GAME
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
     LD A, (normalFlag)
+    JR NZ, @jrDiffSetup
+    ; PAC-MAN / MS.PAC-MAN
+    LD HL, levelTableNormal
     OR A
     JR Z, +
     LD HL, levelTableHard
+    LD (currPlayerInfo.levelTablePtr), HL
+    JR @setupP2
+@jrDiffSetup:
+    ; JR.PAC-MAN
+    LD HL, levelTableNormal@jrTbl
+    OR A
+    JR Z, +
+    LD HL, levelTableHard@jrTbl
 +:
     LD (currPlayerInfo.levelTablePtr), HL
+@setupP2:
 ;   COPY INTO PLAYER BUFFER FOR PLAYER 2
     LD HL, currPlayerInfo
     LD DE, altPlayerInfo
@@ -83,15 +98,29 @@ gamePlayInit:
     ; DECREMENT LIVES FOR PLAYER 2
     LD HL, altPlayerInfo.lives
     DEC (HL)
-
-    LD HL, hudTileMaps@lives
-;   CHECK IF GAME IS MS. PAC
+;   SETUP PLAYER TILE POINTERS
+    CALL setupTilePtrs
+;   UPLOAD TILES FOR LIFE HUD
+    ; SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, $3B80 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C   ; VDP DATA PORT
+    ; GET CORRECT SET OF TILES
+    LD HL, hudTileTblList
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JR Z, +    ; IF NOT, SKIP
-    LD HL, hudTileMaps@msLives
-+:
-    LD (lifeHudPtr), HL
+    AND A, $1F
+    ADD A, A
+    LD E, A
+    LD D, $00
+    ADD HL, DE
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    ; WRITE TILES TO VRAM
+    CALL pacTileStreaming@writeToVRAM
 /*
 ----------------------------------------------------------
             RESET FUNCTION FOR GAMEPLAY MODE  
@@ -100,8 +129,32 @@ gamePlayInit:
 generalResetFunc:
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen
+    DI
 ;   RESET SOUND VARS
     CALL sndInit
+;
+    ;XOR A
+    ;LD HL, sprTableBuffer
+    ;LD DE, sprTableBuffer + 1
+    ;LD BC, $00FF
+    ;LD (HL), A
+    ;LDIR
+
+;   LOAD MAZE TEXT SPRITES
+    ; SET VDP ADDRESS
+    LD HL, SPRITE_ADDR + MAZETXT_VRAM + ($0B * TILE_SIZE) | VRAMWRITE
+    RST setVDPAddress
+    ; GET CORRECT TILES
+    LD HL, mazeTxtTileREADY
+    ; WRITE TO VRAM
+    LD A, UNCOMP_BANK
+    LD (MAPPER_SLOT2), A
+    LD BC, VDPDATA_PORT
+    OTIR
+    LD B, 96
+    OTIR
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   LOAD SPRITE TILES
     CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
     CALL loadTileAssets
@@ -124,16 +177,72 @@ generalResetFunc:
     CALL loadMaze
 ;   SET POWER PELLET COLOR BUFFER 
     CALL powDotCyclingUpdate@refresh
-;   WRITE TILEMAP DATA TO VRAM
+;   SET SCROLL VARS (ONLY USED FOR JR.PAC)
+    XOR A
+    LD L, A
+    LD H, A
+    LD (jrScrollReal), HL
+    LD (jrOldScrollReal), HL
+    LD (jrColumnToUpdate), A
+    LD (updateColFlag), A
+    LD (jrCameraPos), A
+;   WRITE TILEMAP DATA TO VRAM DEPENDING ON GAME
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +     ; IF GAME ISN'T JR. PAC, SKIP
+    ; SET INITIAL SCROLL
+    LD A, $28
+    LD (jrCameraPos), A
+;   WRITE TILEMAP DATA TO VRAM (JR. PAC)
+    ; SET VDP ADDRESS
+    LD HL, (NAMETABLE + $40) | VRAMWRITE
+    RST setVDPAddress
+    ; POINT TO LEFT MOST TILE OF MAZE
+    LD HL, mazeGroup1.tileMap + $08
+    ; LOOP SETUP
+    LD D, $17
+-:
+    ; WRITE ROW
+    LD BC, $40 * $100 + VDPDATA_PORT
+    OTIR
+    ; POINT TO NEXT ROW
+    LD A, $09 * $02
+    RST addToHL
+    ; DO FOR WHOLE SCREEN
+    DEC D
+    JR NZ, -
+    JR ++
++:
+;   WRITE TILEMAP DATA TO VRAM (PAC-MAN / MS.PAC-MAN)
     LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress
     LD HL, mazeGroup1.tileMap
     LD BC, $600
     CALL copyToVDP
-;   LOAD MAZE TEXT SPRITES
-    LD HL, mazeTextTiles
-    LD DE, SPRITE_ADDR + MAZETXT_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
+++:
+    LD A, (subGameMode)
+    CP A, GAMEPLAY_READY00
+    JR NZ, +
+;   WRITE "PLAYER"
+    ; SAVE SOME TILES IN RAM
+    LD HL, SPRITE_ADDR + PAC_VRAM + $80
+    RST setVDPAddress
+    LD HL, workArea
+    LD BC, $80 * $100 + VDPDATA_PORT
+    INIR
+    ; SET VDP ADDRESS
+    LD HL, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
+    RST setVDPAddress
+    ; GET CORRECT TILES
+    LD HL, mazeTxtTilePLAYER
+    ; WRITE TO VRAM
+    LD A, UNCOMP_BANK
+    LD (MAPPER_SLOT2), A
+    LD BC, VDPDATA_PORT
+    OTIR
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
++:
 ;   RESET SOME VARS ONLY IF ON LEVEL FOR THE FIRST TIME
     LD A, (currPlayerInfo.diedFlag)
     OR A
@@ -147,6 +256,8 @@ generalResetFunc:
     LD (clyde.dotCounter), A
     ; RESET PLAYER DOT COUNT
     LD (currPlayerInfo.dotCount), A
+    LD (currPlayerInfo.jrDotCount), A
+    LD (currPlayerInfo.jrDotCount + 1), A
 firstTimeEnd:
     XOR A
     LD H, A
@@ -161,18 +272,26 @@ firstTimeEnd:
     LD (rngIndex), HL       ; RNG INDEX
     LD (mainTimer2), HL     ; SCATTER/CHASE TIMER
     LD (mainTimer3), HL     ; FRUIT TIMER
-    LD (fruitPos), HL       ; FRUIT POSITION
+    LD (fruitXPos), HL      ; FRUIT POSITION
+    LD (fruitYPos), HL      ; FRUIT POSITION
     LD (powDotFrameCounter), A  ; POWER DOT FRAME COUNTER FOR PALETTE CYCLE
     LD (xUPCounter), A      ; 1UP / 2UP FLASH COUNTER
     LD (sprFlickerControl), A   ; SPRITE FLICKER FLAGS
     LD (eatSubState), A     ; EAT SUBSTATE
     LD (pacPoweredUp), A    ; SUPER FLAG
+    LD (dotExpireCounter), A
+;   ENABLE SPRITE CYCLING
+    INC A
+    LD (sprFlickerControl), A
 ;   SPEED PATTERN FOR GHOSTS IN HOME
     LD A, $55
     LD (inHomeSpdPatt), A
 ;   RESET GHOST SOUND CONTROL
     LD A, $FF
     LD (ghostSoundControl), A
+;   RESET SCORE TILEMAP BUFFER
+    CALL scoreTilemapRstBuffer
+    CALL scoreTileMapUpdate
 ;   CALCULATE DIFFICULTY   
     ; CONVERT INDEX INTO OFFSET (MULTIPLY BY 6)
     LD HL, (currPlayerInfo.levelTablePtr)
@@ -181,11 +300,14 @@ firstTimeEnd:
     CALL multiply8Bit
     EX DE, HL
     ; ADD OFFSET TO BASE TABLE
-    LD IX, difficultyTable
     LD HL, plusBitFlags
-    BIT PLUS, (HL)
-    JR Z, +
     LD IX, difficultyTable@plus
+    BIT PLUS, (HL)
+    JR NZ, +
+    LD IX, difficultyTable@jr
+    BIT JR_PAC, (HL)
+    JR NZ, +
+    LD IX, difficultyTable
 +:
     ADD IX, DE
     ; GET FIRST BYTE (SPEED PATTERN INDEX)
@@ -289,9 +411,11 @@ firstTimeEnd:
 ;   RESET ACTORS
     CALL pacmanReset
     CALL blinkyReset
-    CALL pinkyReset
+    CALL pinkyReset     
     CALL inkyReset
     CALL clydeReset
+    LD A, $15
+    LD (fruitSprTableNum), A
 ;   DRAW STATIC HUD
     ; HIGH SCORE AND SCORE TEXT
     CALL drawScoresText
@@ -301,4 +425,5 @@ firstTimeEnd:
     CALL drawFruitHUD
 ;   TURN ON DISPLAY
     CALL waitForVblank
+    EI
     JP turnOnScreen

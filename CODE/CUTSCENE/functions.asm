@@ -12,15 +12,15 @@
     USES: AF, BC, E, HL
 */
 commonCutsceneInit:
-;   RESET NEW STATE FLAG
-    XOR A
-    LD (isNewState), A
-;   RESET SUB STATE
-    LD (cutsceneSubState), A
-;   RESET 1UP FLASH
-    LD (xUPCounter), A
 ;   TURN OFF SCREEN
     CALL turnOffScreen
+;   RESET SOME VARS
+    XOR A
+    LD (isNewState), A
+    LD (cutsceneSubState), A
+    LD (xUPCounter), A
+    LD (pacPoweredUp), A
+    LD (sprFlickerControl), A
 ;   CLEAR MAZE AREA OF TILEMAP
     LD DE, ($01 * $100) + 24
     LD HL, NAMETABLE + ($02 * $02) | VRAMWRITE
@@ -111,19 +111,21 @@ pacCutsceneInit:
     LD A, $1F       ; ($08 >> $03) + $1E
     LD (pacman + CURR_X), A
     ; SET PAC-MAN'S X AND Y POSITION
-    LD HL, $9408    ; YX
+    LD HL, $0008    ; YX
     LD (pacman.xPos), HL
+    LD HL, $0094
+    LD (pacman.yPos), HL
+    ; CLEAR SUBPIXELS
     XOR A
-    LD (pacman.subPixel), A
-    ; CLEAR BLINKY SUBPIXEL
-    LD (blinky.subPixel), A
+    LD (pacman + SUBPIXEL), A
+    LD (blinky + SUBPIXEL), A
     ; CLEAR GHOST VISUAL COUNTERS
     LD (flashCounter), A
     LD (frameCounter), A
-    ; CLEAR SCARED FLAG
+    ; CLEAR BLINKY'S FLAGS
     LD (blinky + EDIBLE_FLAG), A
-    ; CLEAR INVISIBLE FLAG
     LD (blinky + INVISIBLE_FLAG), A
+    LD (blinky + OFFSCREEN_FLAG), A
     ; PAC-MAN FACING LEFT
     INC A   ; $01
     LD (pacman.currDir), A
@@ -131,8 +133,6 @@ pacCutsceneInit:
     ; BLINKY FACING LEFT
     LD (blinky.currDir), A
     LD (blinky.nextDir), A
-    ; SET PAC-MAN SPRITE TABLE NUM TO 1
-    LD (pacman.sprTableNum), A
     ; SET BLINKY SPRITE TABLE NUM
     LD A, $0A
     LD (blinky.sprTableNum), A
@@ -140,12 +140,15 @@ pacCutsceneInit:
     LD (pinky.sprTableNum), A   ; WAS $0A, NOW $14
     LD (inky.sprTableNum), A    ; WAS $0D, NOW $14
     LD (clyde.sprTableNum), A   ; WAS $11, NOW $14
+    LD (fruitSprTableNum), A
     ; SET BLINKY'S CURRENT X TILE
     LD A, $1E       ; ($00 >> $03) + $1E
     LD (blinky + CURR_X), A
     ; SET X AND Y POSITION
-    LD HL, $9400
+    LD HL, $0000
     LD (blinky.xPos), HL
+    LD HL, $0094
+    LD (blinky.yPos), HL
     ; RESET STATE
     LD A, GHOST_SCATTER
     LD (blinky.state), A
@@ -232,7 +235,7 @@ pacCutResSpritePal:
 ;           $F8 - "CLR NUM":     
 ;           $FF - "END":
 
-
+/*
 .DEFINE cutFuncList     workArea + $20      ; 12 BYTES
 .DEFINE cutFuncTimers   workArea + $2C      ; 6 BYTES
 .DEFINE cutFuncChars    workArea + $32      ; 12 BYTES
@@ -240,23 +243,66 @@ pacCutResSpritePal:
 .DEFINE cutFuncPos      workArea + $4A      ; 12 BYTES
 .DEFINE cutFuncDoneFlags    workArea + $56  ; 6 BYTES
 .DEFINE cutFuncCharOffset   workArea + $5C  ; 6 BYTES
+*/
+
+.DEFINE msCut_MainTileTblPtr  workArea
+.DEFINE msCut_SubTileTblPtr   workArea + $02
+.DEFINE msCut_GhostTileTblPtr workArea + $04
+
 
 
 
 ;   HL: PROG TABLE FOR CUTSCENE
 msCutSetup:
-;   COPY PROG PTRS TO RAM
-    LD DE, cutFuncList
-    LD BC, $000C
-    LDIR
-;   MEMSET ALL OTHER CUTSCENE VARS TO 0
-    LD HL, cutFuncTimers
+    PUSH HL ; SAVE FOR AFTER MEMSET
+;   MEMSET CUTSCENE CONTROL VARS TO $00
+    LD HL, cutsceneControl
     LD (HL), $00
-    LD DE, cutFuncTimers + 1
-    LD BC, 66
+    LD DE, cutsceneControl + 1
+    LD BC, _sizeof_cutsceneControl - 1
+    LDIR
+;   COPY PROG PTRS TO RAM
+    POP HL  ; CUTSCENE'S PROGRAM TABLE
+    LD DE, cutsceneControl.ptrList
+    LD BC, _sizeof_cutsceneControl.ptrList
     LDIR
 ;   COMMON CUTSCENE SETUP
     CALL commonCutsceneInit
+;   TILE POINTER SETUP
+    ; MAIN CHARACTER TILE PTR
+    LD HL, msSceneMainTileTbl@msSN  ; MS.PAC-MAN [SMOOTH]
+    LD A, (plusBitFlags)
+    BIT STYLE_0, A
+    JR Z, +
+    LD HL, msSceneMainTileTbl@msAN  ; MS.PAC-MAN [ARCADE]
++:
+    BIT OTTO, A
+    JR Z, +
+    LD A, $18
+    RST addToHL ; POINT TO OTTO
++:
+    LD (msCut_MainTileTblPtr), HL
+    ; SUB CHARACTER TILE PTR
+    LD HL, msSceneSubTileTbl@pacSN ; PAC-MAN [SMOOTH]
+    LD A, (plusBitFlags)
+    BIT STYLE_0, A
+    JR Z, +
+    LD HL, msSceneSubTileTbl@pacAN ; PAC-MAN [ARCADE]
++:
+    BIT OTTO, A
+    JR Z, +
+    LD A, $18
+    RST addToHL ; POINT TO ANNA
++:
+    LD (msCut_SubTileTblPtr), HL
+    ; GHOST TILE PTR
+    LD HL, msSceneGhostTileTbl      ; NORMAL GHOSTS
+    LD A, (plusBitFlags)
+    BIT OTTO, A
+    JR Z, +
+    LD HL, msSceneGhostTileTbl@otto ; OTTO GHOSTS
++:
+    LD (msCut_GhostTileTblPtr), HL
 ;   LOAD TILE DATA FOR CUTSCENES
     ; SMOOTH / ARCADE CONTROL PATH
     LD A, (plusBitFlags)
@@ -266,22 +312,21 @@ msCutSetup:
     ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
     ; CUTSCENE DATA
     LD HL, msCutsceneTiles
-    ;LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
     LD DE, SPRITE_ADDR + MS_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    ; PAC-MAN (FOR CUTSCENE)
-    LD HL, pacmanTiles  ; ASSUME GAME TYPE ISN'T PLUS
-    ; LOAD ASSETS DEPENDING ON GAME TYPE
+    ; LOAD BABY OTTO IF GAME IS OTTO
     LD A, (plusBitFlags)
-    BIT PLUS, A
-    JR Z, +    ; IF NOT PLUS, SKIP
-    LD HL, pacmanTiles@plus ; PLUS GRAPHICS
-+:
-    ; PAC-MAN (FOR CUTSCENES)
-    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    JR ++
+    AND A, $01 << OTTO
+    JR Z, @wait
+    LD HL, $1A40 | VRAMWRITE
+    RST setVDPAddress
+    LD HL, babyOttoTileS
+    LD BC, $20 * $100 + VDPDATA_PORT
+    LD A, UNCOMP_BANK
+    LD (MAPPER_SLOT2), A
+    OTIR
+    JR @wait
     ; -----------------------------
 @arcadeGFX:
     ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
@@ -290,25 +335,24 @@ msCutSetup:
     ; -----------------------------
     ; CUTSCENE DATA
     LD HL, arcadeGFXData@cutsceneMs
-    ;LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
     LD DE, SPRITE_ADDR + MS_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    ; PAC-MAN (FOR CUTSCENE)
-    LD HL, arcadeGFXData@pacman ; ASSUME GAME ISN'T PLUS
-    ; LOAD ASSETS DEPENDING ON GAME TYPE
+    ; LOAD BABY OTTO IF GAME IS OTTO
     LD A, (plusBitFlags)
-    BIT PLUS, A
-    JR Z, +    ; IF NOT PLUS, SKIP
-    LD HL, arcadeGFXData@pacmanPlus ; PLUS GRAPHICS
-+:
-    LD DE, SPRITE_ADDR + MS_CUT_PAC_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
+    AND A, $01 << OTTO
+    JR Z, @wait
+    LD HL, $1A40 | VRAMWRITE
+    RST setVDPAddress
+    LD HL, babyOttoTileA
+    LD BC, $20 * $100 + VDPDATA_PORT
+    LD A, UNCOMP_BANK
+    LD (MAPPER_SLOT2), A
+    OTIR
     ; -----------------------------
+@wait:
     LD A, SMOOTH_BANK
     LD (MAPPER_SLOT2), A
-    ; -----------------------------
-++:
 ;   TURN ON SCREEN
     CALL waitForVblank
     JP turnOnScreen
@@ -339,13 +383,13 @@ msCutDisplayAct:
 */
 msSceneCommonDrawUpdate:
 ;   DRAW 1UP
-    CALL draw1UP    ; !!!
+    CALL draw1UP
 ;   DO CUTSCENE DRAW
     ; SETUP
     LD IYL, $06                     ; COUNTER
-    LD IX, cutFuncChars + $0A       ; START AT LAST CHAR
-    LD DE, cutFuncCharOffset + $05  ; START AT LAST OFFSET
-    LD BC, cutFuncPos + $0B         ; START AT LAST Y
+    LD IX, cutsceneControl.charList + $0A       ; START AT LAST CHAR
+    LD DE, cutsceneControl.charOffsetList + $05 ; START AT LAST OFFSET
+    LD BC, cutsceneControl.posList + $0B        ; START AT LAST Y       
 -:
     ; GET CHARACTER ARRAY PTR
     LD L, (IX + 0)
@@ -355,13 +399,85 @@ msSceneCommonDrawUpdate:
     SRA A
     DEC DE      ; POINT TO NEXT OFFSET
     PUSH DE     ; SAVE OFFSET PTR
+    PUSH BC
     ; ADD OFFSET TO ARRAY PTR
     RST addToHL
-    ; CONVERT DATA INTO OFFSET FOR GLOBAL CUTSCENE CHARACTER ARRAY, THEN ADD OFFSET
-    ADD A, A
-    ADD A, A
+    ; CHARACTER TYPE CHECK
     LD HL, msSceneCharTable
-    RST addToHL ; HL NOW POINTS TO CORRECT SPRITE
+    OR A
+    JR Z, @convPos  ; BYPASS IF 0
+;   ------
+;   CUTSCENE SPECIFIC GFX
+;   ------
+    CP A, $21
+    JR C, +
+    SUB A, $20
+    ADD A, A
+    ADD A, A
+    RST addToHL
+    JR @convPos
++:
+;   ------
+;   GHOST SPECIFIC GFX
+;   ------
+    CP A, $19
+    JR C, +
+        ; GET POINTER
+    SUB A, $19
+    ADD A, A
+    ADD A, A
+    LD HL, (msCut_GhostTileTblPtr)
+    RST addToHL
+    JR @convPos
++:
+;   ------
+;   MAIN CHARACTER GFX
+;   ------
+    CP A, $0D
+    JR C, +
+        ; SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, $0B20 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C   ; VDP DATA PORT
+        ; GET POINTER
+    SUB A, $0D
+    ADD A, A
+    LD HL, (msCut_MainTileTblPtr)
+    RST addToHL
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+        ; WRITE TILE DATA TO VRAM
+    CALL pacTileStreaming@writeToVRAM
+    LD HL, playerTileList
+    JR @convPos
++:
+;   ------
+;   SUB CHARACTER GFX
+;   ------
+        ; SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, $0BA0 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C   ; VDP DATA PORT
+        ; GET POINTER
+    DEC A
+    ADD A, A
+    LD HL, (msCut_SubTileTblPtr)
+    RST addToHL
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+        ; WRITE TILE DATA TO VRAM
+    CALL pacTileStreaming@writeToVRAM
+    LD HL, playerTwoTileList
+@convPos:
+    POP BC
     ; CONVERT POSITION FROM LOGICAL TO REAL
     DEC BC      ; POINT TO NEXT POS
     DEC BC
@@ -369,7 +485,28 @@ msSceneCommonDrawUpdate:
     PUSH IX     ; SAVE CHAR ARR PTR
     LD IXH, B   ; COPY POS PTR TO IX
     LD IXL, C
-    CALL convPosToScreen    ; DE NOW HAS X/Y
+    ; CONVERSION FROM 8px TILES TO 6px TILES (X)
+    LD A, (IX + X_WHOLE)    
+    LD IYH, A   ; IYH = X
+    SRL A
+    SRL A
+    LD C, A     ; C = X / 4
+    LD A, IYH
+    SUB A, C
+    LD D, A     ; D = IYH - C
+    LD A, $BE   ; X = $BE - X
+    SUB A, D
+    LD D, A
+    ; CONVERSION FROM 8px TILES TO 6px TILES (Y)
+    LD A, (IX + X_WHOLE + $01)
+    LD IYH, A   ; IYH = Y
+    SRL A
+    SRL A
+    LD C, A     ; C = Y / 4
+    LD A, IYH
+    SUB A, C    ; A = IYH - C
+    SUB A, $0C  ; Y = Y - $0C
+    LD E, A
     POP IX      ; RESTORE CHAR ARR PTR
     ; CALCULATE SPRITE TABLE NUM ((COUNTER - 1) * 4)
     LD A, IYL
@@ -384,7 +521,7 @@ msSceneCommonDrawUpdate:
     DEC IX  ; POINT TO NEXT CHAR PTR
     DEC IX
     DEC IYL ; KEEP LOOPING UNTIL COUNTER IS 0
-    JR NZ, -
+    JP NZ, -
 ;   FALL THROUGH
 
 
@@ -395,7 +532,8 @@ msSceneCommonDrawUpdate:
 cutAniProcess:
 ;   SETUP
     LD B, $06   ; COUNTER
-    LD IX, cutFuncList + $0A    ; POINT TO LAST FUNC
+    ;LD IX, cutFuncList + $0A    ; POINT TO LAST FUNC
+    LD IX, cutsceneControl.ptrList + $0A
 @loop:
 ;   GET SUB PROG PTR
     LD L, (IX + 0)
@@ -433,7 +571,8 @@ cutAniProcess:
     INC HL
     LD C, (HL)
     ; GET CORRECT ADDRESS FOR TEMP POS
-    LD HL, cutFuncTempPos - 2
+    ;LD HL, cutFuncTempPos - 2
+    LD HL, cutsceneControl.tempPosList - $02
     CALL ptrDeref
     ; CALCULATE MOVEMENT
     LD A, C
@@ -442,7 +581,8 @@ cutAniProcess:
     DEC DE
     LD (DE), A
     ; STORE MOVEMENT
-    LD HL, cutFuncPos - 2
+    ;LD HL, cutFuncPos - 2
+    LD HL, cutsceneControl.posList - $02
     CALL ptrDeref
     LD A, L
     ADD A, C
@@ -457,7 +597,8 @@ cutAniProcess:
     INC HL
     LD C, (HL)
     ; GET CORRECT ADDRESS FOR TEMP POS
-    LD HL, cutFuncTempPos - 2
+    ;LD HL, cutFuncTempPos - 2
+    LD HL, cutsceneControl.tempPosList - $02
     CALL ptrDeref
     ; CALCULATE MOVEMENT
     LD A, C
@@ -465,14 +606,16 @@ cutAniProcess:
     CALL cutFuncCalcMovement
     LD (DE), A
     ; STORE MOVEMENT
-    LD HL, cutFuncPos - 2
+    ;LD HL, cutFuncPos - 2
+    LD HL, cutsceneControl.posList - $02
     CALL ptrDeref
     LD A, H
     ADD A, C
     LD (DE), A
 ;   PROCESS CHARACTER ARRAY
     ; GET CORRECT OFFSET 
-    LD HL, cutFuncCharOffset - 1
+    ;LD HL, cutFuncCharOffset - 1
+    LD HL, cutsceneControl.charOffsetList - $01
     LD A, B
     RST addToHL
     PUSH HL     ; SAVE FOR LATER
@@ -481,7 +624,8 @@ cutAniProcess:
     LD C, A
 -:
     ; GET CHARACTER ARRAY FOR SUB PROG
-    LD HL, cutFuncChars - 2
+    ;LD HL, cutFuncChars - 2
+    LD HL, cutsceneControl.charList - $02
     CALL ptrDeref
     LD A, C     ; GET BACK COUNTER
     SRA A       ; DIVIDE BY 2 (WHY?)
@@ -496,7 +640,8 @@ cutAniProcess:
     POP HL      ; RESTORE PROG PTR
 ;   PROCESS COLOR (NOT NEEDED)
 ;   TIMER CHECK
-    LD HL, cutFuncTimers - 1
+    ;LD HL, cutFuncTimers - 1
+    LD HL, cutsceneControl.timerList - $01
     LD A, B
     RST addToHL
     DEC A
@@ -513,7 +658,8 @@ cutAniProcess:
 */
 @cmdSetPos:
     EX DE, HL   ; DE: PROG PTR // HL: N/A
-    LD HL, cutFuncPos - 2
+    ;LD HL, cutFuncPos - 2
+    LD HL, cutsceneControl.posList - $02
     EX DE, HL   ; DE: FUNC POS // HL: PROG PTR
     PUSH DE     ; SAVE FUNC POS PTR
 ;   GET X AND Y DATA FROM PROGRAM
@@ -522,7 +668,7 @@ cutAniProcess:
     INC HL
     LD D, (HL)  ; Y
     ; DE: YX
-    JR cmdCleanUp
+    JP cmdCleanUp
 
 /*
     COMMAND - "SETN": VAL (DB)
@@ -533,14 +679,15 @@ cutAniProcess:
     INC HL
     LD C, (HL)
 ;   GET CORRECT ADDRESS FOR TIMER
-    LD HL, cutFuncTimers - 1
+    ;LD HL, cutFuncTimers - 1
+    LD HL, cutsceneControl.timerList - $01
     LD A, B
     RST addToHL
 ;   STORE TIMER VALUE
     LD (HL), C
 ;   FINISH
     LD DE, $0002    ; ADVANCE PROG PTR BY 2 BYTES
-    JR cmdCleanUp01
+    JP cmdCleanUp01
 
 /*
     COMMAND - "SET CHAR": VAL (DW)
@@ -549,13 +696,15 @@ cutAniProcess:
 @cmdSetChar:
 ;   CLEAR SPRITE ARRAY OFFSET
     EX DE, HL   ; DE: PROG PTR // HL: N/A
-    LD HL, cutFuncCharOffset - 1
+    ;LD HL, cutFuncCharOffset - 1
+    LD HL, cutsceneControl.charOffsetList - $01
     LD A, B
     RST addToHL
     LD (HL), $00
 ;   GET NEW CHAR ARRAY PTR
     EX DE, HL   ; DE: N/A // HL: PROG PTR
-    LD DE, cutFuncChars - 2
+    ;LD DE, cutFuncChars - 2
+    LD DE, cutsceneControl.charList - $02
     PUSH DE
     INC HL
     LD E, (HL)
@@ -580,7 +729,8 @@ cutAniProcess:
 */
 @cmdPause:
 ;   GET CORRECT ADDRESS FOR TIMER
-    LD HL, cutFuncTimers - 1
+    ;LD HL, cutFuncTimers - 1
+    LD HL, cutsceneControl.timerList - $01
     LD A, B
     RST addToHL
 ;   DECREMENT TIMER
@@ -634,13 +784,15 @@ cutAniProcess:
 */
 @cmdStop:
 ;   GET CORRECT ADDRESS FOR DONE FLAG
-    LD HL, cutFuncDoneFlags - 1
+    ;LD HL, cutFuncDoneFlags - 1
+    LD HL, cutsceneControl.doneList - $01
     LD A, B
     RST addToHL
 ;   SET FLAG
     LD (HL), $01
 ;   CHECK IF ALL FLAGS ARE SET
-    LD HL, cutFuncDoneFlags
+    ;LD HL, cutFuncDoneFlags
+    LD HL, cutsceneControl.doneList
     LD A, (HL)
     INC HL
     AND A, (HL)
@@ -656,10 +808,14 @@ cutAniProcess:
     LD DE, $0000        ; ADVANCE BY 0 BYTES...
     JR Z, cmdCleanUp01  ; IF ANY FLAG ISN'T SET (PROG NOT DONE)
 ;   WAIT 30 FRAMES
-    LD B, 30
+    LD A, 30
+    LD (mainTimer0), A
 -:
+    CALL sndProcess
     HALT
-    DJNZ -
+    LD HL, mainTimer0
+    DEC (HL)
+    JR NZ, -
 ;   SWITCH TO GAMEPLAY
     JP switchToGameplay
 

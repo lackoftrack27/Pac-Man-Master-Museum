@@ -328,6 +328,7 @@ msIntroSubTable@showSue:
 
 msIntroSubTable@showMsPac:
 ;   DRAW MS. PAC
+    CALL pacTileStreaming
     CALL displayPacMan
 ;   UPDATE POSITION
     LD HL, pacman.xPos
@@ -387,16 +388,21 @@ msIntroSetupGhost:
 ;   SET X AND Y POSITION
     XOR A
     LD (IX + SUBPIXEL), A
-    LD (IX + X_WHOLE), $00
+    LD (IX + X_WHOLE), A
+    LD (IX + X_WHOLE + 1), A
     LD (IX + Y_WHOLE), $94
-;   CLEAR SCARED FLAG
+    LD (IX + Y_WHOLE + 1), A
+;   CLEAR FLAGS
     LD (IX + EDIBLE_FLAG), A
-;   CLEAR INVISIBLE FLAG
     LD (IX + INVISIBLE_FLAG), A
+    LD (IX + OFFSCREEN_FLAG), A
+    LD (IX + STATE), A
 ;   FACING LEFT
     INC A   ; $01
     LD (IX + CURR_DIR), A
     LD (IX + NEXT_DIR), A
+;   SET FLAG
+    LD (IX + ALIVE_FLAG), A
     RET
 
 
