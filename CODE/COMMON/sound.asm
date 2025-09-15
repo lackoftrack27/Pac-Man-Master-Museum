@@ -99,18 +99,7 @@ processGhostSFX:
 
 
 
-
-/*
-    INFO: CONTROLS CHANNEL 2 SFX
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
-processChan2SFX:
-;   CHECK IF SOUND CONTROL BITS ARE EMPTY
-    LD A, (ch2SoundControl)
-    OR A
-    RET Z   ; IF SO, END
+processChan2SFXJR:
 ;   FIND FIRST SET BIT (MSB TO LSB)
     LD C, A
     LD DE, $0780    ; BIT POSITION / BIT VALUE
@@ -123,9 +112,74 @@ processChan2SFX:
     JR -
 +:
 ;   GET CORRESPONDING SOUND ID FROM BIT POSITION
-    LD A, D
+    LD B, $00
+    LD C, D
     LD HL, @data
-    RST addToHL
+    ADD HL, BC
+    LD A, (HL)
+;   CHECK IF SOUND IS ALREADY PLAYING
+    LD C, A
+    LD A, (chan2 + SND_ID)
+    CP A, C
+    RET Z
+;   PLAY SFX
+    LD A, C
+    LD B, $02   ; CHANNEL 2
+    JP sndPlaySFX
+@soundEnded:
+;   END IF CHANNEL ISN'T 2
+    LD A, C
+    CP A, CHAN2_BITS
+    RET NZ
+;   SAVE REGS
+    PUSH BC
+;   FIND FIRST SET BIT (MSB TO LSB)
+    LD A, (ch2SndControlJR)
+    LD B, A
+    LD C, $80   ; BIT VALUE
+-:
+    LD A, C
+    AND A, B
+    JP NZ, +
+    SRL C
+    JP -
++:
+;   CLEAR BIT
+    LD A, C
+    CPL
+    AND A, B
+    LD (ch2SndControlJR), A
+;   CLEAN UP
+    POP BC
+    RET
+@data:
+    .DB SFX_BOUNCE SFX_CREDIT SFX_BONUS
+
+
+/*
+    INFO: CONTROLS CHANNEL 2 SFX
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IX
+*/
+processChan2SFX:
+;   FIND FIRST SET BIT (MSB TO LSB)
+    LD C, A
+    LD DE, $0780    ; BIT POSITION / BIT VALUE
+-:
+    LD A, E 
+    AND A, C
+    JR NZ, +
+    SRL E
+    DEC D
+    JR -
++:
+;   GET CORRESPONDING SOUND ID FROM BIT POSITION
+    LD B, $00
+    LD C, D
+    LD HL, @data
+    ADD HL, BC
+    LD A, (HL)
 ;   ADDITIONAL STUFF
     ; SKIP +2/+4 FOR FRUIT AND BOUNCE SFX
     CP A, SFX_FRUIT
@@ -133,26 +187,48 @@ processChan2SFX:
     CP A, SFX_BOUNCE
     JR Z, +
     ; ADD 2/4 DEPENDING ON GAME
-    LD B, A
+    LD C, A
     LD A, (plusBitFlags)    ; ISOLATE MS. PAC BIT
     AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
-    ADD A, B                ; ADD TO MUSIC ID
+    ADD A, C                ; ADD TO MUSIC ID
 +:
-;   CHECK IF SOUND IS ALREADY PLAYING
-    LD B, A
+;   DO DIFFERENT THINGS IF GAME IS JR
+    LD C, A
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, +
+    ; CHECK IF SOUND IS ALREADY PLAYING (PAC/MS)
     LD A, (chan2 + SND_ID)
-    CP A, B
+    CP A, C
     RET Z               ; IF SO, END
-    ; ELSE, PLAY SFX
-    LD A, B
-    LD B, $02           ; CHANNEL 2
+    ; PLAY SFX (PAC/MS)
+    LD A, C
+    LD B, $02   ; CHANNEL 2
+    JP sndPlaySFX
++:
+    ; CHECK IF SOUND IS ALREADY PLAYING (JR)
+    LD A, (chan0 + SND_ID)
+    CP A, C
+    RET Z               ; IF SO, END
+    ; PLAY SFX (JR)
+    LD A, C
+    LD B, $00   ; CHANNEL 0
     JP sndPlaySFX
 ;   CALLED FROM SOUND DRIVER
 @soundEnded:
-;   CHECK IF SOUND CONTROL BITS ARE EMPTY
+;   CHECK IF WE ARE ON THE CORRECT CHANNEL
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    LD A, C
+    JP Z, +
+    CP A, CHAN0_BITS
+    JP Z, @@clearBit
+    RET
++:
+    CP A, CHAN2_BITS
+    RET NZ
+@@clearBit:
     LD A, (ch2SoundControl)
-    OR A
-    RET Z       ; IF SO, END
 ;   SAVE REGS
     PUSH BC
 ;   FIND FIRST SET BIT (MSB TO LSB)
@@ -161,9 +237,9 @@ processChan2SFX:
 -:
     LD A, C
     AND A, B
-    JR NZ, +
+    JP NZ, +
     SRL C
-    JR -
+    JP -
 +:
 ;   CLEAR BIT
     LD A, C

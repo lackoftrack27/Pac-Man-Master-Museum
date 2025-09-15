@@ -27,9 +27,18 @@ scatterChaseCheck:
 ;   USE INDEX AS OFFSET INTO DURATION TABLE
     ADD A, A
     LD HL, (scatterChasePtr)
-    RST addToHL
+    ;RST addToHL
 ;   GET DURATION VALUE
-    RST getDataAtHL
+    ;RST getDataAtHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
 ;   CHECK IF TIMER MATCHES VALUE
     OR A        ; CLEAR CARRY
     SBC HL, DE
@@ -39,7 +48,7 @@ scatterChaseCheck:
     ; CHECK IF GAME IS MS.PAC OR JR.PAC
     LD A, (plusBitFlags)
     AND A, ($01 << MS_PAC | $01 << JR_PAC)
-    JR Z, +         ; IF NOT, SKIP
+    JP Z, +         ; IF NOT, SKIP
     LD (HL), $00    ; ELSE, RESET INDEX TO 0
 +:
     ; INCREMENT INDEX
@@ -65,7 +74,7 @@ ghostUpdateDotCounters:
 ;   CHECK IF PAC-MAN HAS DIED IN THIS LEVEL
     LD A, (currPlayerInfo.diedFlag)
     OR A
-    JR Z, +     ; IF NOT, SKIP...
+    JP Z, +     ; IF NOT, SKIP...
 ;   ELSE, INCREMENT GLOBAL DOT COUNTER FOR GHOSTS
     LD HL, globalDotCounter
     INC (HL)
@@ -80,7 +89,7 @@ ghostUpdateDotCounters:
     ; CHECK IF INKY IS AT REST
     LD A, (inky.state)
     CP A, B
-    JR Z, + ; IF SO, SKIP...
+    JP Z, + ; IF SO, SKIP...
     ; IF NOT, INCREMENT CLYDE'S DOT COUNTER
     LD HL, clyde.dotCounter
     INC (HL)
@@ -89,7 +98,7 @@ ghostUpdateDotCounters:
     ; CHECK IF PINKY IS AT REST
     LD A, (pinky.state)
     CP A, B
-    JR Z, + ; IF SO, SKIP...
+    JP Z, + ; IF SO, SKIP...
     ; IF NOT, INCREMENT INKY'S DOT COUNTER
     LD HL, inky.dotCounter
     INC (HL)
@@ -114,7 +123,7 @@ dotExpireUpdate:
     LD A, (currPlayerInfo.dotCount)
     CP A, (HL)
     LD HL, mainTimer4
-    JR Z, +     ; IF SO, SKIP
+    JP Z, +     ; IF SO, SKIP
     ; IF NOT, RESET DOT EXPIRE TIMER AND END
     LD (HL), $00
     RET
@@ -306,11 +315,11 @@ ghostOutHomeUpdate:
     ; CHECK IF GHOST IS OUTSIDE OF HOME (BUT NOT GOING TO HOME)
     LD A, (blinky + STATE)
     OR A
-    JR NZ, +    ; IF NOT, SKIP
+    JP NZ, +    ; IF NOT, SKIP
     ; CHECK IF GHOST IS ALIVE
     LD A, (blinky + ALIVE_FLAG)
     OR A
-    JR Z, +     ; IF NOT, SKIP
+    JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, blinky
     CALL ghostStateTable@update@scatter
@@ -319,11 +328,11 @@ ghostOutHomeUpdate:
     ; CHECK IF GHOST IS OUTSIDE OF HOME (BUT NOT GOING TO HOME)
     LD A, (pinky + STATE)
     OR A
-    JR NZ, +    ; IF NOT, SKIP
+    JP NZ, +    ; IF NOT, SKIP
     ; CHECK IF GHOST IS ALIVE
     LD A, (pinky + ALIVE_FLAG)
     OR A
-    JR Z, +     ; IF NOT, SKIP
+    JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, pinky
     CALL ghostStateTable@update@scatter
@@ -332,11 +341,11 @@ ghostOutHomeUpdate:
     ; CHECK IF GHOST IS OUTSIDE OF HOME (BUT NOT GOING TO HOME)
     LD A, (inky + STATE)
     OR A
-    JR NZ, +    ; IF NOT, SKIP
+    JP NZ, +    ; IF NOT, SKIP
     ; CHECK IF GHOST IS ALIVE
     LD A, (inky + ALIVE_FLAG)
     OR A
-    JR Z, +     ; IF NOT, SKIP
+    JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, inky
     CALL ghostStateTable@update@scatter
@@ -367,9 +376,9 @@ ghostToHomeUpdate:
     ; CHECK IF GHOST IS GOING HOME
     LD A, (blinky + STATE)
     OR A
-    JR Z, +     ; IF NOT, SKIP
+    JP Z, +     ; IF NOT, SKIP
     CP A, GHOST_REST
-    JR NC, +    ; IF NOT, SKIP
+    JP NC, +    ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, blinky
     LD HL, ghostStateTable@update
@@ -379,9 +388,9 @@ ghostToHomeUpdate:
     ; CHECK IF GHOST IS GOING HOME
     LD A, (pinky + STATE)
     OR A
-    JR Z, +     ; IF NOT, SKIP
+    JP Z, +     ; IF NOT, SKIP
     CP A, GHOST_REST
-    JR NC, +    ; IF NOT, SKIP
+    JP NC, +    ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, pinky
     LD HL, ghostStateTable@update
@@ -391,9 +400,9 @@ ghostToHomeUpdate:
     ; CHECK IF GHOST IS GOING HOME
     LD A, (inky + STATE)
     OR A
-    JR Z, +     ; IF NOT, SKIP
+    JP Z, +     ; IF NOT, SKIP
     CP A, GHOST_REST
-    JR NC, +    ; IF NOT, SKIP
+    JP NC, +    ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, inky
     LD HL, ghostStateTable@update
@@ -432,7 +441,7 @@ ghostHomeUpdate:
     ; CHECK IF GHOST IS IN HOME
     LD A, (blinky + STATE)
     CP A, GHOST_REST
-    JR C, +     ; IF NOT, SKIP
+    JP C, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, blinky
     LD HL, ghostStateTable@update
@@ -442,7 +451,7 @@ ghostHomeUpdate:
     ; CHECK IF GHOST IS IN HOME
     LD A, (pinky + STATE)
     CP A, GHOST_REST
-    JR C, +     ; IF NOT, SKIP
+    JP C, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, pinky
     LD HL, ghostStateTable@update
@@ -452,7 +461,7 @@ ghostHomeUpdate:
     ; CHECK IF GHOST IS IN HOME
     LD A, (inky + STATE)
     CP A, GHOST_REST
-    JR C, +     ; IF NOT, SKIP
+    JP C, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, inky
     LD HL, ghostStateTable@update

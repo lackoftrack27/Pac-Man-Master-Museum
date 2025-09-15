@@ -35,6 +35,8 @@ ghostStateTable@update@scatter:
     JP Z, +     ; IF NOT, SKIP...
     ; CHECK IF GAME IS MS.PAC
     LD A, (plusBitFlags)
+    BIT JR_PAC, A
+    JP NZ, +    ; INGORE IF GAME IS JR.PAC
     AND A, $01 << MS_PAC
     JP Z, @@@@execSpdPattern    ; IF NOT, SKIP NEXT CHECK
     ; CHECK IF LEVEL IS 3 OR GREATER
@@ -68,6 +70,10 @@ ghostStateTable@update@scatter:
     ADD HL, DE
 +:
     CALL actorSpdPatternUpdate
+    RET NC
+    INC HL
+    INC HL
+    INC (HL)
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - CHECK IF GHOST IS AT CENTER POINT
@@ -127,9 +133,11 @@ ghostStateTable@update@scatter:
     ; CONVERT CURRENT DIRECTION INTO OFFSET
     LD A, (IX + CURR_DIR)
     ADD A, A
-    LD E, A
-    LD D, $00
-    ADD HL, DE  ; HL NOW POINTS TO CORRECT MOVEMENT FOR CURRENT DIRECTION
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A ; HL NOW POINTS TO CORRECT MOVEMENT FOR CURRENT DIRECTION
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - APPLY MAIN AXIS MOVEMENT TO GHOST
@@ -141,7 +149,7 @@ ghostStateTable@update@scatter:
     LD A, (DE)
     LD L, (IX + Y_WHOLE)
     LD H, (IX + Y_WHOLE + 1)
-    CALL addToHLSigned
+    addToHLSigned
     LD (IX + Y_WHOLE), L
     LD (IX + Y_WHOLE + 1), H
 ;   ADD X PART OF VECTOR TO POSITION
@@ -149,20 +157,9 @@ ghostStateTable@update@scatter:
     LD A, (DE)
     LD L, (IX + X_WHOLE)
     LD H, (IX + X_WHOLE + 1)
-    CALL addToHLSigned
+    addToHLSigned
     LD (IX + X_WHOLE), L
     LD (IX + X_WHOLE + 1), H
-    /*
-;   ADD Y PART OF VECTOR TO POSITION
-    LD A, (IX + Y_WHOLE)
-    ADD A, (HL)
-    LD (IX + Y_WHOLE), A
-;   ADD X PART OF VECTOR TO POSITION
-    INC HL
-    LD A, (IX + X_WHOLE)
-    ADD A, (HL)
-    LD (IX + X_WHOLE), A
-    */
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - UPDATE TILES

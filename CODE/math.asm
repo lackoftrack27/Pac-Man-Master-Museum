@@ -9,7 +9,7 @@
 
 
 
-
+/*
 multBy29:
 ;   HL * 29 (32 - 02 - 01)
     LD E, L
@@ -24,6 +24,7 @@ multBy29:
     POP DE
     SBC HL, DE
     RET
+*/
 
 multBy6_16:
 ;   HL * 06 (04 + 02)
@@ -64,7 +65,8 @@ multiplyBy6:
     RET
 
 
-addToHLSigned:
+/*
+.MACRO addToHLSigned
     OR A
     JP P, +
     DEC H
@@ -74,8 +76,9 @@ addToHLSigned:
     ADC A, H
     SUB A, L
     LD H, A
-    LD A, (HL)
-    RET
+    ;RET
+.ENDM
+*/
 
 
 /*
@@ -84,6 +87,7 @@ addToHLSigned:
     OUTPUT: HL - PRODUCT
     USES: AF, HL, DE
 */
+/*
 squareNumber:
 ;   CHECK IF NUMBER IS NEGATIVE
     OR A
@@ -94,7 +98,7 @@ squareNumber:
     LD H, A
     LD E, A
 ;   FALLTHROUGH TO NEXT ROUTINE
-
+*/
 /*
     INFO: MULTIPLIES TWO 8-BIT NUMBERS
     INPUT: H - FACTOR, E - FACTOR
@@ -105,12 +109,46 @@ multiply8Bit:
 ;   INIT. LOOP
     LD D, $00   ; CLEAR D AND L
     LD L, D
+    /*
 .REPEAT 8       ; UNROLLED LOOP FOR SPEED (8 BITS)
     ADD HL, HL  ; ADVANCE BIT
     JR NC, +    ; IF 0, SKIP ADDITION
     ADD HL, DE  ; ELSE, ADD TO PRODUCT
 +:
 .ENDR
+    RET
+    */
+    SLA H
+    JR NC, +
+    LD L, E
++
+    ADD HL, HL
+    JR NC, +
+    ADD HL, DE
++:
+    ADD HL, HL
+    JR NC, +
+    ADD HL, DE
++:
+    ADD HL, HL
+    JR NC, +
+    ADD HL, DE
++:
+    ADD HL, HL
+    JR NC, +
+    ADD HL, DE
++:
+    ADD HL, HL
+    JR NC, +
+    ADD HL, DE
++:
+    ADD HL, HL
+    JR NC, +
+    ADD HL, DE
++:
+    ADD HL, HL
+    RET NC
+    ADD HL, DE
     RET
 
 

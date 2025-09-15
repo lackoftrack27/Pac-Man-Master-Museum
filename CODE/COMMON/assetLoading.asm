@@ -28,6 +28,8 @@ loadTileAssets:
     LD A, (plusBitFlags)
     BIT MS_PAC, A
     JR NZ, @@msLoadAssets    ; IF SO, SKIP
+    BIT JR_PAC, A
+    JP NZ, @@jrLoadAssets
 ;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
     ; FRUIT POINTS
     LD HL, fruitPointTiles
@@ -126,7 +128,69 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
     JP zx7_decompressVRAM
     ; -----------------------------
+@@jrLoadAssets:
+;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
+    ; -----------------------------
+    LD A, ARCADE_BANK
+    LD (MAPPER_SLOT2), A
+    ; -----------------------------
+    ; EXPLOSION TILES
+    LD HL, jrExplosionTiles
+    LD DE, (192 * 32) | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; HUD ICONS
+    LD HL, jrHudIconTiles
+    LD DE, $3AA0 | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
+    ; -----------------------------
+    ; FRUIT POINTS
+    LD HL, msFruitPointTiles
+    LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+;   LOAD ASSETS DEPENDING ON GAME TYPE
+    LD A, (plusBitFlags)
+    BIT PLUS, A
+    JR NZ, +    ; IF PLUS, SKIP
+    ; -----------------------------
+    ; FRUIT
+    LD HL, msFruitTiles
+    LD DE, SPRITE_ADDR + FRUIT_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; GHOSTS
+    LD HL, ghostTiles
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; GHOST POINTS
+    LD HL, ghostPointTiles
+    LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
+    JP zx7_decompressVRAM
+    ; -----------------------------
++:
+    ; FRUIT PLUS
+    LD HL, fruitTiles@plus
+    LD DE, SPRITE_ADDR + FRUIT_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM 
+    ; GHOSTS PLUS
+    LD HL, ghostTiles@plus
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; GHOST POINTS PLUS
+    LD HL, ghostPointTiles@plus
+    LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
+    JP zx7_decompressVRAM
+    ; -----------------------------
 @arcade:
+;   SET SLOT 2 BANK
+    LD A, ARCADE_BANK
+    LD (MAPPER_SLOT2), A
 ;   LOAD SPRITE PALETTE FOR ARCADE
     LD HL, sprPalData@arcade
     LD BC, SPR_CRAM_SIZE * $100 + VDPDATA_PORT
@@ -134,10 +198,11 @@ loadTileAssets:
 ;   CHECK IF GAME IS MS. PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
-    JR NZ, @@msLoadAssets    ; IF SO, SKIP
+    JP NZ, @@msLoadAssets    ; IF SO, SKIP
+;   CHECK IF GAME IS JR.PAC
+    BIT JR_PAC, A
+    JP NZ, @@jrLoadAssets
 ;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
-    LD A, ARCADE_BANK
-    LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; FRUIT POINTS
     LD HL, arcadeGFXData@fruitPoints
@@ -183,13 +248,10 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    JR @end
+    JP @end
     ; -----------------------------
 @@msLoadAssets:
 ;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
-    LD A, ARCADE_BANK
-    LD (MAPPER_SLOT2), A
-    ; -----------------------------
     ; FRUIT POINTS
     LD HL, arcadeGFXData@msFruitPoints
     LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
@@ -216,10 +278,74 @@ loadTileAssets:
     ; -----------------------------
     LD A, (plusBitFlags)
     BIT OTTO, A
-    JR Z, @end
+    JP Z, @end
     ; OTTO GHOSTS
     LD HL, arcadeGFXData@ottoGhosts
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    JP @end
+    ; -----------------------------
++:
+    ; FRUIT PLUS
+    LD HL, arcadeGFXData@fruitPlus
+    LD DE, SPRITE_ADDR + FRUIT_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; GHOSTS PLUS
+    LD HL, arcadeGFXData@ghostsPlus
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; GHOST POINTS PLUS
+    LD HL, arcadeGFXData@ghostPointsPlus
+    LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    LD A, (plusBitFlags)
+    BIT OTTO, A
+    JP Z, @end
+    ; OTTO GHOSTS PLUS
+    LD HL, arcadeGFXData@ottoGhostsPlus
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    JP @end
+    ; -----------------------------
+@@jrLoadAssets:
+;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
+    ; EXPLOSION
+    LD HL, jrExplosionTiles
+    LD DE, (192 * 32) | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; HUD ICONS
+    LD HL, jrHudIconTiles
+    LD DE, $3AA0 | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; FRUIT POINTS
+    LD HL, arcadeGFXData@msFruitPoints
+    LD DE, SPRITE_ADDR + FSCORE_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+;   LOAD ASSETS DEPENDING ON GAME TYPE
+    LD A, (plusBitFlags)
+    BIT PLUS, A
+    JR NZ, +    ; IF PLUS, SKIP
+    ; FRUIT
+    LD HL, arcadeGFXData@jrFruit
+    LD DE, SPRITE_ADDR + FRUIT_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; GHOSTS
+    LD HL, arcadeGFXData@ghosts
+    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
+    ; -----------------------------
+    ; GHOST POINTS
+    LD HL, arcadeGFXData@ghostPoints
+    LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
     JR @end
@@ -240,19 +366,10 @@ loadTileAssets:
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    LD A, (plusBitFlags)
-    BIT OTTO, A
-    JR Z, @end
-    ; OTTO GHOSTS PLUS
-    LD HL, arcadeGFXData@ottoGhostsPlus
-    LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
 @end:
     LD A, SMOOTH_BANK
     LD (MAPPER_SLOT2), A
     RET
-    ; -----------------------------
 
 
 
@@ -266,6 +383,9 @@ loadTileAssets:
     USES: AF, DE, HL
 */
 loadMaze:
+;   MAKE MUTATED DOT TILE OFFSET IMPOSSIBLE (FOR PAC & MS.PAC)
+    LD A, $FF
+    LD (mazeMutatedTbl), A
 ;   CHECK IF GAME IS MS.PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
@@ -345,6 +465,18 @@ loadMaze:
     ; LOAD POWER DOT TABLE (LOAD EVERY TIME!)
     LD HL, jrmaze0PowTable
     LD DE, mazePowTbl
+    CALL zx7_decompress
+    ; LOAD FIRST MUTATED DOT TABLE (LOAD EVERY TIME!)
+    LD HL, jrmaze0MDotTable
+    LD DE, mazeMutatedTbl
+    CALL zx7_decompress
+    ; LOAD SECOND MUTATED DOT TABLE (LOAD EVERY TIME!)
+    LD HL, jrmaze0MEatTable
+    LD DE, mazeEatenMutatedTbl
+    CALL zx7_decompress
+    ; LOAD MUTATED DOT RESET TABLE (LOAD EVERY TIME!)
+    LD HL, jrmaze0MRstTable
+    LD DE, mazeRstMutatedTbl
     CALL zx7_decompress
     ; CHECK IF PLAYER HAS DIED
     LD A, (currPlayerInfo.diedFlag)

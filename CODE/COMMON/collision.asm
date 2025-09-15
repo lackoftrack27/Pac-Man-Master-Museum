@@ -19,36 +19,36 @@ globalCollCheckTile:
     ; CHECK IF GHOST IS ALIVE
     LD A, (clyde + ALIVE_FLAG)
     OR A
-    JR Z, + ; IF NOT, CHECK NEXT GHOST
+    JP Z, + ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF PAC-MAN AND GHOST ARE AT SAME TILE
     LD DE, (clyde + CURR_X)
     SBC HL, DE
     ADD HL, DE
-    JR Z, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
+    JP Z, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
 ;   INKY
 +:
     ADD IX, BC  ; GHOST POINTER = INKY
     ; CHECK IF GHOST IS ALIVE
     LD A, (inky + ALIVE_FLAG)
     OR A
-    JR Z, + ; IF NOT, CHECK NEXT GHOST
+    JP Z, + ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF PAC-MAN AND GHOST ARE AT SAME TILE
     LD DE, (inky + CURR_X)
     SBC HL, DE
     ADD HL, DE
-    JR Z, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
+    JP Z, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
 ;   PINKY
 +:
     ADD IX, BC  ; GHOST POINTER = PINKY
     ; CHECK IF GHOST IS ALIVE
     LD A, (pinky + ALIVE_FLAG)
     OR A
-    JR Z, + ; IF NOT, CHECK NEXT GHOST
+    JP Z, + ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF PAC-MAN AND GHOST ARE AT SAME TILE
     LD DE, (pinky + CURR_X)
     SBC HL, DE
     ADD HL, DE
-    JR Z, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
+    JP Z, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
 ;   BLINKY
 +:
     ADD IX, BC  ; GHOST POINTER = BLINKY
@@ -78,7 +78,7 @@ interactDetermination:
     LD (ghostPointSprNum), A
 ;   CHECK IF GHOST IS EDIBLE
     BIT 0, (IX + EDIBLE_FLAG)
-    JR Z, @ghostKill    ; IF NOT, GHOST WILL KILL PAC-MAN
+    JP Z, @ghostKill    ; IF NOT, GHOST WILL KILL PAC-MAN
 @ghostEaten:
 ;   PAC-MAN IS EATING GHOST
     ; SWITCH TO EAT MODE
@@ -125,7 +125,7 @@ globalCollCheckPixel:
     ; CHECK IF GHOST IS ALIVE
     LD A, (clyde + ALIVE_FLAG)
     OR A
-    JR Z, +     ; IF NOT, CHECK NEXT GHOST
+    JP Z, +     ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF GHOST IS WITHIN TOLERANCE OF PAC-MAN'S POSITION
     LD DE, (pacman + X_WHOLE)
     LD HL, (clyde + X_WHOLE)
@@ -133,18 +133,18 @@ globalCollCheckPixel:
     LD DE, $0004
     OR A
     SBC HL, DE
-    JR NC, +    ; IF NOT, CHECK NEXT GHOST
+    JP NC, +    ; IF NOT, CHECK NEXT GHOST
     LD A, (clyde + Y_WHOLE)
     SUB A, (IY + Y_WHOLE)
     CP A, $04
-    JR C, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
+    JP C, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
 ;   INKY
 +:
     ADD IX, BC  ; GHOST POINTER = INKY
     ; CHECK IF GHOST IS ALIVE
     LD A, (inky + ALIVE_FLAG)
     OR A
-    JR Z, +     ; IF NOT, CHECK NEXT GHOST
+    JP Z, +     ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF GHOST IS WITHIN TOLERANCE OF PAC-MAN'S POSITION
     LD DE, (pacman + X_WHOLE)
     LD HL, (inky + X_WHOLE)
@@ -152,7 +152,7 @@ globalCollCheckPixel:
     LD DE, $0004
     OR A
     SBC HL, DE
-    JR NC, +    ; IF NOT, CHECK NEXT GHOST
+    JP NC, +    ; IF NOT, CHECK NEXT GHOST
     LD A, (inky + Y_WHOLE)
     SUB A, (IY + Y_WHOLE)
     CP A, $04
@@ -163,7 +163,7 @@ globalCollCheckPixel:
     ; CHECK IF GHOST IS ALIVE
     LD A, (pinky + ALIVE_FLAG)
     OR A
-    JR Z, +     ; IF NOT, CHECK NEXT GHOST
+    JP Z, +     ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF GHOST IS WITHIN TOLERANCE OF PAC-MAN'S POSITION
     LD DE, (pacman + X_WHOLE)
     LD HL, (pinky + X_WHOLE)
@@ -171,7 +171,7 @@ globalCollCheckPixel:
     LD DE, $0004
     OR A
     SBC HL, DE
-    JR NC, +    ; IF NOT, CHECK NEXT GHOST
+    JP NC, +    ; IF NOT, CHECK NEXT GHOST
     LD A, (pinky + Y_WHOLE)
     SUB A, (IY + Y_WHOLE)
     CP A, $04

@@ -6,7 +6,7 @@
 sStateGameplayTable@gameoverMode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
+    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
 @@enter:
 ;   RESET NEW STATE FLAG
     XOR A
@@ -40,7 +40,6 @@ sStateGameplayTable@gameoverMode:
     OTIR
     LD A, SMOOTH_BANK
     LD (MAPPER_SLOT2), A
-+:
 ;   DISPLAY "PLAYER ONE" OR "PLAYER TWO" IF IN 2 PLAYER MODE
     ; CHECK IF TWO PLAYER MODE IS ENABLED
     LD A, (playerType)
@@ -56,10 +55,64 @@ sStateGameplayTable@gameoverMode:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
+;   CAP PAC-MAN'S POSITION (ONLY USED IN JR FOR SCROLLING)
+    LD HL, (pacman.xPos)
+    LD DE, $015A
+    OR A
+    SBC HL, DE
+    ADD HL, DE
+    JP C, +
+    LD (pacman.xPos), DE
+    JP ++
++:
+    LD DE, $007A
+    OR A
+    SBC HL, DE
+    JP NC, ++
+    LD (pacman.xPos), DE
+++:
+    XOR A
+    LD (vblankFlag), A
+    RET 
 @@draw:
+;   UPDATE NEW COLUMN FOR SCROLLING (FLAG MUST BE SET && GAME MUST BE JR)
+    LD HL, updateColFlag
+    LD A, (plusBitFlags)    ; JR_PAC
+    RRCA    ; BIT 2 -> BIT 0
+    RRCA
+    AND A, (HL)
+    CALL NZ, drawNewColumn
 ;   DRAW 1UP
     CALL draw1UP
 @@update:
+;   MOVE SCREEN TO CENTER
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, ++
+    LD HL, (pacman.xPos)
+    LD DE, $00E8
+    SBC HL, DE
+    ADD HL, DE
+    JR Z, ++
+    JR C, +
+    DEC HL
+    LD (pacman.xPos), HL
+    JP ++
++:
+    INC HL
+    LD (pacman.xPos), HL
+    /*
+    LD HL, jrScrollReal
+    LD A, (HL)
+    OR A
+    JP Z, ++
+    JP P, +
+    INC (HL)
+    JP ++
++:
+    DEC (HL)
+    */
+++:
 ;   DECREMENT TIMER 0
     LD HL, mainTimer0
     DEC (HL)
@@ -72,5 +125,10 @@ sStateGameplayTable@gameoverMode:
     JP NZ, sStateGameplayTable@dead02Mode@@exit@swapPlayers  ; SWAP PLAYERS IF TWO PLAYER MODE WAS ENABLED
 ;   ELSE, RESET GAME
     POP HL  ; REMOVE FSM CALLER
+    ; TURN OFF SCREEN, KEEP VBLANK ON
+    LD A, $A0
+    OUT (VDPCON_PORT), A
+    LD A, $81
+    OUT (VDPCON_PORT), A
     DI      ; DISABLE INTS
     JP resetFromGameOver

@@ -65,10 +65,10 @@ sndProcess:
     LD HL, (mainGameMode)   ; L: MAIN, H: SUB
     LD A, L
     CP A, M_STATE_ATTRACT
-    JR NZ, +
+    JP NZ, +
     LD A, H
     CP A, ATTRACT_TITLE
-    JR Z, +
+    JP Z, +
     CP A, ATTRACT_OPTIONS
     JP NZ, sndStopAll@write
 +:
@@ -86,15 +86,15 @@ sndProcess:
     PUSH BC
     ; CHECK IF CHANNEL IS PLAYING
     BIT CHANCON_PLAYING, (IY + CHAN_CONTROL)
-    JR Z, @prepareNext   ; IF NOT, PROCESS NEXT CHANNEL
+    JP Z, @prepareNext   ; IF NOT, PROCESS NEXT CHANNEL
     ; CHECK IF NOTE DURATION IS 0 AFTER DECREMENT
     DEC (IY + DUR_COUNTER)
-    JR NZ, @@noteGoing     ; IF NOT, SKIP
+    JP NZ, @@noteGoing     ; IF NOT, SKIP
     RES CHANCON_NOATTACK, (IY + CHAN_CONTROL)  ; CLEAR NO-ATTACK BIT
     CALL getNextByte    ; GET NEXT BYTE
     CALL noteOn         ; DO NOTE ON
     CALL updateEnvelope@noCheck     ; UPDATE ENVELOPE
-    JR @prepareNext     ; PREPARE FOR NEXT CHANNEL
+    JP @prepareNext     ; PREPARE FOR NEXT CHANNEL
 @@noteGoing:
     CALL updateEnvelope ; UPDATE ENVELOPE
     CALL updateFreq     ; UPDATE FREQUENCY
@@ -135,9 +135,9 @@ getNextByte:
     INC DE
 ;   CHECK IF IT IS COORDINATION FLAG
     CP A, CF_START
-    JR C, +     ; IF NOT, END COORD. FLAG PROCESSING
+    JP C, +     ; IF NOT, END COORD. FLAG PROCESSING
     CALL processCF      ; PROCESS COORD. FLAG
-    JR getNextByte@loop ; LOOP
+    JP getNextByte@loop ; LOOP
 +:
 ;   CHECK IF LITERAL READ MODE IS ON
     BIT CHANCON_LITERAL, (IY + CHAN_CONTROL)
@@ -161,16 +161,23 @@ getNextByte:
 setFreq:
 ;   CHECK IF NOTE IS REST
     SUB A, $81
-    JR C, @restNote ; IF SO, PROCESS IT
+    JP C, @restNote ; IF SO, PROCESS IT
 ;   ADD NOTE DISPLACEMENT
     ADD A, (IY + NOTE_DISPLACE)
     ; CLEAR HIGH BYTE AND SIGN BIT???
     ADD A, A
 ;   ADD TO FREQUENCY TABLE
     LD HL, sndFreqTable
-    RST addToHL     ; GET NOTE FREQ
-    INC HL
+    ;RST addToHL     ; GET NOTE FREQ
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    ;
+    LD A, (HL)
     LD (IY + FREQ_00), A
+    INC HL
     LD A, (HL)
     LD (IY + FREQ_01), A
 ;   FINISH
@@ -194,7 +201,7 @@ readLiteral:
     LD L, A     ; STORE 'HIGH' BYTE IN L
 ;   CHECK IF WORD IS 0
     OR A, H
-    JR Z, setFreq@restNote  ; IF SO, DO REST NOTE
+    JP Z, setFreq@restNote  ; IF SO, DO REST NOTE
     ; NOTE TRANSPOSITION GETS ADDED HERE?
 ;   STORE FREQUENCY
     LD (IY + FREQ_00), L
@@ -208,7 +215,7 @@ readLiteral:
 noteOn:
 ;   CHECK IF FREQUENCY IS INVALID
     BIT 7, (IY + FREQ_01)
-    JR NZ, setRest  ; IF SO, SKIP
+    JP NZ, setRest  ; IF SO, SKIP
 updateFreq:
 ;   CHECK IF REST BIT IS SET
     BIT CHANCON_REST, (IY + CHAN_CONTROL)
@@ -222,7 +229,12 @@ updateFreq:
     JP P, +
     DEC H
 +:
-    RST addToHL
+    ;RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     ; BYTE 0 (LOW NIBBLE)
     LD A, L
     AND A, $0F  ; GET LOWER NIBBLE
@@ -258,16 +270,30 @@ updateEnvelope:
 ;   CHECK IF ENVELOPE IS 0
     LD A, (IY + ENVELOPE)
     OR A
-    JR Z, setVolume    ; IF SO, SKIP ENVELOPE PROCESSING
+    JP Z, setVolume    ; IF SO, SKIP ENVELOPE PROCESSING
 ;   GET ENVELOPE ADDRESS
     LD HL, psgIndexTable
     DEC A
     ADD A, A
-    RST addToHL
-    RST getDataAtHL
+    ;RST addToHL
+    ;RST getDataAtHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
 ;   PUT ENVELOPE POSITION INTO HL
     LD A, (IY + ENVELOPE_IDX)
-    RST addToHL
+    ;RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     INC (IY + ENVELOPE_IDX)
     ; CHECK IF VALUE IS $80 OR ABOVE
     BIT 7, (HL)
@@ -285,7 +311,7 @@ setVolume:
 ;   LIMIT VOLUME TO <= $0F
     LD A, B
     CP A, $10
-    JR C, +
+    JP C, +
     LD B, $0F
 +:
 ;   CHECK IF NOISE TYPE IS SET FOR TONE 2
@@ -294,12 +320,12 @@ setVolume:
     LD A, (sndNoiseType)
     AND A, $03
     CP A, $03
-    JR NZ, +    ; IF NOT, SKIP...
+    JP NZ, +    ; IF NOT, SKIP...
 ;   CHECK IF CURRENT CHANNEL IS CHANNEL 2
     LD A, C
     AND A, CHANALL_BITS
     CP A, CHAN2_BITS
-    JR NZ, +    ; IF NOT, SKIP
+    JP NZ, +    ; IF NOT, SKIP
 ;   ELSE, WRITE VOLUME TO CHANNEL 3 INSTEAD
     LD A, C
     ADD A, CHAN1_BITS
@@ -351,9 +377,18 @@ processCF:
     ADD A, A
 ;   ADD TO TABLE
     LD HL, cfTable
-    RST addToHL
+    ;RST addToHL
+    ;RST getDataAtHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
 ;   GET FUNCTION PTR AT ADDRESS
-    RST getDataAtHL
 ;   GET DATA FROM CHANNEL
     LD A, (DE)
 ;   EXECUTE JUMP
@@ -410,7 +445,7 @@ cfTable:
 @cfReadLiteral:
     ; CHECK IF BYTE IS 0
     OR A
-    JR Z, + ; IF SO, SKIP
+    JP Z, + ; IF SO, SKIP
     ; SET LITERAL READ BIT
     SET CHANCON_LITERAL, (IY + CHAN_CONTROL)
     RET
@@ -429,13 +464,18 @@ cfTable:
     LD (IY + SND_ID), $00
     ; SILENCE CHANNEL
     CALL sndStopChannel@postCalcNoClear
-    ; CHECK IF CHANNEL IS 2
-    LD A, C
-    CP A, CHAN2_BITS
-    CALL Z, processChan2SFX@soundEnded  ; IF SO, CALL
-    POP HL  ; REMOVE CF RETURN CALLER
-    POP HL  ; REMOVE CF PROCESS CALLER
-    POP HL  ; REMOVE GET DATA CALLER
+    ; PROCESS CH2 SOUND CONTROL
+    LD A, (ch2SoundControl)
+    OR A
+    CALL NZ, processChan2SFX@soundEnded  ; IF SO, CALL
+    ;
+    LD A, (ch2SndControlJR)
+    OR A
+    CALL NZ, processChan2SFXJR@soundEnded
+    ; REMOVE CALLERS
+    POP HL  ; CF RETURN CALLER
+    POP HL  ; CF PROCESS CALLER
+    POP HL  ; GET DATA CALLER
     ; CHANNEL PROCESS END
     JP sndProcess@prepareNext
 ;   ---------------------------------------------
@@ -488,7 +528,7 @@ sndPlaySFX:
 ;   CHECK IF CHANNEL NUMBER IS 0
     INC B
     DEC B
-    JR Z, + ; IF SO, SKIP
+    JP Z, + ; IF SO, SKIP
 ;   ELSE, CALCULATE ADDRESS FROM CHANNEL NUM
     LD DE, _sizeof_sndChannel
 -:  
@@ -502,12 +542,20 @@ sndPlaySFX:
     ADD A, A
     ; ADD OFFSET TO BASE TABLE
     LD HL, sndIndexTable
-    RST addToHL
+    LD E, A
+    LD D, $00
+    ADD HL, DE
     ; LOAD ADDRESS AT OFFSET
-    RST getDataAtHL
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
     PUSH HL
     ; LOAD ADDRESS AT OFFSET
-    RST getDataAtHL
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
     ; SET POINTER AND START POINTER
     LD (IY + POINTER_00), L
     LD (IY + START_PTR_00), L
@@ -551,7 +599,7 @@ sndPlaySFX:
     LD (sndNoiseType), A
     ; CLEAR BOTH CHANNEL 2 AND 3'S VOLUME
     LD C, CHAN2_BITS
-    JR sndStopChannel@clrChan
+    JP sndStopChannel@clrChan
 
 
 
@@ -643,7 +691,7 @@ sndStopChannel:
     LD A, B     ; MOVE CHANNEL NUMBER TO A
 ;   CHECK IF CHANNEL NUMBER IS 0
     OR A
-    JR Z, @postCalcChan ; IF SO, SKIP
+    JP Z, @postCalcChan ; IF SO, SKIP
 ;   CALC ADDRESS FROM CHANNEL NUM
     LD DE, _sizeof_sndChannel
 -:  

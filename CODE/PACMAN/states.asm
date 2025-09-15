@@ -53,6 +53,10 @@ pacStateTable@update@normalMode:
 @@@@speedPatCheck:
     LD HL, (spdPatternPtr)
     CALL actorSpdPatternUpdate
+    RET NC
+    INC HL
+    INC HL
+    INC (HL)
 /*
 ------------------------------------------------
     UPDATE - PREPARATION
@@ -152,7 +156,13 @@ pacStateTable@update@normalMode:
     ADD A, L
 ;   ADD OFFSET TO FIRST TILE ID ADDRESS
     LD HL, pacman + UP_ID
-    RST addToHL
+    ;RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    LD A, (HL)
 ;   HL = TILE ID PTR FOR WANTED DIRECTION, A = TILE ID
     AND A, $03     ; KEEP LOWER 2 BITS (PAC-MAN DOESN'T USE UPPER TWO BITS)
     DEC A   ; CHECK IF ID ISN'T 1 (WALL)
@@ -177,7 +187,13 @@ pacStateTable@update@normalMode:
     ADD A, L
     ; ADD OFFSET TO FIRST TILE ID ADDRESS
     LD HL, pacman + UP_ID ; SET BC TO FIRST TILE ID (10)
-    RST addToHL
+    ;RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    LD A, (HL)
 ;   HL = TILE ID PTR FOR WANTED DIRECTION, A = TILE ID
     AND A, $03     ; KEEP LOWER 2 BITS (PAC-MAN DOESN'T USE UPPER TWO BITS)
     DEC A       ; CHECK IF 1 (WALL)
@@ -190,7 +206,7 @@ pacStateTable@update@normalMode:
     JR NZ, +     ; IF SO, SKIP...
 ;   ELSE, AXIS IS Y
     INC HL
-    INC HL  ;
+    INC HL
 +:
     LD A, (HL)
 ;   CHECK IF PAC-MAN IS AT CENTER OF TILE
@@ -210,42 +226,33 @@ pacStateTable@update@normalMode:
     LD A, (pacman.nextDir)
     LD (pacman.currDir), A
 @@@@prepareVector:  ; $1950
-;   SET WHICH AXIS TO APPLY MOVEMENT AND HOW
-    ; CURRENT DIRECTION * 2
+;   GET MOVEMENT BYTES FROM TABLE
     LD A, (pacman.currDir)
     LD B, A     ; SAVE DIRECTION
-    ADD A, A
-    ; ADD TO TABLE
+    ADD A, A    ; CURRENT DIRECTION * 2
     LD HL, dirVectors
-    RST addToHL
-    ; HL NOW HAS ADDRESS OF WANTED VECTOR
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 /*
 ------------------------------------------------
     UPDATE - APPLY MAIN AXIS MOVEMENT TO PAC-MAN
 ------------------------------------------------
 */ 
 @@@@chooseAxis:
-    /*
-;   ADD Y PART OF VECTOR TO POSITION
-    LD A, (pacman.yPos)
-    ADD A, (HL)
-    LD (pacman.yPos), A
-;   ADD X PART OF VECTOR TO POSITION
-    LD A, (pacman.xPos)
-    ADD A, (HL)
-    LD (pacman.xPos), A
-    */
     EX DE, HL   ; DE: WANTED VECTOR
 ;   ADD Y PART OF VECTOR TO POSITION
     LD A, (DE)
     LD HL, (pacman + Y_WHOLE)
-    CALL addToHLSigned
+    addToHLSigned
     LD (pacman + Y_WHOLE), HL
 ;   ADD X PART OF VECTOR TO POSITION
     INC DE
     LD A, (DE)
     LD HL, (pacman + X_WHOLE)
-    CALL addToHLSigned
+    addToHLSigned
     LD (pacman + X_WHOLE), HL    
 /*
 ------------------------------------------------
@@ -408,8 +415,12 @@ pacStateTable@update@normalMode:
     ; MULTIPLY BY 41 (TILES PER ROW)
     CALL multBy41
     ; ADD X AND Y
-    LD A, B
-    RST addToHL
+    LD A, B ; RAM_COL INTO A
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     ; MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
     ADD HL, HL
     ; STORE
@@ -585,11 +596,33 @@ displayPacMan:
 ;   CONVERT POSITION
     LD IX, pacman
     CALL convPosToScreen
+;   ADJUST JR'S POSITION (SPRITES ARE NOT 12x12 CELLS)
+    ; UP:   +1,+1 : 0 (0101) 52
+    ; LEFT: +1,-1 : 1 (00FF) 60
+    ; DOWN: +1,-1 : 2 (00FF) 60
+    ; RIGHT:-1,-1 : 3 (FEFF) 68
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP Z, ++
+    ; MODIFY X
+    INC D
+    LD A, (pacman.currDir)
+    CP A, $03
+    JP C, +
+    DEC D
+    DEC D
++:
+    ; MODIFY Y
+    INC E
+    OR A
+    JP Z, ++
+    DEC E
+    DEC E
+++:
 ;   DISPLAY SPRITE
     LD A, $01               ; FIXED SPRITE ID
     LD HL, playerTileList   ; FIXED TILE LIST
     JP display4TileSprite
-
 
 /*
 ------------------------------------------------

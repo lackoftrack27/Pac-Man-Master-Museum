@@ -60,5 +60,12 @@ sStateGameplayTable@normalMode:
 ;   CHECK FRUIT/FRUIT POINTS
     CALL fruitUpdate
 ;   PROCESS CHANNEL 2 SFX (DONE IN SOUND DRIVER IN OG)
-    JP processChan2SFX
+    LD A, (ch2SoundControl)
+    OR A
+    CALL NZ, processChan2SFX
+;   PROCESS CHANNEL 2 SFX (JR)
+    LD A, (ch2SndControlJR)
+    OR A
+    CALL NZ, processChan2SFXJR
+    RET
 ;   END OF UPDATE...

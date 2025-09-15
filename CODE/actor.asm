@@ -12,54 +12,52 @@
     OUTPUT - NONE
     USES: HL, DE, AF
 */
-actorSpdPatternUpdate:
-;   POINT TO LOW WORD OF SPEED PATTERN, THEN GET LOW BYTE
-    INC HL
-    INC HL
-    LD E, (HL)
-;   POINT TO HIGH BYTE AND GET IT
-    INC HL
-    LD D, (HL)
-;   SWAP HL (SPEED POINTER) <-> DE (SPEED BIT PATTERN)
-    EX DE, HL
-;   LEFT SHIFT BIT PATTERN
-    ADD HL, HL
-    LD A, H         ; GET HIGH BYTE OF BIT PATTERN
-    LD (DE), A      ; STORE
-    DEC DE           ; POINT BACK TO LOW
-    LD A, L         ; GET LOW BYTE OF BIT PATTERN
-    LD (DE), A      ; STORE
-;   SWAP BACK
-    EX DE, HL
-;   POINT TO HIGH WORD OF SPEED PATTERN, THEN GET LOW BYTE
-    DEC HL
-    DEC HL
-    LD E, (HL)
-;   POINT TO HIGH BYTE AND GET IT
-    INC HL
-    LD D, (HL)
-;   SWAP HL (SPEED POINTER) <-> DE (SPEED BIT PATTERN)
-    EX DE, HL
-;   LEFT SHIFT BIT PATTERN (WITH CARRY FROM PREVIOUS SHIFT)
-    ADC HL, HL
-    LD A, H
-    LD (DE), A
-    DEC DE
-    LD A, L
-    LD (DE), A
-;   REMOVE CALLER JUST IN CASE ACTOR WON'T MOVE, (UPDATE FUNCTION WILL END)
-    POP HL
-    RET NC      ; IF THERE IS NO CARRY, THE ACTOR UPDATE SHOULD JUST END. (HE CAN'T MOVE!!!)
-;   ADD CALLER BACK TO THE STACK
-    PUSH HL
-;   SWAB BACK
-    EX DE, HL
-;   POINT TO LOW WORD OF SPEED PATTERN AND INCREMENT BYTE (ROTATE CARRY INTO LSB)
-    INC HL
-    INC HL
-    INC (HL)
-    RET
+    
 
+
+    
+
+
+    /*
+    ld      hl,(#4d4c)	; yes, load HL with speed bit patterns for pacman in power pill state (low bytes)
+    add     hl,hl		; double
+    ld      (#4d4c),hl	; store result
+    ld      hl,(#4d4a)	; load HL with speed bit patterns for pacman in power pill state (high bytes)
+    adc     hl,hl		; double, with the carry = we have doubled the speed
+    ld      (#4d4a),hl	; store result. have we reached the threshold ?
+    ret     nc		; no, return
+
+    ld      hl,#4d4c	; yes, load HL with speed bit patterns for pacman in power pill state (low bytes)
+    inc     (hl)		; increase
+    */
+actorSpdPatternUpdate:
+;      0      1       2      3
+;   LOW_HW HIGH_HW LOW_LW HIGH_LW
+;   LOAD HIGH WORD INTO BC
+    LD C, (HL)
+    INC HL          ; -> HIGH WORD HIGH BYTE
+    LD B, (HL)
+    INC HL          ; -> LOW WORD LOW BYTE
+;   LOAD LOW WORD INTO DE
+    LD E, (HL)
+    INC HL          ; -> LOW WORD HIGH BYTE
+    LD D, (HL)
+;   LEFT SHIFT LOW WORD
+    SLA E
+    RL D
+;   STORE LOW WORD
+    LD (HL), D
+    DEC HL          ; -> LOW WORD LOW BYTE
+    LD (HL), E
+;   SHIFT HIGH WORD (CARRY)
+    RL C
+    RL B
+;   STORE HIGH WORD
+    DEC HL          ; -> HIGH WORD HIGH BYTE
+    LD (HL), B
+    DEC HL          ; -> HIGH WORD LOW BYTE
+    LD (HL), C
+    RET
 
 
 /*
@@ -69,7 +67,7 @@ actorSpdPatternUpdate:
     USES: IX, AF
 */
 actorReset:
-;
+;   CLEAR OFFSCREEN FLAG
     XOR A
     LD (IX + OFFSCREEN_FLAG), A
 ;   NEW STATE
@@ -83,7 +81,7 @@ actorReset:
     NEG
     ADD A, (IX + Y_WHOLE)
     LD (IX + Y_WHOLE), A
-    ; 
+    ; ADD $68 TO X POS
     LD L, (IX + X_WHOLE)
     LD H, (IX + X_WHOLE + 1)
     LD DE, $0068
@@ -109,27 +107,30 @@ actorReset:
     INFO: SETS THE NEXT TILE IN THE ACTOR'S NEXT DIRECTION
     INPUT: IX: ACTOR BASE ADDRESS
     OUTPUT: NONE
-    USES: IX, AF, HL
+    USES: IX, AF, DE, HL
 */
 setNextTile:
-;   SET NEXT TILE TO NEXT TILE IN CURRENT DIRECTION
-    LD A, (IX + NEXT_DIR)
-    ; USE DIRECTION AS OFFSET INTO TABLE
-    ADD A, A    ; DOUBLE DIRECTION
     LD HL, dirVectors
-    RST addToHL
-    ; ADD Y
+;   USE DIRECTION AS OFFSET INTO TABLE
+    LD A, (IX + NEXT_DIR)
+    ADD A, A    ; DOUBLE DIRECTION
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+;   ADD Y
     LD A, (IX + NEXT_Y)
     ADD A, (HL)
     LD (IX + NEXT_Y), A
-    ; ADD X
+    LD D, A
+;   ADD X
     INC HL
     LD A, (IX + NEXT_X)
     ADD A, (HL)
     LD (IX + NEXT_X), A
-    ; GET ID
-    LD E, (IX + NEXT_X)
-    LD D, (IX + NEXT_Y)
+    LD E, A
+;   GET ID
     CALL getTileID
     LD (IX + NEXT_ID), A
     RET
@@ -151,7 +152,11 @@ rowColToRamPtr:
     LD H, $00
     CALL multBy41
 ;   ADD X AND Y (COLUMN + ROW * 41)
-    RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 ;   MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
     ADD HL, HL
 ;   ADD BASE PTR
@@ -170,7 +175,11 @@ rowColToRamPtr:
     ADD HL, HL
     ADD HL, HL
 ;   ADD X AND Y (COLUMN + ROW * 32)
-    RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 ;   MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
     ADD HL, HL
 ;   ADD BASE PTR
@@ -185,13 +194,13 @@ rowColToRamPtr:
 ;   OUTPUT: HL: VRAM PTR
 ;   USES:   AF, DE, HL
 rowColToVramPtr:
-;   NO NEED IF NON SCROLLING
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JR Z, @nonScroll
 ;   STORE COLUMN IN DE
     LD D, $00
     LD E, L
+;   DIFFERENT PROCESS FOR NON SCROLL GAMES
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, @nonScroll
 ;   RAM ROW PROCESS
     INC H   ; APPLY 1 ROW OFFSET (TOP ROW ON SCREEN IS RESERVED FOR HUD)
     LD L, H
@@ -226,12 +235,8 @@ rowColToVramPtr:
 ;   ADD X AND Y TOGETHER
     ADD HL, DE
 ;   ADD BASE PTR
-    ;LD DE, NAMETABLE
-    ;ADD HL, DE
     RET
 @nonScroll:
-;   MOVE COLUMN TO A
-    LD A, L
 ;   MULTIPLY ROW BY 32 (TILES PER ROW)
     LD L, H
     LD H, $00
@@ -241,44 +246,45 @@ rowColToVramPtr:
     ADD HL, HL
     ADD HL, HL
 ;   ADD X AND Y (COLUMN + ROW * 32)
-    RST addToHL
+    ADD HL, DE
 ;   MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
     ADD HL, HL
-;   ADD BASE PTR
-    ;LD DE, NAMETABLE
-    ;ADD HL, DE
+;   ADD BASE PTR [NAMETABLE == $0000]
     RET
 
 
 
 
 actorOffScreenCheck:
-;   SAVE OFFSCREEN FLAG IN B, THEN CLEAR IT
-    LD B, (IX + OFFSCREEN_FLAG)
+;   SAVE OFFSCREEN FLAG IN C, THEN CLEAR IT
+    LD C, (IX + OFFSCREEN_FLAG)
     LD (IX + OFFSCREEN_FLAG), $00
 ;   SCALE WORLD POS TO 3/4
-        ; POS -> INDEX
-    LD L, (IX + X_WHOLE)
+    LD L, (IX + X_WHOLE)    ; POS -> INDEX
     LD H, (IX + X_WHOLE + 1)
     ADD HL, HL
-        ; ADD HIGH BYTES
-    LD A, H
+    LD A, H     ; ADD HIGH BYTES
     ADD A, hibyte(jrScaleTable)
     LD H, A
-        ; GET VALUE
-    LD A, (HL)
+    LD A, (HL)  ; GET VALUE
     INC HL
     LD H, (HL)
     LD L, A
-;   STORE CAMERA POS IN HL
-    LD A, (jrCameraPos)
-    LD E, A
+;   STORE CAMERA POS IN DE
     LD D, $00
+    LD A, (jrCameraPos)
+    DEC A
+    JP P, +
+    INC A
++:
+    LD E, A
 ;   CHECK IF ACTOR IS BEFORE LEFTSIDE OF SCREEN (LESS THAN CAMERA)
     SBC HL, DE
     ADD HL, DE
     JR C, +     ; OBJ_POS < CAM_POS
 ;   CHECK IF ACTOR IS AFTER RIGHTSIDE OF SCREEN (GREATER THAN CAMERA + SCREEN WIDTH)
+    LD A, (jrCameraPos)
+    LD E, A
     INC D       ; ADD SCREEN WIDTH
     INC HL
     INC HL
@@ -288,8 +294,11 @@ actorOffScreenCheck:
 ;   SET OFFSCREEN FLAG
     LD A, $01
     LD (IX + OFFSCREEN_FLAG), A
+;   EXIT HERE IF B == 1 (FRUIT)
+    DEC B
+    RET Z
 ;   SET REVERSE FLAG ONLY IF PREVIOUS != CURRENT OFFSCREEN FLAG
-    XOR A, B 
+    XOR A, C
     OR A, (IX + REVE_FLAG)
     LD (IX + REVE_FLAG), A
     RET
@@ -307,6 +316,9 @@ convPosToScreen:
     AND A, $01 << JR_PAC
     JR Z, @nonScroll
     PUSH HL
+    ; CHANGE BANK FOR SCALE TABLE
+    LD A, JRMAZE_BANK
+    LD (MAPPER_SLOT2), A
 ;   CONVERSION FROM 8px TILES TO 6px TILES (X)
         ; POS -> INDEX
     LD L, (IX + X_WHOLE)
@@ -338,6 +350,9 @@ convPosToScreen:
     SUB A, C    ; A = IYH - C
     SUB A, $02
     LD E, A
+    ; REVERT BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
     RET
 @nonScroll:
 ;   CONVERSION FROM 8px TILES TO 6px TILES (X)
@@ -374,19 +389,19 @@ convPosToScreen:
 actorWarpCheck:
     LD A, (IX + NEXT_X)
     CP A, $1D
-    JR NZ, +
+    JP NZ, +
     LD (IX + NEXT_X), $3D
     JP @endTrue
 +:
     CP A, $3E
-    JR NZ, +
+    JP NZ, +
     LD (IX + NEXT_X), $1E
     JP @endTrue
 +:
     CP A, $21
-    JR C, @endTrue
+    JP C, @endTrue
     CP A, $3B
-    JR NC, @endTrue
+    JP NC, @endTrue
     OR A    ; CLEAR CARRY
     RET
 @endTrue:
@@ -433,17 +448,14 @@ updateCurrTile:
     USES: IX, AF, HL, DE, BC
 */
 actorUpdate:
+;   RESET HIGH BYTES IF GAME IS NON SCROLLING
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP NZ, +
     LD (IX + X_WHOLE + 1), $00
     LD (IX + Y_WHOLE + 1), $00
 +:
-/*
----------------------------------------------
-            CURRENT TILE UPDATE
----------------------------------------------
-*/
+;   UPDATE CURRENT TILE
     CALL updateCurrTile
 
 /*
@@ -496,7 +508,7 @@ updateCollTiles:
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JR Z, +
-    CALL multBy29
+    multBy29
     JP @addX
 +:
     ADD HL, HL
@@ -510,7 +522,11 @@ updateCollTiles:
     LD E, A ; EVEN OR ODD FLAG
     RRA     ; DIVIDE X BY 2. (NIBBLE FORMAT)
     ; ADD X OFFSET TO POINTER
-    RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     ; ADD TO INITIAL MAZE COLLISION ADDRESS
     LD BC, mazeGroup1.collMap
     ADD HL, BC
@@ -567,7 +583,6 @@ updateCollTiles:
     RRCA
     RRCA
     LD (IX + DOWN_ID), A
-;   END
     RET
 @odd:
 ;   UP
@@ -608,7 +623,6 @@ updateCollTiles:
     LD A, (HL)
     AND A, $0F    ; AND WITH $0F
     LD (IX + DOWN_ID), A
-;   END
     RET
 
 
@@ -629,7 +643,7 @@ getTileID:
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JR Z, +
-    CALL multBy29
+    multBy29
     JP @addX
 +:
     ADD HL, HL
@@ -644,7 +658,11 @@ getTileID:
     LD E, A ; EVEN OR ODD FLAG
     RRA     ; DIVIDE X BY 2. (NIBBLE FORMAT)
     ; ADD X OFFSET TO POINTER
-    RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     ; ADD TO INITIAL MAZE COLLISION ADDRESS
     LD BC, mazeGroup1.collMap
     ADD HL, BC

@@ -146,9 +146,12 @@ displayGhostNormal:
     LD HL, ottoGhostSNTileDefs
 +:
     LD A, B
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    ;
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 @skipCalc:
 ;   GET X AND Y POSITION
     CALL convPosToScreen
@@ -179,9 +182,12 @@ displayGhostScared:
     LD HL, ottoGhostScaredSNTileDefs
 +:
     LD A, B
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    ;
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 ;   GET X AND Y POSITION
     CALL convPosToScreen
 ;   GET SPRITE NUMBER
@@ -196,9 +202,12 @@ displayGhostEyes:
 ;   USE NEXT DIR AS OFFSET
     LD A, (IX + NEXT_DIR)
     ADD A, A    ; MULT BY 2
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    ;
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 ;   GET X AND Y POSITION
     CALL convPosToScreen
 ;   GET SPRITE NUMBER

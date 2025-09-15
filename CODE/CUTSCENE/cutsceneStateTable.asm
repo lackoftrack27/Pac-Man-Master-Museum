@@ -17,9 +17,9 @@ sStateCutsceneTable:
     .DW @msScene2       ; 06
     .DW $0000           ; 07
     
-    .DW $0000           ; 07
-    .DW $0000           ; 07
-    .DW $0000           ; 07
+    .DW switchToGameplay           ; 07
+    .DW switchToGameplay           ; 07
+    .DW switchToGameplay           ; 07
     ;.DW @jrScene0       ; 08
     ;.DW @jrScene1       ; 09
     ;.DW @jrScene2       ; 0A

@@ -89,26 +89,49 @@ plus_setNametableArea:
 */
 titleToggleModes:
 ;   TOGGLE MODES (GAME)
+@left:
+    ; SAVE UPPER NIBBLE (STYLE)
+    LD A, (plusBitFlags)
+    AND A, $F0
+    LD B, A
+    ; $00 -> $0E [$0A] -> $08 [$04] -> $02 -> $00
+    ; $01 -> $0F [$0B] -> $09 [$05] -> $03 -> $01
+    ; DECREMENT TO NEXT GAME
+    LD A, (plusBitFlags)
+    SUB A, $02
+    AND A, $0F
+    ; CORRECT VALUE
+    CP A, $04
+    JR C, +
+    SUB A, $04
++:
+    OR A, B
+    LD (plusBitFlags), A
+    JR @noToggle
+@right:
+    ; SAVE UPPER NIBBLE (STYLE)
+    LD A, (plusBitFlags)
+    AND A, $F0
+    LD B, A
+    ; $00 -> $02 -> $04 -> $06 [$0A] -> $0C [$00]
+    ; $01 -> $03 -> $05 -> $07 [$0B] -> $0D [$01]
     ; INCREMENT TO NEXT GAME
     LD A, (plusBitFlags)
     ADD A, $02
     LD (plusBitFlags), A
-    ; CHECK IF GAME MODE IS 6 (OVER LIMIT)
-    AND A, ($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
+    ; CORRECT VALUE
+    AND A, $0F
     CP A, $0C
-    JR Z, +
-    CP A, $06
-    JR NZ, @noToggle
-    ; SET TO OTTO
-    LD A, (plusBitFlags)
-    AND A, ~($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
-    OR A, ($01 << MS_PAC | $01 << OTTO)
+    JR C, +
+    SUB A, $0C
+    OR A, B
     LD (plusBitFlags), A
     JR @noToggle
 +:
-    ; RESET GAME MODE BACK TO 0
-    LD A, (plusBitFlags)
-    AND A, ~($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
+    CP A, $06
+    JR C, @noToggle
+    ADD A, $04
+    OR A, B
     LD (plusBitFlags), A
 @noToggle:
     LD A, (plusBitFlags)
@@ -349,8 +372,6 @@ generalIntroSetup01:
     CALL draw1UPDemo
     ; "HIGH SCORE" AND "SCORE"
     CALL drawScoresText
-    ; SCORE AND HIGH SCORE
-    ;CALL drawScores
 ;   TURN ON DISPLAY
     CALL waitForVblank
     JP turnOnScreen

@@ -37,12 +37,10 @@ generalGameplayUpdate:
     RET NZ
 ;   GET PLAYER INPUT
     CALL getInput
-;   UPDATE PAC-MAN
+;   UPDATE PAC-MAN (AND MAYBE MAZE)
     LD HL, pacStateTable@update
     LD A, (pacman.state)
     RST jumpTableExec
-;   UPDATE MAZE (IF NEEDED)
-    ;CALL mazeUpdate
 ;   UPDATE ALL GHOSTS (THAT ARE OUTSIDE OF HOME)
     CALL ghostOutHomeUpdate
 ;   CONTROL SUPER TIMER (ONLY IN SUPER MODE)
@@ -63,7 +61,7 @@ eatModeUpdate:
 ;   CHECK WHICH SUBSTATE IS ACTIVE
     LD A, (eatSubState)
     DEC A
-    JR NZ, @update
+    JP NZ, @update
 @enter:
 ;   SET TIMER
     LD A, EAT_TIMER_LEN
@@ -129,24 +127,24 @@ getInput:
 ;   CHECK WHICH PLAYER IS PLAYING
     LD A, (playerType)
     AND A, $01 << $01
-    JR NZ, +    ; IF PLAYER 2, SKIP...
+    JP NZ, +    ; IF PLAYER 2, SKIP...
 ;   GET INPUTS FROM PLAYER 1 (LEFT, RIGHT, UP, DOWN)
     ; ASSUME LEFT IS PRESSED
     LD A, DIR_LEFT
     BIT 2, B    
-    JR NZ, @setWanted ; IF SO, SET WANTED DIR TO LEFT
+    JP NZ, @setWanted ; IF SO, SET WANTED DIR TO LEFT
     ; ASSUME RIGHT...
     LD A, DIR_RIGHT
     BIT 3, B
-    JR NZ, @setWanted
+    JP NZ, @setWanted
     ; ASSUME UP...
     LD A, DIR_UP
     BIT 0, B
-    JR NZ, @setWanted
+    JP NZ, @setWanted
     ; ASSUME DOWN...
     LD A, DIR_DOWN
     BIT 1, B
-    JR NZ, @setWanted
+    JP NZ, @setWanted
 @noDir:
     ; NO DIRECTION WAS PRESSED
     DEC (HL)    ; CLEAR INPUT FLAG
@@ -159,19 +157,19 @@ getInput:
     ; ASSUME LEFT IS PRESSED
     LD A, DIR_LEFT
     BIT 0, C
-    JR NZ, @setWanted ; IF SO, SET WANTED DIR TO LEFT
+    JP NZ, @setWanted ; IF SO, SET WANTED DIR TO LEFT
     ; ASSUME RIGHT...
     LD A, DIR_RIGHT
     BIT 1, C
-    JR NZ, @setWanted
+    JP NZ, @setWanted
     ; ASSUME UP...
     LD A, DIR_UP
     BIT 6, B
-    JR NZ, @setWanted
+    JP NZ, @setWanted
     ; ASSUME DOWN...
     LD A, DIR_DOWN
     BIT 7, B
-    JR NZ, @setWanted
+    JP NZ, @setWanted
     ; NO DIRECTION WAS PRESSED
     JP @noDir
 
@@ -234,6 +232,13 @@ addToScore:
     LD HL, currPlayerInfo.awarded1UPFlag
     INC (HL)
     ; PLAY 1UP SOUND
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP Z, +
+    LD HL, ch2SndControlJR
+    SET 2, (HL)
+    JP @compareHS
++:
     LD A, SFX_BONUS
     LD B, $00       ; CHANNEL 0
     CALL sndPlaySFX
@@ -262,17 +267,24 @@ addToScore:
 
 
 scoreTilemapRstBuffer:
-    LD HL, scoreTileMapBuffer ; AREA IS CLEARED WITH $11FF (12 BYTES)
-    LD DE, $1100 | MASK_TILE
-.REPEAT $06
-    LD (HL), E
+;   CLEAR BUFFER
+    LD HL, scoreTileMapBuffer
+    XOR A
+    LD (HL), A
     INC HL
-    LD (HL), D
+    LD (HL), A
     INC HL
-.ENDR
+    LD (HL), A
+    INC HL
+    LD (HL), A
+    INC HL
+    LD (HL), A
+    INC HL
+    LD (HL), A
+;   SET LAST TWO DIGITS TO 0
     LD A, HUDZERO_INDEX
-    LD (scoreTileMapBuffer + $08), A    ; DIGIT 4
-    LD (scoreTileMapBuffer + $0A), A    ; DIGIT 5
+    LD (scoreTileMapBuffer + $04), A    ; DIGIT 4
+    LD (scoreTileMapBuffer + $05), A    ; DIGIT 5
     RET
 
 scoreTileMapUpdate:
@@ -296,7 +308,6 @@ scoreTileMapUpdate:
     INC B
 +:
     INC DE
-    INC DE
     ; DIGIT 1
     LD A, (HL)
     AND A, C
@@ -307,7 +318,6 @@ scoreTileMapUpdate:
     LD (DE), A
     INC B
 +:
-    INC DE
     INC DE
     DEC HL
     ; DIGIT 2
@@ -325,7 +335,6 @@ scoreTileMapUpdate:
     INC B
 +:
     INC DE
-    INC DE
     ; DIGIT 3
     LD A, (HL)
     AND A, C
@@ -335,7 +344,6 @@ scoreTileMapUpdate:
     ADD A, HUDZERO_INDEX
     LD (DE), A
 +:
-    INC DE
     INC DE
     DEC HL
     ; DIGIT 4 (ZERO IS ALWAYS DRAWN)
@@ -364,7 +372,7 @@ powDotCyclingUpdate:
 ;   CHECK IF STYLE IS "SMOOTH"
     LD A, (plusBitFlags)
     AND A, $01 << STYLE_0
-    JR Z, @smooth   ; IF SO, SKIP
+    JP Z, @smooth   ; IF SO, SKIP
 ;   CHECK IF FRAME COUNTER IS AT LIMIT
     LD A, POW_DOT_CYCLE_TIMER
     CP A, (HL)
@@ -374,7 +382,7 @@ powDotCyclingUpdate:
 ;   CHECK IF FIRST INDEX IS 0
     LD A, (powDotPalette)
     OR A
-    JR Z, @refresh  ; IF SO, SKIP
+    JP Z, @refresh  ; IF SO, SKIP
 ;   CLEAR PALETTE BUFFER
     XOR A
     LD HL, powDotPalette
@@ -393,12 +401,14 @@ powDotCyclingUpdate:
 ;   CHECK IF PALETTE NEEDS TO BE REFRESHED
     LD A, (HL)
     CP A, $24       ; $09 << $02
-    JR Z, @refresh  ; IF SO, SKIP
+    JP Z, @refresh  ; IF SO, SKIP
 ;   CALCULATE PALETTE FROM TABLE
+    LD H, hibyte(powDotPalTable)
+    ADD A, $80
+    LD L, A
     LD DE, powDotPalette
-    LD HL, powDotPalTable
-    RST addToHL
     LD IXH, $04
+    LD B, hibyte(colorDecTable) 
 -:
     LD A, (HL)
     OR A
@@ -412,18 +422,15 @@ powDotCyclingUpdate:
     JP +        ; 63
 @@decBy2:
     LD A, (mazePalette + BGPAL_PDOT1)
-    LD BC, colorDecTable@decBy2
-    ADD A, C
+    ADD A, $40
     LD C, A
     LD A, (BC)
-    JP +        ; 97
+    JP +        ; 90
 @@decBy1:
     LD A, (mazePalette + BGPAL_PDOT1)
-    LD BC, colorDecTable
-    ADD A, C
     LD C, A
     LD A, (BC)
-    JP +        ; 83
+    JP +        ; 69
 @@decBy0:
     LD A, (mazePalette + BGPAL_PDOT1)   ; 34
 +:
@@ -476,13 +483,18 @@ mazeUpdate:
 ;   SETUP VARS
     LD HL, (tileMapRamPtr)      ; POINTER WITHIN TILEMAP IN RAM
 ;   JUMP IF AT POWER DOT
-    JR NZ, @atPowerDot          ; JUMP IF POWER DOT WAS ATE (WAS 3, NOW 1)
-;   ELSE, A REGULAR DOT WAS ATE (WAS 2, NOW 0)
+    JP NZ, @atPowerDot          ; JUMP IF POWER DOT WAS ATE (WAS 3, NOW 1)
     ; SET TILE BUFFER ADDRESS
     LD DE, (tileMapPointer)
     LD (tileBufferAddress), DE  ; STORE ACTUAL VDP ADDRESS
-    ; USE TILE INDEX AS OFFSET INTO RAM TABLE
+    ; CHECK IF DOT IS MUTATED (JR)
+    LD A, (mazeMutatedTbl)
+    LD B, A
     LD A, (HL)
+    CP A, B
+    JP NC, @mutatedDot
+;   ELSE, A REGULAR DOT WAS ATE (WAS 2, NOW 0)
+    ; USE TILE INDEX AS OFFSET INTO RAM TABLE
     INC HL
     EX DE, HL   ; SAVE VRAM PTR IN DE
     ADD A, A    ; MULTIPLY BY 4 (EVERY TILE IS 4 BYTES LONG)
@@ -525,6 +537,53 @@ mazeUpdate:
     LD (HL), A
     ; ADD TO SCORE
     LD HL, $0010
+    CALL addToScore
+    ; GENERAL FINISH
+    JP @updateCollision
+@mutatedDot:
+;   MUTATED DOT HAS BEEN EATEN
+    ; USE TILE INDEX AS OFFSET INTO RAM TABLE
+    INC HL
+    EX DE, HL   ; SAVE VRAM PTR IN DE
+    LD H, hiByte(mazeEatenMutatedTbl)
+    SUB A, B
+    ADD A, A    ; MULTIPLY BY 8 (EVERY TILE IS 8 BYTES LONG)
+    ADD A, A
+    ADD A, A
+    JP NC, +
+    INC H
++:
+    LD IY, tileQuadrant     ; GET ADDRESS OF TILE QUAD INTO HL
+    ADD A, (IY + 0)         ; ADD QUADRANT NUMBER TO OFFSET
+    ADD A, (IY + 0)
+    LD L, A
+    ; SET INDEX IN BUFFER
+    LD A, (HL)              ; GET VALUE AT OFFSET
+    LD (tileBuffer + 1), A  ; STORE AS LOW BYTE
+    ; SET FLIPPING IN BUFFER
+    INC L
+    LD B, (HL)
+    LD A, (DE)
+    XOR A, B    ; XOR WITH FLIP FLAGS OF CURRENT TILE
+    LD (tileBuffer + 2), A  ; STORE AS HIGH BYTE
+    ; SET OFFSET
+    XOR A
+    LD (tileBuffer), A
+    ; SET COUNT
+    INC A   ; $01
+    LD (tileBufferCount), A
+    ; SET PAC-MAN'S DOT DELAY TIMER
+    LD A, $03
+    LD (pacPelletTimer), A
+    ; UPDATE TILEMAP IN VRAM
+    LD HL, (tileMapRamPtr)
+    LD A, (tileBuffer + 1)
+    LD (HL), A
+    INC HL
+    LD A, (tileBuffer + 2)
+    LD (HL), A
+    ; ADD TO SCORE
+    LD HL, $0050
     CALL addToScore
     ; GENERAL FINISH
     JP @updateCollision
@@ -577,7 +636,7 @@ mazeUpdate:
     INC HL
     LD (DE), A
     BIT 7, A
-    JR Z, +
+    JP Z, +
     SUB A, $52 - $40
     LD (DE), A
     ADD A, $52 - $40
@@ -667,8 +726,8 @@ mazeUpdate:
     ; MULTIPLY BY EITHER 16 (PAC/MS.) OR 29 (JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, +
-    CALL multBy29
+    JP Z, +
+    multBy29
     JP @addX
 +:
     ADD HL, HL
@@ -681,21 +740,23 @@ mazeUpdate:
     SUB A, $1E
     LD E, A ; EVEN/ODD FLAG
     RRA     ; DIVIDE BY 2 (NIBBLE FORMAT)
-    RST addToHL
+    LD C, A
+    LD B, $00
+    ADD HL, BC
     ; ADD INITIAL MAZE COLLISION ADDRESS
     LD BC, mazeGroup1.collMap
     ADD HL, BC
     ; CLEAR UPPER OR LOWER NIBBLE, DEPENDING ON EVEN OR ODD
     BIT 0, E
     LD A, $FC   ; ASSUME CLEARING LOWER NIBBLE (ODD)
-    JR NZ, +    ; IF IT IS ODD, SKIP..
+    JP NZ, +    ; IF IT IS ODD, SKIP..
     LD A, $CF   ; ELSE, CLEAR UPPER NIBBLE
 +:
     AND A, (HL)
     LD (HL), A
     ; UPDATE COLLISION TILE FOR PAC-MAN
     BIT 0, E
-    JR NZ, +    ; JUMP IF ODD
+    JP NZ, +    ; JUMP IF ODD
     ; SET ID TO HIGH NIBBLE
     AND A, $F0  ; CLEAR LOWER NIBBLE
     RRCA        ; SHIFT TO LOW
@@ -717,7 +778,7 @@ mazeUpdate:
     LD HL, ch2SoundControl
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, +
+    JP Z, +
     ;   JR.PAC PROCESS
     SET 0, (HL)
     RES 1, (HL)
@@ -731,7 +792,7 @@ mazeUpdate:
     ; PLAY DOT EATEN SFX
     LD A, (currPlayerInfo.dotCount)
     RRCA    ; PLAY DIFFERENT SOUND DEPENDING ON ODD/EVEN DOT COUNT
-    JR C, +
+    JP C, +
     SET 0, (HL)
     RES 1, (HL)
     RET
@@ -757,7 +818,7 @@ superTimerUpdate:
     OR A, (IX - (_sizeof_ghost * 3 - $7F) + _sizeof_ghost)
     OR A, (IX - (_sizeof_ghost * 3 - $7F) + _sizeof_ghost + _sizeof_ghost)
     OR A, (IX - (_sizeof_ghost * 3 - $7F) + _sizeof_ghost + _sizeof_ghost + _sizeof_ghost)
-    JR Z, + ; IF ALL GHOSTS ARE NOT SCARED. EXIT OUT OF SUPER MODE
+    JP Z, + ; IF ALL GHOSTS ARE NOT SCARED. EXIT OUT OF SUPER MODE
 ;   UPDATE POWER DOT TIMER
     ; DECREMENT TIMER
     LD HL, (mainTimer1)
@@ -801,56 +862,43 @@ allDotsEatenCheck:
 ;   CHECK IF GAME IS MS. PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
-    JR Z, +    ; IF NOT, SKIP
-;   GET DOT COUNT FOR CURRENT LEVEL
-    LD HL, msMazeDotCounts
-    CALL getMazeIndex   ; L = DOT COUNT FOR CURRENT MAZE
-+:
+    JP NZ, @msCheck
+    BIT JR_PAC, A
+    JP NZ, @jrCheck
+@pacCheck:
 ;   CHECK IF DOTS EATEN COUNTER MATCHES MAZE AMOUNT
     LD A, (currPlayerInfo.dotCount)
     CP A, L
     RET NZ      ; IF NOT, LEVEL ISN'T COMPLETE, EXIT
+@lvlDone:
 ;   ELSE, SET MODE TO FIRST LEVEL COMPLETE STATE
     POP HL      ; REMOVE FUNCTION CALLER FROM STACK
     LD HL, $01 * $100 + GAMEPLAY_COMP00
     LD (subGameMode), HL
     RET
-
-
-
-setLineCountJR:
-;   CHECK GAME STATE
-    LD A, (mainGameMode)
-    CP A, M_STATE_ATTRACT
-    JR NZ, +    ; SET LINE COUNTER IF IN GAMEPLAY OR CUTSCENE
-    LD A, (subGameMode)
-    CP A, ATTRACT_TITLE
-    RET Z       ; EXIT IF ON TITLE SCREEN
-    CP A, ATTRACT_OPTIONS
-    RET Z       ; EXIT IF ON OPTIONS SCREEN
-+:
-;   SET LINE COUNTER
-    LD A, $07
-    OUT (VDPCON_PORT), A
-    LD A, $8A
-    OUT (VDPCON_PORT), A
-    RET
+@msCheck:
+;   GET DOT COUNT FOR CURRENT LEVEL
+    LD HL, msMazeDotCounts
+    CALL getMazeIndex   ; L = DOT COUNT FOR CURRENT MAZE
+    JP @pacCheck
+@jrCheck:
+    LD HL, jrMazeDotCounts
+    CALL jrGetMazeIndex
+    EX DE, HL
+    LD HL, (currPlayerInfo.jrDotCount)
+    OR A
+    SBC HL, DE
+    RET NZ
+    JP @lvlDone
 
 
 
 
 ;   $28 <-> $00 <-> $D8
 updateJRScroll:
-;   CHECK GAME STATE
-    LD A, (mainGameMode)
-    CP A, M_STATE_ATTRACT
-    JR NZ, +
-    LD A, (subGameMode)
-    CP A, ATTRACT_TITLE
-    RET Z       ; EXIT IF ON TITLE SCREEN
-    CP A, ATTRACT_OPTIONS
-    RET Z       ; EXIT IF ON OPTIONS SCREEN
-+:
+    ; CHANGE BANK FOR TABLES
+    LD A, JRMAZE_BANK
+    LD (MAPPER_SLOT2), A
 ;   UPDATE REAL SCROLL VALUE
     ; NEW TO OLD
     LD A, (jrScrollReal)
@@ -889,6 +937,7 @@ updateJRScroll:
     SUB A, B
     LD (jrCameraPos), A
 ;   UPDATE ACTOR OFFSCREEN FLAGS
+    LD B, $00   ; FLAG TO SET REVERSE FLAG IN OFFSCREEN ROUTINE
     LD IX, blinky
     CALL actorOffScreenCheck
     LD IX, pinky
@@ -897,7 +946,17 @@ updateJRScroll:
     CALL actorOffScreenCheck
     LD IX, clyde
     CALL actorOffScreenCheck
-    ;FRUIT
+    ; UPDATE FRUIT'S OFFSCREEN FLAG IF ITS ACTIVE
+    LD A, (fruit + Y_WHOLE)
+    OR A
+    JP Z, + ; IF NOT, SKIP
+    LD B, $01   ; DON'T TOUCH REVERSE FLAG (FRUIT DOESN'T HAVE ONE)
+    LD IX, fruit
+    CALL actorOffScreenCheck
++:
+    ; REVERT BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   DETERMINE WHICH COLUMN TO UPDATE
     LD A, (jrScrollReal)
     ADD A, $02
@@ -925,13 +984,13 @@ updatePlayerDotCount:
 ;   CHECK IF GAME IS JR.PAC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, @incNormalDot ; IF SO, JUST INCREMENT NORMAL DOT COUNT
+    JR Z, @incNormalDot ; IF NOT, JUST INCREMENT NORMAL DOT COUNT
 ;   INCREMENT JR DOT COUNT
     LD HL, (currPlayerInfo.jrDotCount)
     INC HL
     LD (currPlayerInfo.jrDotCount), HL
 ;   CHECK IF JR DOT COUNT IS ODD
-    LD A, (currPlayerInfo.jrDotCount)
+    LD A, L
     RRCA
     RET NC  ; IF NOT, END
 ;   CHECK IF NORMAL DOT COUNT == $F4
@@ -942,5 +1001,53 @@ updatePlayerDotCount:
 @incNormalDot:
     LD HL, currPlayerInfo.dotCount
     INC (HL)
+    RET
+
+
+
+
+removeMDots:
+;   REMOVE MUTATED DOTS FROM COLLISION MAP
+    LD HL, mazeGroup1.collMap
+    LD BC, _sizeof_mazeGroup1.collMap
+-:
+    ; CLEAR BITS 2 & 3 OF EACH NIBBLE
+    LD A, (HL)
+    AND A, $33
+    LD (HL), A
+    INC HL
+    DEC BC
+    LD A, B
+    OR A, C
+    JP NZ, -
+;   REMOVE MUTATED DOTS FROM TILE MAP
+    LD HL, mazeGroup1.tileMap
+    LD D, hibyte(mazeRstMutatedTbl)
+    LD IX, _sizeof_mazeGroup1.tileMap >> $01
+    LD A, (mazeMutatedTbl)
+    LD C, A     ; TILE OFFSET
+    LD A, (mazeRstMutatedTbl)
+    LD B, A     ; UPPER BOUND LIMIT
+-:
+    LD A, (HL)
+    CP A, B
+    JP NC, +
+    CP A, C
+    JP C, +
+    SUB A, C
+    ADD A, $41  ; +1
+    LD E, A
+    LD A, (DE)
+    LD (HL), A
++:
+    INC HL
+    INC HL
+    DEC IX
+    LD A, IXH
+    OR A, IXL
+    JP NZ, -
+;   CLEAR VBLANK FLAG
+    XOR A
+    LD (vblankFlag), A
     RET
     

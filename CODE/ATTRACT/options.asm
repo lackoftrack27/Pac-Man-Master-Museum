@@ -18,10 +18,16 @@ sStateAttractTable@optionsMode:
     LD (sndTestIndex), A
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen
+;   SET BANK FOR ATTRACT MODE GFX
+    LD A, bank(titleTileMap)
+    LD (MAPPER_SLOT2), A
 ;   LOAD BACKGROUND TILES
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, optionsTileData
     CALL zx7_decompressVRAM
+;   RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   CLEAR TILEMAP
     LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress
@@ -33,12 +39,6 @@ sStateAttractTable@optionsMode:
     LD A, D
     OR A, E
     JR NZ, -
-    /*
-;   LOAD TILEMAP
-    LD DE, NAMETABLE | VRAMWRITE
-    LD HL, optionsTileMap
-    CALL zx7_decompressVRAM
-    */
 ;   DRAW LIVES TEXT AND TYPE
     LD A, (liveIndex)
     LD BC, optionTileMaps@lives

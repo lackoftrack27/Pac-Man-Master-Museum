@@ -62,14 +62,15 @@ sStateGameplayTable@comp01Mode:
     LD (pinky + X_WHOLE), HL
     LD (inky + X_WHOLE), HL
     LD (clyde + X_WHOLE), HL
-    LD (fruitXPos), HL
-    LD (fruitYPos), HL
+    LD (fruit + X_WHOLE), HL
+    LD (fruit + Y_WHOLE), HL
     ; SET OFFSCREEN FLAGS
     INC A
     LD (blinky + OFFSCREEN_FLAG), A
     LD (pinky + OFFSCREEN_FLAG), A
     LD (inky + OFFSCREEN_FLAG), A
-    LD (clyde + OFFSCREEN_FLAG), A  
+    LD (clyde + OFFSCREEN_FLAG), A
+    LD (fruit + OFFSCREEN_FLAG), A 
 ;   TURN MAZE WHITE
     LD HL, BGPAL_WALLS | CRAMWRITE
     RST setVDPAddress

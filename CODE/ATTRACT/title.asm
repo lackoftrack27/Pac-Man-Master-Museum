@@ -23,6 +23,13 @@ sStateAttractTable@titleMode:
     CALL setInactivityTimer
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen
+;   LOAD HUD TEXT TILES
+    LD HL, hudTextTiles
+    LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE
+    CALL zx7_decompressVRAM
+;   SET BANK FOR ATTRACT MODE GFX
+    LD A, bank(titleTileMap)
+    LD (MAPPER_SLOT2), A
 ;   LOAD TILEMAP
     LD DE, NAMETABLE | VRAMWRITE
     LD HL, titleTileMap
@@ -47,6 +54,9 @@ sStateAttractTable@titleMode:
     LD HL, sprPalData
     LD B, SPR_CRAM_SIZE
     OTIR
+;   RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   REMOVE "PLUS" IF BIT ISN'T SET
     LD HL, plusBitFlags
     BIT PLUS, (HL)
@@ -120,9 +130,9 @@ sStateAttractTable@titleMode:
     LD HL, pressedButtons
 ;   CHECK IF LEFT OR RIGHT IS PRESSED
     BIT 2, (HL)
-    JP NZ, titleToggleModes     ; IF SO, TOGGLE BETWEEN GAMES
+    JP NZ, titleToggleModes@left    ; IF SO, TOGGLE BETWEEN GAMES
     BIT 3, (HL)
-    JP NZ, titleToggleModes     ; IF SO, TOGGLE BETWEEN GAMES
+    JP NZ, titleToggleModes@right   ; IF SO, TOGGLE BETWEEN GAMES
 ;   CHECK IF BUTTON 1 WAS PRESSED
     BIT 4, (HL)
     JP NZ, playCreditSnd    ; IF SO, PLAY CREDIT SOUND AND WAIT

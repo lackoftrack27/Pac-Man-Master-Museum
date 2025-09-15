@@ -11,6 +11,9 @@ sStateAttractTable@introMode:
 @@enter:
 ;   GENERAL INTRO MODE SETUP
     CALL generalIntroSetup00
+;   SET BANK FOR ATTRACT MODE GFX
+    LD A, bank(titleTileMap)
+    LD (MAPPER_SLOT2), A
 ;   LOAD TILES
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, introTileData
@@ -18,6 +21,9 @@ sStateAttractTable@introMode:
     LD DE, BACKGROUND_ADDR + ($77 * $20) | VRAMWRITE
     LD HL, introTileData@otto
     CALL zx7_decompressVRAM
+;   RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   LOAD BG PALETTE TO RAM
     ; CLEAR MS.PAC BIT (FOR CRAZY OTTO)
     LD A, (plusBitFlags)
@@ -465,7 +471,7 @@ introActorSetup:
     LD A, $FF
     LD (ghostPointIndex), A
     XOR A
-    LD (fruitYPos), A
+    LD (fruit + Y_WHOLE), A
     LD (ghostPointSprNum), A
     LD (ghostPointXpos), A
     LD A, $94

@@ -10,13 +10,6 @@ dirVectors:
     .DW $0001   ; DOWN
     .DW $FF00   ; RIGHT
 
-
-    .DW $0000 $0000 $0000 $0000 $0000 $0000 $0000 $0000
-    .DW $0000 $0000 $0000 $0000 $0000 $0000 $0000 $0000
-normAniTbl:
-    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
-slowAniTbl:
-    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
 playerTileList:
     .DB $59 $5A $5B $5C
 playerTwoTileList:
@@ -32,8 +25,8 @@ playerTileTblList:
     .DW pacSPTileTbl
     .DW msSNTileTbl
     .DW msSNTileTbl
-    .DW pacSNTileTbl;jrSNTileTbl
-    .DW pacSNTileTbl;jrSNTileTbl
+    .DW jrSNTileTbl
+    .DW jrSNTileTbl
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
@@ -49,8 +42,8 @@ playerTileTblList:
     .DW pacAPTileTbl
     .DW msANTileTbl
     .DW msANTileTbl
-    .DW pacANTileTbl;jrANTileTbl
-    .DW pacANTileTbl;jrANTileTbl
+    .DW jrANTileTbl
+    .DW jrANTileTbl
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
@@ -95,8 +88,8 @@ hudTileTblList:
     .DW pacSPTileTbl@hudPtr
     .DW msSNTileTbl@hudPtr
     .DW msSNTileTbl@hudPtr
-    .DW pacSNTileTbl@hudPtr;jrSNTileTbl@hudPtr
-    .DW pacSNTileTbl@hudPtr;jrSNTileTbl@hudPtr
+    .DW jrSNTileTbl@hudPtr
+    .DW jrSNTileTbl@hudPtr
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
@@ -112,8 +105,8 @@ hudTileTblList:
     .DW pacAPTileTbl@hudPtr
     .DW msANTileTbl@hudPtr
     .DW msANTileTbl@hudPtr
-    .DW pacANTileTbl@hudPtr;jrANTileTbl@hudPtr
-    .DW pacANTileTbl@hudPtr;jrANTileTbl@hudPtr
+    .DW jrANTileTbl@hudPtr
+    .DW jrANTileTbl@hudPtr
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
@@ -300,6 +293,14 @@ pacBigSpriteTable:
 
 
 
+/*
+-----------------------------------------------
+                MS. PAC-MAN
+-----------------------------------------------
+*/
+
+
+
 ;   MS.PAC-MAN [SMOOTH] TILE TABLE
 msSNTileTbl:
 ;   UP
@@ -392,6 +393,11 @@ msANDeathTileTbl:
     .DW msTileA08 msTileA15 msTileA09 msTileA16 ; UP HALF
 
 
+/*
+-----------------------------------------------
+                CRAZY OTTO
+-----------------------------------------------
+*/
 
 
 ottoSNTileTbl:
@@ -519,3 +525,70 @@ annaANTileTbl:
     .DW annaTileA09 annaTileA1D annaTileA0A annaTileA1E ; HALF 0
     .DW annaTileA0E annaTileA23 annaTileA0F annaTileA16 ; CLOSED
     .DW annaTileA12 annaTileA27 annaTileA13 annaTileA28 ; HALF 1
+
+
+
+/*
+-----------------------------------------------
+                JR. PAC-MAN
+-----------------------------------------------
+*/
+
+
+jrSNTileTbl:
+;   UP
+@up:
+    .DW jrTileS00 jrTileS16 jrTileS01 jrTileS17 ; OPEN
+    .DW jrTileS07 jrTileS16 jrTileS08 jrTileS1E ; HALF
+    .DW jrTileS0E jrTileS23 jrTileS0F jrTileS24 ; CLOSED
+    .DW jrTileS07 jrTileS16 jrTileS08 jrTileS1E ; HALF
+;   LEFT
+@left:
+    .DW jrTileS09 jrTileS1F jrTileS0A jrTileS19 ; HALF
+    .DW jrTileS10 jrTileS25 jrTileS11 jrTileS19 ; CLOSED
+    .DW jrTileS09 jrTileS1F jrTileS0A jrTileS19 ; HALF
+    .DW jrTileS02 jrTileS18 jrTileS03 jrTileS19 ; OPEN 
+;   DOWN
+@down:
+    .DW jrTileS0B jrTileS20 jrTileS0A jrTileS19 ; HALF
+    .DW jrTileS12 jrTileS25 jrTileS13 jrTileS19 ; CLOSED
+    .DW jrTileS0B jrTileS20 jrTileS0A jrTileS19 ; HALF
+    .DW jrTileS04 jrTileS1A jrTileS03 jrTileS1B ; OPEN
+;   RIGHT
+@titlePtr:
+    .DW jrTileS05 jrTileS1C jrTileS06 jrTileS1D ; OPEN
+@hudPtr:
+    .DW jrTileS0C jrTileS21 jrTileS0D jrTileS22 ; HALF
+    .DW jrTileS14 jrTileS21 jrTileS15 jrTileS26 ; CLOSED
+    .DW jrTileS0C jrTileS21 jrTileS0D jrTileS22 ; HALF
+
+jrANTileTbl:
+;   UP
+@up:
+    .DW jrTileA00 jrTileA13 jrTileA01 jrTileA14 ; OPEN
+    .DW jrTileA07 jrTileA13 jrTileA08 jrTileA1B ; HALF
+    .DW jrTileA0D jrTileA13 jrTileA08 jrTileA1F ; CLOSED
+    .DW jrTileA07 jrTileA13 jrTileA08 jrTileA1B ; HALF
+;   LEFT
+@left:
+    .DW jrTileA09 jrTileA1C jrTileA0A jrTileA16 ; HALF
+    .DW jrTileA0E jrTileA20 jrTileA0F jrTileA16 ; CLOSED
+    .DW jrTileA09 jrTileA1C jrTileA0A jrTileA16 ; HALF
+    .DW jrTileA02 jrTileA15 jrTileA03 jrTileA16 ; OPEN 
+;   DOWN
+@down:
+    .DW jrTileA04 jrTileA1D jrTileA0A jrTileA16 ; HALF
+    .DW jrTileA04 jrTileA21 jrTileA10 jrTileA16 ; CLOSED
+    .DW jrTileA04 jrTileA1D jrTileA0A jrTileA16 ; HALF
+    .DW jrTileA04 jrTileA17 jrTileA03 jrTileA18 ; OPEN
+;   RIGHT
+@titlePtr:
+    .DW jrTileA05 jrTileA19 jrTileA06 jrTileA1A ; OPEN
+@hudPtr:
+    .DW jrTileA0B jrTileA19 jrTileA0C jrTileA1E ; HALF
+    .DW jrTileA11 jrTileA19 jrTileA12 jrTileA22 ; CLOSED
+    .DW jrTileA0B jrTileA19 jrTileA0C jrTileA1E ; HALF
+
+jrSNDeathTileTbl:
+
+jrANDeathTileTbl:

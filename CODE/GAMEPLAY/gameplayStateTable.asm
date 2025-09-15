@@ -50,7 +50,8 @@ gamePlayInit:
     CALL loadHudTiles
 ;   CLEAR TILE BUFFER FLAG
     XOR A
-    LD (tileBufferFlag), A  ; WHY IS THIS CLEARED HERE?
+    LD (tileBufferFlag), A      ; WHY IS THIS CLEARED HERE?
+    LD (fruitTileBufFlag), A
 ;   MEMSET PLAYER INFO TO 0
     LD HL, currPlayerInfo
     LD DE, currPlayerInfo + 1
@@ -132,14 +133,6 @@ generalResetFunc:
     DI
 ;   RESET SOUND VARS
     CALL sndInit
-;
-    ;XOR A
-    ;LD HL, sprTableBuffer
-    ;LD DE, sprTableBuffer + 1
-    ;LD BC, $00FF
-    ;LD (HL), A
-    ;LDIR
-
 ;   LOAD MAZE TEXT SPRITES
     ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + MAZETXT_VRAM + ($0B * TILE_SIZE) | VRAMWRITE
@@ -190,6 +183,9 @@ generalResetFunc:
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JR Z, +     ; IF GAME ISN'T JR. PAC, SKIP
+    ; ENABLE SCROLL
+    LD A, $01
+    LD (enableScroll), A
     ; SET INITIAL SCROLL
     LD A, $28
     LD (jrCameraPos), A
@@ -272,8 +268,8 @@ firstTimeEnd:
     LD (rngIndex), HL       ; RNG INDEX
     LD (mainTimer2), HL     ; SCATTER/CHASE TIMER
     LD (mainTimer3), HL     ; FRUIT TIMER
-    LD (fruitXPos), HL      ; FRUIT POSITION
-    LD (fruitYPos), HL      ; FRUIT POSITION
+    ;LD (fruitXPos), HL      ; FRUIT POSITION
+    ;LD (fruitYPos), HL      ; FRUIT POSITION
     LD (powDotFrameCounter), A  ; POWER DOT FRAME COUNTER FOR PALETTE CYCLE
     LD (xUPCounter), A      ; 1UP / 2UP FLASH COUNTER
     LD (sprFlickerControl), A   ; SPRITE FLICKER FLAGS
@@ -414,8 +410,17 @@ firstTimeEnd:
     CALL pinkyReset     
     CALL inkyReset
     CALL clydeReset
+
+    XOR A
+    LD H, A
+    LD L, A
+    LD (fruit + X_WHOLE), HL
+    LD (fruit + Y_WHOLE), HL
+    LD (fruit + STATE), A
+    INC A
+    LD (fruit + OFFSCREEN_FLAG), A
     LD A, $15
-    LD (fruitSprTableNum), A
+    LD (fruit.sprTableNum), A
 ;   DRAW STATIC HUD
     ; HIGH SCORE AND SCORE TEXT
     CALL drawScoresText

@@ -14,9 +14,7 @@
 generalGamePlayDraw:
 ;   UPDATE NEW COLUMN FOR SCROLLING (FLAG MUST BE SET && GAME MUST BE JR)
     LD HL, updateColFlag
-    LD A, (plusBitFlags)    ; JR_PAC
-    RRCA    ; BIT 2 -> BIT 0
-    RRCA
+    LD A, (enableScroll)
     AND A, (HL)
     CALL NZ, drawNewColumn
 ;   TURN MAZE INVISIBLE (FLAG MUST BE SET && PAC-MAN MUST BE POWERED UP)
@@ -52,20 +50,11 @@ generalGamePlayDraw:
     LD HL, tileBufferFlag
     BIT 0, (HL)
     CALL NZ, drawMaze
+;   DRAW MAZE (JR, FRUIT)
+    LD HL, fruitTileBufFlag
+    BIT 0, (HL)
+    CALL NZ, drawMazeFruitJr
 ;   DRAW ACTORS
-    /*
-    LD HL, SPRITE_TABLE | VRAMWRITE
-    RST setVDPAddress
-    LD HL, sprTableBuffer
-    LD BC, ($02 * $100) + VDPDATA_PORT
--:
-.REPEAT $80
-    OUTI
-.ENDR
-    DEC B
-    JP NZ, -
-    RET
-    */
     ; PAC-MAN
     CALL pacTileStreaming   ; STREAM PLAYER TILES
     LD HL, pacStateTable@draw
@@ -143,7 +132,47 @@ drawMaze:
     ; SET VRAM ADDRESS
     LD HL, (tileBufferAddress)
     LD A, (DE)      ; GET OFFSET
-    RST addToHL     ; ADD TO VRAM ADDRESS
+    ;RST addToHL     ; ADD TO VRAM ADDRESS
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    SET $06, H      ; VRAM WRITE OP
+    OUT (C), L
+    OUT (C), H
+    DEC C
+    INC DE          ; POINT TO TILE DATA
+    ; WRITE DATA
+    EX DE, HL       ; HL: TILE BUFFER ADDRESS (TILE DATA)
+    OUTI            ; LOW BYTE
+    OUTI            ; HIGH BYTE
+    EX DE, HL       ; HL: VRAM ADDRESS
+    INC B           ; COUNTERACT OUTI's DECREMENT
+    INC B
+    INC C
+    ; CHECK COUNTER
+    DJNZ -
+    RET
+
+drawMazeFruitJr:    
+;   LOOP PREP FOR FRUIT TILE BUFFER
+    LD (HL), $00    ; CLEAR FLAG
+    INC HL          ; tileBufferCount
+    LD B, (HL)      ; LOAD COUNTER INTO B
+    LD (HL), $00    ; CLEAR COUNTER
+    LD DE, fruitTileBuf
+    LD C, VDPCON_PORT
+-:
+    ; SET VRAM ADDRESS
+    LD HL, (fruitTileBufAddr)
+    LD A, (DE)      ; GET OFFSET
+    ;RST addToHL     ; ADD TO VRAM ADDRESS
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     SET $06, H      ; VRAM WRITE OP
     OUT (C), L
     OUT (C), H
@@ -170,9 +199,17 @@ drawMaze:
     USES: AF, DE, HL, IX
 */
 drawInMazeFruit:
+    LD IX, fruit
+;   DON'T DISPLAY IF OFFSCREEN FLAG IS SET
+    LD A, (fruit + OFFSCREEN_FLAG)
+    OR A
+    JP NZ, ghostSpriteFlicker@emptySprite
 ;   CONVERT FRUIT POSITION
-    LD IX, fruitXPos - 1
     CALL convPosToScreen
+;   DISPLAY EXPLOSION IF FRUIT IS EXPLODING (JR)
+    LD A, (fruit + STATE)
+    CP A, $06
+    JP Z, @explosionJR
 ;   ASSUME FRUIT (NOT POINTS) WILL BE DISPLAYED
     LD HL, (fruitTileDefPtr)
 ;   CHECK IF THAT IS ACTUALLY TRUE
@@ -182,8 +219,20 @@ drawInMazeFruit:
 ;   ELSE, DISPLAY FRUIT POINTS
     LD HL, (fruitPointTDefPtr)
 @execDraw:
-    LD A, (fruitSprTableNum)
+    LD A, (fruit.sprTableNum)
     JP display4TileSprite
+@explosionJR:
+    LD A, (fruitPathLen)
+    AND A, $F0
+    RRCA
+    RRCA
+    LD HL, fruitState6@explosionSprDefs
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    JP @execDraw
     
 
 
@@ -197,11 +246,13 @@ drawGhostPoints:
 ;   CONVERT INDEX INTO OFFSET
     LD A, (ghostPointIndex)
     ADD A, A
-    LD E, A
-    LD D, $00
 ;   ADD OFFSET TO BASE TILE DEF. TABLE
     LD HL, ghostPointTileDefs
-    ADD HL, DE
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 ;   DRAW POINTS
     LD IX, ghostPointXpos - 1
     CALL convPosToScreen
@@ -279,7 +330,7 @@ ghostFlashUpdate:
 
 
 draw1UPDemo:
-    LD C, VDPDATA_PORT
+    LD C, VDPCON_PORT
 ;   PREPARE VDP ADDRESS
     LD HL, NAMETABLE + XUP_TEXT | VRAMWRITE
     LD A, (plusBitFlags)
@@ -287,7 +338,9 @@ draw1UPDemo:
     JP Z, +
     LD HL, NAMETABLE + XUP_TEXT_JR | VRAMWRITE
 +:
-    RST setVDPAddress
+    OUT (C), L
+    OUT (C), H
+    DEC C
 ;   DRAW "1UP"
     LD HL, hudTileMaps@oneUP
     LD A, (plusBitFlags)
@@ -295,9 +348,13 @@ draw1UPDemo:
     JP Z, +
     LD HL, hudTileMaps@jroneUP
 +:
-.REPEAT $06 ; 3 TILES
+    LD A, $01
     OUTI
-.ENDR
+    OUT (VDPDATA_PORT), A
+    OUTI
+    OUT (VDPDATA_PORT), A
+    OUTI
+    OUT (VDPDATA_PORT), A
     RET
 
 /*
@@ -312,14 +369,16 @@ draw1UP:
     OR A
     RET Z
 ;   PREPARE VDP ADDRESS
-    LD C, VDPDATA_PORT
+    LD C, VDPCON_PORT
     LD HL, NAMETABLE + XUP_TEXT | VRAMWRITE
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP Z, +
     LD HL, NAMETABLE + XUP_TEXT_JR | VRAMWRITE
 +:
-    RST setVDPAddress
+    OUT (C), L
+    OUT (C), H
+    DEC C
 ;   INCREMENT, THEN CHECK IF BIT 4 IS SET
     LD HL, xUPCounter
     INC (HL)
@@ -327,11 +386,13 @@ draw1UP:
     JP Z, @draw ; IF NOT, DRAW xUP
 ;   ELSE, CLEAR xUP
 @clear:
-    LD HL, $1100 | MASK_TILE
-.REPEAT $03
-    OUT (C), L
-    OUT (C), H
-.ENDR
+    LD A, MASK_TILE
+    OUT (VDPDATA_PORT), A
+    IN F, (C)
+    OUT (VDPDATA_PORT), A
+    IN F, (C)
+    OUT (VDPDATA_PORT), A
+    IN F, (C)
     RET
 @draw:
     LD HL, hudTileMaps@oneUP
@@ -345,12 +406,15 @@ draw1UP:
     AND A, $01 << CURR_PLAYER
     JP Z, + ; IF NOT, DISPLAY "1UP"
 ;   ELSE, DISPLAY "2UP"
-    LD A, $06
-    RST addToHL
+    INC HL
+    INC HL
+    INC HL
 +:
-.REPEAT $06 ; 3 TILES
     OUTI
-.ENDR
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
     RET
 
 
@@ -362,19 +426,30 @@ draw1UP:
     USES: AF, BC, DE, HL
 */
 scoreTileMapDraw:
-    LD C, VDPDATA_PORT
-;   DRAW SCORE TILEMAP FROM BUFFER
+;   SET VDP ADDRESS
+    LD C, VDPCON_PORT
     LD HL, NAMETABLE + NUM_TEXT | VRAMWRITE
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP Z, +
     LD HL, NAMETABLE + NUM_TEXT_JR | VRAMWRITE
 +:
-    RST setVDPAddress
+    OUT (C), L
+    OUT (C), H
+    DEC C
+;   6 TILE WRITE
     LD HL, scoreTileMapBuffer
-.REPEAT $0C ; 6 TILES
     OUTI
-.ENDR
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
 ;   DRAW HIGH SCORE TILEMAP IF BOTH MATCH
     ; COMPARE UPPER BYTES
     LD A, (currPlayerInfo.score + 2)
@@ -388,18 +463,30 @@ scoreTileMapDraw:
     OR A
     SBC HL, DE
     RET NZ
-;   DRAW HIGH SCORE TILEMAP FROM BUFFER
+;   SET VDP ADDRESS
     LD HL, NAMETABLE + HSNUM_TEXT | VRAMWRITE
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP Z, +
     LD HL, NAMETABLE + HSNUM_TEXT_JR | VRAMWRITE
 +:
-    RST setVDPAddress
+    INC C
+    OUT (C), L
+    OUT (C), H
+    DEC C
+;   6 TILE WRITE
     LD HL, scoreTileMapBuffer
-.REPEAT $0C ; 6 TILES
     OUTI
-.ENDR
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
     RET
 
 
@@ -574,7 +661,7 @@ drawFruitHUD:
     JR NZ, @msFruitHud
 ;   CHECK IF GAME IS JR.PAC
     BIT JR_PAC, A
-    RET NZ
+    JR NZ, @jrFruitHud
 ;   SET OFFSET INTO FRUIT TABLE ADDRESS
     LD A, (currPlayerInfo.level)
     CP A, 19   ; CHECK IF LEVEL IS 19 OR GREATER
@@ -633,6 +720,24 @@ drawFruitHUD:
     DEC IXL     ; DECREMENT FRUIT NUMBER
     LD A, IXL
     JR @msloop
+@jrFruitHud:
+    LD A, (currPlayerInfo.level)
+    CP A, 7   ; CHECK IF LEVEL IS 7 OR GREATER
+    JR C, +     ; IF NOT, SKIP...
+    LD A, 6   ; ELSE, SET OFFSET TO 6
++:
+    ADD A, $D5  ; INITIAL FRUIT SPRITE
+;   SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, $003C | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C
+;   WRITE TILE
+    OUT (VDPDATA_PORT), A
+    LD A, $09
+    OUT (VDPDATA_PORT), A
+    RET
 
 ;   COMMON FUNCTION USED FOR ROUTINE ABOVE
 @writeFruit:
@@ -738,6 +843,19 @@ removeLifeonScreen:
     INC C       ; CONTROL PORT
     RET
 @removeJrLife:
+;   SET VDP ADDRESS
+    LD HL, $002E | VRAMWRITE
+    LD A, (currPlayerInfo.lives)
+    INC A
+    LD B, A
+    LD A, $05
+    SUB A, B
+    ADD A, A
+    RST addToHL
+    RST setVDPAddress
+;   BLANK TILE
+    XOR A
+    OUT (VDPDATA_PORT), A
     RET
 
 
@@ -752,6 +870,10 @@ addLifeOnScreen:
     ; SET FLAG TO 2
     LD A, $02
     LD (currPlayerInfo.awarded1UPFlag), A
+;
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR NZ, @addLifeJR
 ;   CONVERT LIFES INTO OFFSET
     LD A, (currPlayerInfo.lives)
     ADD A, A
@@ -788,6 +910,22 @@ addLifeOnScreen:
     EX DE, HL
     ;INC C       ; CONTROL PORT
     RET
+@addLifeJR:
+;   SET VDP ADDRESS
+    LD HL, $002E | VRAMWRITE
+    LD A, (currPlayerInfo.lives)
+    LD B, A
+    LD A, $05
+    SUB A, B
+    ADD A, A
+    RST addToHL
+    RST setVDPAddress
+;   DRAW LIFE
+    LD A, $DC
+    OUT (VDPDATA_PORT), A
+    LD A, $09
+    OUT (VDPDATA_PORT), A
+    RET
 
 
 /*
@@ -804,7 +942,7 @@ drawLives:
 ;
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    RET NZ
+    JR NZ, @jrLives
 ;   CONVERT LIFES INTO OFFSET
     LD A, (currPlayerInfo.lives)
     ADD A, A
@@ -823,6 +961,35 @@ drawLives:
     LD DE, $FFF8    ; -8 
     ADD HL, DE
     JP -
+@jrLives:
+;   EXIT IF ON LAST LIFE (NOTHING SHOWN)
+    LD A, (currPlayerInfo.lives)
+    OR A
+    RET Z
+;   SET VDP ADDRESS
+    LD HL, $002E | VRAMWRITE
+    LD A, (currPlayerInfo.lives)
+    LD B, A
+    LD A, $05
+    SUB A, B
+    ADD A, A
+    RST addToHL
+    RST setVDPAddress
+;   DRAW LIVES
+    LD A, (currPlayerInfo.lives)
+    LD B, A
+-:
+    LD A, $DC
+    OUT (VDPDATA_PORT), A
+    LD A, $09
+    OUT (VDPDATA_PORT), A
+    DJNZ -
+    RET
+
+
+
+
+
 
 
 
@@ -1040,9 +1207,12 @@ drawNewColumn:
     LD HL, (NAMETABLE + $40) | VRAMWRITE
     LD A, (jrColumnToUpdate)
     ADD A, A
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+        ; ADD COLUMN TO ADDRESS
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     OUT (C), L
     OUT (C), H
     DEC C
@@ -1061,7 +1231,12 @@ drawNewColumn:
 +:
     ADD A, A
     LD HL, mazeGroup1.tileMap
-    RST addToHL
+    ;RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
 ;   --------------
 ;   DRAW COLUMN FROM TILEMAP
 ;   --------------
@@ -1073,31 +1248,29 @@ drawNewColumn:
     ; UPDATE VDP ADDRESS FOR NEXT ROW
     EX DE, HL		; HL: VDP ADDR, DE: TILEMAP ADDR
     LD A, $40
-    ;RST addToHL
-    ; addToHL
+        ; ADD $40 TO ADDRESS
     ADD A, L
     LD L, A
     ADC A, H
     SUB A, L
     LD H, A
-    LD A, (HL)
-    ; setVDPAddress
+        ; WRITE TO VDP
     LD A, L     
     OUT (VDPCON_PORT), A    
     LD A, H
     OUT (VDPCON_PORT), A
+    ;RST addToHL
     ;RST setVDPAddress
     ; UPDATE TILEMAP ADDRESS FOR NEXT ROW
     EX DE, HL		; HL: TILEMAP ADDR, DE: VDP ADDR
     LD A, $50
-    ;RST addToHL
-    ; addToHL
+        ; ADD $50 TO ADDRESS
     ADD A, L
     LD L, A
     ADC A, H
     SUB A, L
     LD H, A
-    LD A, (HL)
+    ;RST addToHL
 .ENDR
     DEC B
     JP NZ, -

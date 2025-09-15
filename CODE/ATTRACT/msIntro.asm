@@ -16,6 +16,9 @@ sStateAttractTable@msIntroMode:
     LD DE, marqueePalBuffer
     LD BC, $0E
     LDIR
+;   SET BANK FOR ATTRACT MODE GFX
+    LD A, bank(titleTileMap)
+    LD (MAPPER_SLOT2), A
 ;   LOAD ATTRACT TILES
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, msIntroTileData
@@ -24,6 +27,9 @@ sStateAttractTable@msIntroMode:
     LD DE, BACKGROUND_ADDR + (110 * $20) | VRAMWRITE
     LD HL, msMarqueeTileData
     CALL zx7_decompressVRAM
+;   RESTORE BANK
+    LD A, SMOOTH_BANK
+    LD (MAPPER_SLOT2), A
 ;   DISABLE SPRITES AT INDEX $15
     LD HL, SPRITE_TABLE + $15 | VRAMWRITE
     RST setVDPAddress

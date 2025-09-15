@@ -65,25 +65,20 @@ sStateGameplayTable@dead01Mode:
     LD (pinky + X_WHOLE), HL
     LD (inky + X_WHOLE), HL
     LD (clyde + X_WHOLE), HL
-    LD (fruitXPos), HL
-    LD (fruitYPos), HL
+    LD (fruit + X_WHOLE), HL
+    LD (fruit + Y_WHOLE), HL
     ; SET OFFSCREEN FLAGS
     INC A
     LD (blinky + OFFSCREEN_FLAG), A
     LD (pinky + OFFSCREEN_FLAG), A
     LD (inky + OFFSCREEN_FLAG), A
-    LD (clyde + OFFSCREEN_FLAG), A    
-;   FRUIT CHECK
-    ; CHECK IF LOW NIBBLE IS 0
-    LD A, (currPlayerInfo.fruitStatus)
-    AND A, $0F
-    JR Z, + ; IF SO, SKIP...
-    ; ELSE, TOGGLE BIT 4 AND CLEAR LOWER NIBBLE
-    LD A, (currPlayerInfo.fruitStatus)
-    XOR A, $10
+    LD (clyde + OFFSCREEN_FLAG), A
+    LD (fruit + OFFSCREEN_FLAG), A
+;   CLEAR LOWER NIBBLE OF FRUIT STATUS
+    LD HL, currPlayerInfo.fruitStatus
+    LD A, (HL)
     AND A, $F0
-    LD (currPlayerInfo.fruitStatus), A
-+:
+    LD (HL), A
 ;   SET TIMER
     LD A, DEAD01_TIMER_LEN
     LD (mainTimer0), A
@@ -151,11 +146,12 @@ sStateGameplayTable@dead02Mode:
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
-;   CLEAR GLOBAL COUNTER
-    XOR A
-    LD (globalDotCounter), A
+;   CLEAR MUTATED DOTS (JR)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    CALL NZ, removeMDots
 ;   SET DEATH FLAG
-    INC A
+    LD A, $01
     LD (currPlayerInfo.diedFlag), A
 ;   CHECK IF THAT WAS LAST LIFE
     LD A, (currPlayerInfo.lives)

@@ -8,7 +8,8 @@ taskListTable:
     .DW pinkyPF     ; 1
     .DW inkyPF      ; 2
     .DW clydePF     ; 3
-    .DW pacmanPF    ; 4
+    .DW pacmanDemoPF        ; 4
+    .DW fruitPathFindingAI  ; 5
 
 
 blinkyPF:
@@ -23,9 +24,6 @@ inkyPF:
 clydePF:
     LD IX, clyde
     JP ghostPathFindingAI
-pacmanPF:
-    LD IX, pacman
-    JP pacmanDemoPF
 
 
 
@@ -78,76 +76,92 @@ ghostPathFindingAI:
 --------------------------------------------
 */
 @normalPathFinding:
-    ; SCATTER/CHASE/GOTO_HOME PATHFINDING
     ; (workArea + 58): LOWEST
     ; (workArea + 60): ID ADDRESS 
     ; (workArea + 62): NEW DIRECTION
     ; (workArea + 63): COUNTER
-    ; SET LOWEST
+;   SET LOWEST
     LD HL, $FFFF
     LD (lowestDist), HL
-    ; SET ID ADDRESS
-    ;LD HL, workArea + RIGHT_ID
-    LD HL, PATHFIND_TILES_PTR + RIGHT_ID
+;   SET ID ADDRESS
+    LD HL, PATHFIND_TILES_PTR + RIGHT_ID    ;LD HL, workArea + RIGHT_ID
     LD (idAddress), HL
-    ; SET NEW DIRECTION
+;   SET NEW DIRECTION
     LD A, (IX + CURR_DIR)
     LD (newDir), A
-    ; SET COUNTER
+;   SET COUNTER
     LD A, $03
     LD (counter), A
 -:
-    ; CHECK IF TILE IS WALKABLE
-    LD HL, idAddress    ; GET ID
-    RST getDataAtHL
+;   CHECK IF TILE IS WALKABLE
+    LD HL, (idAddress)
     LD A, (HL)
     AND A, $03      ; ONLY CARE ABOUT LOWEST 2 BITS
     DEC A           ; CHECK IF TILE IS WALL (IF ID WAS 1)
     JP Z, @prepareNextLoop  ; IF SO, SKIP...
-    ; CHECK IF TILE IS NOT IN REVERSE DIRECTION
+;   CHECK IF TILE IS NOT IN REVERSE DIRECTION
     LD B, (IX + REVE_DIR)
     LD A, (counter)
     SUB A, B
     JP Z, @prepareNextLoop
-    ; CALCULATE DY (TARGET_Y - DIR_Y)
+;   CALCULATE DY (TARGET_Y - DIR_Y)
     DEC HL  ; POINT TO Y OF CURRENT TILE
     LD B, (HL)
     LD A, (IX + TARGET_Y)
     SUB A, B
     LD C, A     ; SAVE FOR LATER
-    ; CALCULATE DX (TARGET_X - DIR_X)
+;   CALCULATE DX (TARGET_X - DIR_X)
     DEC HL  ; POINT TO X OF CURRENT TILE
     LD B, (HL)
     LD A, (IX + TARGET_X)
     SUB A, B
-    ; GET SQUARE OF DX
-    CALL squareNumber
-    PUSH HL     ; STORE FOR LATER
-    ; GET SQUARE OF DY
+;   GET SQUARE OF DX
+    OR A
+    JP P, +
+    NEG
++:
+    LD H, hibyte(squareTable)
+    ADD A, A
+    LD L, A
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    EX DE, HL   ; SAVE IN DE
+;   GET SQUARE OF DY
     LD A, C     ; GET BACK DY
-    CALL squareNumber
-    ; ADD SQUARES
-    POP BC      ; PUT X^2 INTO BC
-    ADD HL, BC
-    ; CHECK IF DISTANCE IS LOWER THAN CURRENT LOWEST
+    OR A
+    JP P, +
+    NEG
++:
+    LD H, hibyte(squareTable)
+    ADD A, A
+    LD L, A
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+;   ADD SQUARES
+    ADD HL, DE
+;   CHECK IF DISTANCE IS LOWER THAN CURRENT LOWEST
     LD DE, (lowestDist)  ; GET LOWEST INTO BC
     EX DE, HL
     OR A    ; CLEAR CARRY
     SBC HL, DE
     JP C, @prepareNextLoop      ; IF NOT, SKIP...
-    ; ELSE, DISTANCE IS NOW NEW LOWEST
+;   ELSE, DISTANCE IS NOW NEW LOWEST
     LD (lowestDist), DE
-    ; ALSO, SET NEW DIRECTION TO COUNTER
+;   ALSO, SET NEW DIRECTION TO COUNTER
     LD A, (counter)
     LD (newDir), A
 @prepareNextLoop:
-    ; ADD -3 TO ID_ADDRESS (POINT TO NEXT TILE)
+;   ADD -3 TO ID_ADDRESS (POINT TO NEXT TILE)
     LD HL, (idAddress)
-    LD A, $FD
-    DEC H
-    RST addToHL
+    DEC HL
+    DEC HL
+    DEC HL
     LD (idAddress), HL
-    ; INCREMENT COUNTER
+;   INCREMENT COUNTER
     LD HL, counter
     DEC (HL)
     JP P, -     ; KEEP GOING IF NO OVERFLOW
@@ -159,37 +173,39 @@ ghostPathFindingAI:
 --------------------------------------------
 */
 @scaredPathfind:
-    ; SCARED PATHFINDING
     ; (workArea + 60): ID ADDRESS 
     ; (workArea + 62): NEW DIRECTION
-    ; GET RANDOM NUMBER
+;   GET RANDOM NUMBER (DETERMINISTIC)
     CALL randNumGen
 @jrScatterJump:
-    ; LIMIT IT TO 0 - 3
+;   LIMIT IT TO 0 - 3
     AND A, $03
-    ; CONVERT NUMBER FROM HOW DIRECTIONS ARE ORDERED IN THE OG GAME [0,1,2,3] -> [3,2,1,0]
+;   CONVERT NUMBER FROM HOW DIRECTIONS ARE ORDERED IN THE OG GAME [0,1,2,3] -> [3,2,1,0]
     LD B, A
     LD A, $03
     SUB A, B
+;   FIXED HIGH BYTE OF 0 FOR 16 BIT ADDITION
+    LD D, $00
 -:
-    ; SAVE DIRECTION
+;   SAVE DIRECTION
     LD (newDir), A
-    ; CHECK IF TILE IS IN REVERSE DIRECTION
+;   CHECK IF TILE IS IN REVERSE DIRECTION
     CP A, (IX + REVE_DIR)
     JP Z, @clockwiseChange  ; IF SO, CHANGE DIRECTION IN CLOCKWISE ORDER AND TRY AGAIN
-    ; CONVERT NUMBER INTO OFFSET
+;   CONVERT NUMBER INTO OFFSET
     LD B, A     ; MULTIPLY BY 3
     ADD A, A
     ADD A, B
-    ; ADD OFFSET TO BASE ID ADDRESS
-    ;LD HL, workArea + UP_ID
+    LD E, A
+;   ADD OFFSET TO BASE ID ADDRESS
     LD HL, PATHFIND_TILES_PTR + UP_ID
-    RST addToHL
-    ; CHECK IF TILE IS WALKABLE
+    ADD HL, DE
+;   CHECK IF TILE IS WALKABLE
+    LD A, (HL)
     AND A, $03      ; ONLY CARE ABOUT LOWEST 2 BITS
     DEC A           ; CHECK IF TILE IS WALL (IF ID WAS 1)
     JP NZ, @setNewDirection ; IF NOT, STOP LOOP
-    ; ELSE, CHANGE DIRECTION IN CLOCKWISE ORDER AND TRY AGAIN
+;   ELSE, CHANGE DIRECTION IN CLOCKWISE ORDER AND TRY AGAIN
 @clockwiseChange:
     LD A, (newDir)
     DEC A
@@ -284,9 +300,16 @@ pinkyTarget:
     LD A, (pacman.currDir)
     ADD A, A
     LD HL, dirVectors
-    RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     ; GET DIRECTION VECTOR AT CALCULATED OFFSET
-    RST getDataAtHL
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
     ; MULTIPLY IT BY 4      (CARRY ERROR)
     ADD HL, HL
     ADD HL, HL
@@ -337,9 +360,16 @@ inkyTarget:
     LD A, (pacman.currDir)
     ADD A, A
     LD HL, dirVectors
-    RST addToHL
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
     ; GET DIRECTION VECTOR AT CALCULATED OFFSET
-    RST getDataAtHL
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
     ; MULTIPLY IT BY 2      (CARRY ERROR)
     ADD HL, HL
     ; ADD TO PAC-MAN'S TILES (CARRY ERROR)
@@ -398,14 +428,33 @@ clydeTarget:
     LD A, (clyde + NEXT_X)
     SUB A, B
     ; GET SQUARE OF X
-    CALL squareNumber
-    PUSH HL     ; STORE X^2 FOR LATER
+    OR A
+    JP P, +
+    NEG
++:
+    LD H, hibyte(squareTable)
+    ADD A, A
+    LD L, A
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    EX DE, HL   ; SAVE FOR LATER
     ; GET SQUARE OF Y
     LD A, C     ; GET BACK DY
-    CALL squareNumber
+    OR A
+    JP P, +
+    NEG
++:
+    LD H, hibyte(squareTable)
+    ADD A, A
+    LD L, A
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
     ; ADD SQUARES
-    POP BC      ; PUT X^2 INTO BC
-    ADD HL, BC
+    ADD HL, DE
     ; CHECK IF PAC-MAN IS LESS THAN 8 TILES AWAY
     LD BC, $40
     OR A    ; CLEAR CARRY

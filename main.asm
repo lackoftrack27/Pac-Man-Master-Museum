@@ -5,6 +5,38 @@
 .INCLUDE "constants.inc"
 .INCLUDE "banking.inc"
 .INCLUDE "ramLayout.inc"
+.MACRO addToHLSigned
+    OR A
+    JP P, +
+    DEC H
++:
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+.ENDM
+.MACRO multBy29
+;   HL * 29 (32 - 02 - 01)
+    LD E, L
+    LD D, H
+    ADD HL, HL
+    PUSH HL
+    ADD HL, HL 
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
+    SBC HL, DE
+    POP DE
+    SBC HL, DE
+.ENDM
+.MACRO addToHL_M
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+.ENDM
 /*
 ----------------------------------------------------------
                 SDSC TAG AND SMS HEADER
@@ -34,15 +66,8 @@ boot:
 .ENDS
 
 
+
 /*
-----------------------------------------------------------
-                    JUMP TABLE EXECUTION
-----------------------------------------------------------
-    INFO: JUMPS TO AN ADDRESS GIVEN A TABLE ADDRESS AND OFFSET
-    INPUT: HL - TABLE ADDRESS, A - OFFSET
-    OUTPUT: NONE
-    USES: HL, AF
-*/
 .ORG $0008
 .SECTION "Jump Table Execution" FORCE
 ;jumpTableExec:
@@ -54,6 +79,7 @@ boot:
     JP (HL)
     .DSB $02, $00   ; FILL
 .ENDS
+*/
 
 
 /*
@@ -120,9 +146,18 @@ setVDPAddress:
     .DSB $01, $00   ; FILL
 .ENDS
 
-;   UNUSED
+
+/*
+----------------------------------------------------------
+                    JUMP TABLE EXECUTION
+----------------------------------------------------------
+    INFO: JUMPS TO AN ADDRESS GIVEN A TABLE ADDRESS AND OFFSET
+    INPUT: HL - TABLE ADDRESS, A - OFFSET
+    OUTPUT: NONE
+    USES: HL, AF
+*/
 .ORG $0028
-    ;.DSB $08, $00
+.SECTION "Jump Table Execution" FORCE
 jumpTableExec:
     ADD A, A
     ADD A, L
@@ -135,10 +170,8 @@ jumpTableExec:
     LD H, (HL)
     LD L, A
     JP (HL)
+.ENDS
 
-;   UNUSED
-.ORG $0030
-    ;.DSB $08, $00
 
 /*
 ----------------------------------------------------------
@@ -151,23 +184,30 @@ vdpIntHandler:
 ;   SAVE REGS (INDEX REGS DON'T NEED SAVING)
     PUSH AF
     EXX     ; BC, DE, HL -> BC', DE', HL'
+;
+    LD C, VDPCON_PORT
 ;   CHECK IF VBLANK OCCURED
     IN A, (VDPCON_PORT)
     OR A
     JP P, lineIntHandler    ; IF NOT, HANDLE LINE INTERRUPT
 ;   SET VBLANK FLAG
     LD (vblankFlag), A
-;   SET LINE COUNTER IF GAME IS JR
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    CALL NZ, setLineCountJR
-;   RESET H-SCROLL
-    XOR A
-    OUT (VDPCON_PORT), A
-    LD A, $88
-    OUT (VDPCON_PORT), A
-;   TURN ON H-BLANK INTS
-    CALL turnOnLineInts
+;   SET SCROLL RELATED REGS IF GAME IS JR
+    LD A, (enableScroll)
+    OR A
+    JP Z, @end
+    ; SET LINE COUNTER
+    LD HL, $8A07
+    OUT (C), L
+    OUT (C), H
+    ; RESET H-SCROLL
+    LD HL, $8800
+    OUT (C), L
+    OUT (C), H
+    ; TURN ON H-BLANK INTS
+    LD HL, $8034
+    OUT (C), L
+    OUT (C), H
 @end:
 ;   RESTORE REGS
     EXX     ; BC', DE', HL' -> BC, DE, HL
@@ -175,7 +215,6 @@ vdpIntHandler:
 ;   ENABLE INTERRUPTS AND RETURN
     EI 
     RET
-    ;.DSB $06, $00   ; FILL
 .ENDS
 
 /*
@@ -253,10 +292,6 @@ main:
 -:
     OUT (VDPDATA_PORT), A
     DJNZ -
-;   LOAD HUD TEXT TILES
-    LD HL, hudTextTiles
-    LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE
-    CALL zx7_decompressVRAM
 ;   MAPPER INIT.
     LD DE, MAPPER_RAM
     LD HL, mapperInitValues
@@ -330,6 +365,8 @@ coldBoot:
 ;   TASK
     LD HL, taskListArea
     LD (taskListEnd), HL
+;   JR (POWER DOT SELECTOR FOR FRUIT IS ONLY RESET AT COLD BOOT)
+    LD (fruitPathPtr + 1), A    ; POWER DOT SELECTOR [$4931]
 resetFromGameOver:
 ;   CLEAR INVISIBLE MAZE FLAG (PLUS)
     LD HL, plusBitFlags
@@ -355,6 +392,7 @@ resetFromDemo:
     LD (pauseRequest), A
     LD (plusRNGValue), A
     LD (jrScrollReal), A
+    LD (enableScroll), A
 ;   RESET SOUND VARS
     CALL sndInit
 ;   SET MAIN STATE TO ATTRACT MODE, SET SUB TO TITLE
@@ -380,13 +418,6 @@ mainGameLoop:
     LD A, (vblankFlag)
     OR A
     JP P, mainGameLoop      ; IF NOT, KEEP WAITING...
-
-    /*
-    LD A, $0F
-    OUT (VDPCON_PORT), A
-    LD A, $87
-    OUT (VDPCON_PORT), A
-    */
 ;   VBLANK HAS OCCURED, CLEAR FLAG
     XOR A
     LD (vblankFlag), A
@@ -427,14 +458,23 @@ mainGameLoop:
     LD HL, mStateTable
     LD A, (mainGameMode)
     ADD A, A
-    RST addToHL
-    RST getDataAtHL
+        ; USE MODE AS INDEX
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+        ; GET SUB STATE TABLE
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
     ; EXECUTE SUB STATE'S FUNCTION
     LD A, (subGameMode)
     RST jumpTableExec
 ;   UPDATE JR PAC SCROLL
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
+    LD A, (enableScroll)
+    OR A
     CALL NZ, updateJRScroll
 ;   TASK PROCESSING (RETURN FROM INT IN OG)
     ; CHECK IF TASK LIST IS EMPTY
@@ -469,13 +509,13 @@ mainGameLoop:
     JP Z, mainGameLoop
     LD A, (clyde.sprTableNum)
     LD B, A
-    LD A, (fruitYPos)
+    LD A, (fruit + Y_WHOLE)
     OR A
     JP Z, +
-    LD A, (fruitSprTableNum)
+    LD A, (fruit.sprTableNum)
     LD B, A
     LD A, (clyde.sprTableNum)
-    LD (fruitSprTableNum), A
+    LD (fruit.sprTableNum), A
 +:
     LD A, (inky.sprTableNum)
     LD (clyde.sprTableNum), A
@@ -485,12 +525,6 @@ mainGameLoop:
     LD (pinky.sprTableNum), A
     LD A, B
     LD (blinky.sprTableNum), A
-    /*
-    XOR A
-    OUT (VDPCON_PORT), A
-    LD A, $87
-    OUT (VDPCON_PORT), A
-    */
     JP mainGameLoop
 .ENDS
 
@@ -516,8 +550,7 @@ pauseMode:
 @update:
 ;   DO SOUND PROCESSING
     CALL sndProcess
-;   DRAW "PAUSE"
-    LD BC, $05 * $100 + VDPDATA_PORT    ; 10 TILES
+;   UPDATE 'PAUSE' TILEMAP AREA
     ; PREPARE VDP ADDRESS
     LD HL, NAMETABLE + XUP_TEXT | VRAMWRITE
     LD A, (plusBitFlags)
@@ -525,55 +558,63 @@ pauseMode:
     JR Z, +
     LD HL, NAMETABLE + XUP_TEXT_JR | VRAMWRITE
 +:
-    RST setVDPAddress
+    LD C, VDPCON_PORT
+    OUT (C), L
+    OUT (C), H
+    DEC C
     ; INCREMENT "PAUSE" FLASH COUNTER
     LD HL, xUPCounter
     INC (HL)
     ; CHECK IF BIT 4 OF FLASH COUNTER IS SET (CYCLES EVERY 16 FRAMES)
     BIT 4, (HL)
-    JR NZ, +    ; IF SO, CLEAR 'PAUSE'
-    ; DISPLAY "PAUSE" TILES
-    SLA B
-    ; WRITE TO VDP
+    JR NZ, @@clrPause   ; IF SO, CLEAR 'PAUSE'
+    ; DISPLAY "PAUSE" TILES (5 TILES)
     LD HL, hudTileMaps@pause
-    OTIR
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
+    IN F, (C)
+    OUTI
     JP mainGameLoop
-    ; "PAUSE" WILL NOT BE DISPLAYED
-+:
--:
-    ; WRITE BLANK MASKING TILE
+@@clrPause:
     LD A, MASK_TILE
     OUT (VDPDATA_PORT), A
-    LD A, $11
+    IN F, (C)
     OUT (VDPDATA_PORT), A
-    DJNZ -
+    IN F, (C)
+    OUT (VDPDATA_PORT), A
+    IN F, (C)
+    OUT (VDPDATA_PORT), A
+    IN F, (C)
+    OUT (VDPDATA_PORT), A
     ; DRAW PLAYER'S SCORE IF GAME IS JR.PAC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    ;CALL NZ, drawScores
     CALL NZ, scoreTileMapDraw
     JP mainGameLoop
 @exit:
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JP NZ, +
-    LD HL, NAMETABLE + XUP_TEXT + $06 | VRAMWRITE
-    RST setVDPAddress
-    ; WRITE BLANK MASKING TILE
-    LD A, MASK_TILE
-    OUT (VDPDATA_PORT), A
-    LD A, $11
-    OUT (VDPDATA_PORT), A
-    ; WRITE BLANK MASKING TILE
-    LD A, MASK_TILE
-    OUT (VDPDATA_PORT), A
-    LD A, $11
-    OUT (VDPDATA_PORT), A
-+:
 ;   CLEAR VARIABLES
     XOR A
     LD (pauseRequest), A
-;   EXIT
+;   BLANK THE PAUSE TILES THAT OVERLAP THE SCORE IN JR.
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, mainGameLoop
+    ; SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, NAMETABLE + XUP_TEXT + $06 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C
+    ; BLANK OUT TILES
+    XOR A
+    OUT (VDPDATA_PORT), A
+    IN F, (C)
+    OUT (VDPDATA_PORT), A
     JP mainGameLoop
 
 /*
@@ -617,7 +658,14 @@ checkMDPause:
 .SECTION "LINE INTERRUPT HANDLER" FORCE
 lineIntHandler:
 ;   DON'T NEED TO SET SCROLL AGAIN UNTIL NEXT VBLANK
-    CALL turnOffLineInts
+;   CLEAR V COUNTER
+    LD HL, $8AFF
+    OUT (C), L
+    OUT (C), H
+;   LINE INTS OFF
+    LD HL, $8024
+    OUT (C), L
+    OUT (C), H
 ;   WRITE SCROLL TO VDP
     LD A, (jrScrollReal)
     OUT (VDPCON_PORT), A
@@ -770,7 +818,7 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-                ATTRACT SUB STATE DATA
+                ATTRACT SUB STATE DATA [SND_BANK?]
 ----------------------------------------------------------
 */
 .INCDIR "CODE/ATTRACT"
@@ -780,7 +828,7 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-                CUTSCENE SUB STATE DATA
+                CUTSCENE SUB STATE DATA [SND_BANK?]
 ----------------------------------------------------------
 */
 .INCDIR "CODE/CUTSCENE"
@@ -791,7 +839,7 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-        DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR
+DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR [BANK2 OR CODEBANK]
 ----------------------------------------------------------
 */
 .INCDIR "CODE/PACMAN"
@@ -801,7 +849,7 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-                    DATA FOR GHOSTS
+            DATA FOR GHOSTS [BANK2 OR CODEBANK]
 ----------------------------------------------------------
 */
 .INCDIR "CODE/GHOST"
@@ -812,11 +860,11 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-                    SOUND DATA
+                    SOUND DATA [SND_BANK]
 ----------------------------------------------------------
 */
 .INCDIR "CODE/SOUND"
-.SECTION "Sound Data" BANK SND_BANK SLOT 2 FREE    ; PUT IN BANK 2, SLOT 2
+.SECTION "Sound Data" BANK SND_BANK SLOT 2 FREE
     .INCLUDE "soundData.asm"
 .ENDS
 
@@ -830,7 +878,7 @@ lineIntHandler:
 sdscName:
     .DB "Pac-Man Master Museum", 0
 sdscDesc:
-    .DB "A conversion of the arcade classics for the Sega Master System", 0
+    .DB "A conversion of arcade classics for the Sega Master System", 0
 sdscAuth:
     .DB "LackofTrack", 0
 .ENDS
@@ -977,19 +1025,19 @@ hudTileMaps:
     .DW $11ED, $11EE, $11EF, $11F0, $11F1
 @oneUP:
 ;   "1UP"
-    .DW $11F6, $11F2, $11F3
+    .DB $F6 $F2 $F3
 @twoUP:
 ;   "2UP"
-    .DW $11F7, $11F2, $11F3
+    .DB $F7 $F2 $F3
 @pause:
 ;   "PAUSE"
-    .DW $11F3, $11F4, $11F2, $11ED, $11F1
+    .DB $F3 $F4 $F2 $ED $F1
 @jroneUP:
 ;   "1UP"
-    .DW $11F6, $11F3, $1100 | MASK_TILE
+    .DB $F6 $F3 MASK_TILE
 @jrtwoUP:
 ;   "2UP"
-    .DW $11F7, $11F3, $1100 | MASK_TILE
+    .DB $F6 $F3 MASK_TILE
 
 hudLifeTileDefs:
     .DW $19DC $19DE $19DD $19DF
@@ -1075,14 +1123,49 @@ fruitPositionTable:
 
 /*
 ----------------------------------------------------------
-                    COMMON TABLES
+                SQUARED VALUES TABLE
 ----------------------------------------------------------
 */
-.SECTION "COMMON TABLES" FREE
+.SECTION "SQUARED VALUES TABLE" BANK CODE_BANK SLOT 0 FORCE ORG $7E00
+squareTable:
+    .DW $0000 $0001 $0004 $0009 $0010 $0019 $0024 $0031 $0040 $0051 $0064 $0079 $0090 $00A9 $00C4 $00E1 
+    .DW $0100 $0121 $0144 $0169 $0190 $01B9 $01E4 $0211 $0240 $0271 $02A4 $02D9 $0310 $0349 $0384 $03C1 
+    .DW $0400 $0441 $0484 $04C9 $0510 $0559 $05A4 $05F1 $0640 $0691 $06E4 $0739 $0790 $07E9 $0844 $08A1 
+    .DW $0900 $0961 $09C4 $0A29 $0A90 $0AF9 $0B64 $0BD1 $0C40 $0CB1 $0D24 $0D99 $0E10 $0E89 $0F04 $0F81 
+    .DW $1000 $1081 $1104 $1189 $1210 $1299 $1324 $13B1 $1440 $14D1 $1564 $15F9 $1690 $1729 $17C4 $1861 
+    .DW $1900 $19A1 $1A44 $1AE9 $1B90 $1C39 $1CE4 $1D91 $1E40 $1EF1 $1FA4 $2059 $2110 $21C9 $2284 $2341 
+    .DW $2400 $24C1 $2584 $2649 $2710 $27D9 $28A4 $2971 $2A40 $2B11 $2BE4 $2CB9 $2D90 $2E69 $2F44 $3021 
+    .DW $3100 $31E1 $32C4 $33A9 $3490 $3579 $3664 $3751 $3840 $3931 $3A24 $3B19 $3C10 $3D09 $3E04 $3F01
+.ENDS
+/*
+----------------------------------------------------------
+                COLOR CALCULATION TABLES
+----------------------------------------------------------
+*/
+;   $E0
+.SECTION "COLOR TABLES FOR POWER DOTS" BANK CODE_BANK SLOT 0 FORCE ORG $7F00
+colorDecTable:  ; $00
+    .DB $00 $00 $01 $02 $00 $00 $01 $02
+    .DB $04 $04 $05 $06 $08 $08 $09 $0A
+    .DB $00 $00 $01 $02 $00 $00 $01 $02
+    .DB $04 $04 $05 $06 $08 $08 $09 $0A
+    .DB $10 $10 $11 $12 $10 $10 $11 $12
+    .DB $14 $14 $15 $16 $18 $18 $19 $1A
+    .DB $20 $20 $21 $22 $20 $20 $21 $22
+    .DB $24 $24 $25 $26 $28 $28 $29 $2A
+@decBy2:        ; $40
+    .DB $00 $00 $00 $01 $00 $00 $00 $01
+    .DB $00 $00 $00 $01 $04 $04 $04 $05
+    .DB $00 $00 $00 $01 $00 $00 $00 $01
+    .DB $00 $00 $00 $01 $04 $04 $04 $05 
+    .DB $00 $00 $00 $01 $00 $00 $00 $01 
+    .DB $00 $00 $00 $01 $04 $04 $04 $05 
+    .DB $10 $10 $10 $11 $10 $10 $10 $11 
+    .DB $10 $10 $10 $11 $14 $14 $14 $15
 /*
     COLOR TABLE FOR POWER DOT PALETTE CYCLING
 */
-powDotPalTable:
+powDotPalTable: ; $80
     .DB $02 $01 $00 $00
     .DB $03 $02 $01 $00
     .DB $03 $03 $02 $01
@@ -1092,7 +1175,22 @@ powDotPalTable:
     .DB $03 $03 $02 $01
     .DB $03 $02 $01 $00
     .DB $02 $01 $00 $00
+/*
+    PLAYER ANIMATION TABLES
+*/
+normAniTbl: ; $A4
+    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
+slowAniTbl: ; $B4
+    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
+.ENDS
 
+/*
+----------------------------------------------------------
+                    COMMON TABLES
+----------------------------------------------------------
+*/
+
+.SECTION "COMMON TABLES" FREE
 /*
     GHOST POINTS TILE INDEXES
 */
@@ -1443,7 +1541,7 @@ dotExpireTable:
                     MS. PAC-MAN TABLES
 ----------------------------------------------------------
 */
-.SECTION "MS. PAC-MAN TABLES" BANK 2 SLOT 2 FREE    ; PUT IN BANK 2, SLOT 2
+.SECTION "MS. PAC-MAN TABLES" FREE ;BANK 2 SLOT 2 FREE    ; PUT IN BANK 2, SLOT 2
 
 ; MS. PAC-MAN PALETTE TABLE
 msPalTable:
@@ -1798,7 +1896,108 @@ fruitBounceFrames:
                     JR. PAC-MAN TABLES
 ----------------------------------------------------------
 */
-.SECTION "JR.PAC SCROLL TABLES" BANK 0 SLOT 0 FORCE ORG $7900
+.SECTION "JR. PAC-MAN TABLES" FREE ;BANK 2 SLOT 2 FREE
+; JR.PAC-MAN PALETTE TABLE
+jrPalTable:
+    .DW bgPalJr00   ; 00
+    .DW bgPalJr01   ; 01
+    .DW bgPalJr02   ; 02
+    .DW bgPalJr03   ; 03
+    .DW bgPalJr04   ; 04
+
+; LEVEL PALETTE TABLE (REFERENCES PREVIOUS TABLE)
+jrLevelPalTable:
+    .DB $00 $01         ; LVL 01 - 02
+    .DB $02 $03 $04     ; LVL 03 - 05
+    .DB $01 $00 $03 $02 ; LVL 06 - 09
+    .DB $01 $04 $03 $00 ; LVL 10 - 13
+    .DB $01 $02 $03 $04 ; LVL 14 - 17
+    .DB $01 $00 $03 $02 ; LVL 18 - 21
+@plus:
+    .DB $00 $01         ; LVL 01 - 02
+    .DB $02 $03 $04     ; LVL 03 - 05
+    .DB $01 $00 $03 $02 ; LVL 06 - 09
+    .DB $01 $04 $03 $00 ; LVL 10 - 13
+    .DB $01 $02 $03 $04 ; LVL 14 - 17
+    .DB $01 $00 $03 $02 ; LVL 18 - 21
+
+
+; DOT COUNT TABLE
+jrMazeDotCounts:
+    .DW $0224
+    .DW $022A
+    .DW $0214
+    .DW $0214
+    .DW $0204
+    .DW $0216
+    .DW $0220
+
+; MAZE POWER DOT TARGETS
+jrMazePDotTargets:
+    .DW @jrMaze0
+    .DW @jrMaze1
+    .DW @jrMaze2
+    .DW @jrMaze3
+    .DW @jrMaze4
+    .DW @jrMaze5
+    .DW @jrMaze6
+
+@jrMaze0:   ; 2ND LEVEL
+    .DW $2721
+    .DW $3B21
+    .DW $2E30
+    .DW $2E45
+    .DW $2754
+    .DW $3B54
+@jrMaze1:   ; 1ST LEVEL
+    .DW $2521
+    .DW $3A21
+    .DW $2E30
+    .DW $2E45
+    .DW $2554
+    .DW $3A54
+@jrMaze2:   ; 4TH LEVEL
+    .DW $2521
+    .DW $3D21
+    .DW $2E2D
+    .DW $2E48
+    .DW $2554
+    .DW $3D54
+@jrMaze3:   ; 3RD LEVEL
+    .DW $2521
+    .DW $3B21
+    .DW $2830
+    .DW $2845
+    .DW $2554
+    .DW $3B54
+@jrMaze4:   ; 6TH LEVEL
+    .DW $3727
+    .DW $282A
+    .DW $284B
+    .DW $374E
+    .DW $3727
+    .DW $282A
+@jrMaze5:   ; 5TH LEVEL
+    .DW $2524
+    .DW $3A2A
+    .DW $2E30
+    .DW $2E45
+    .DW $3A4B
+    .DW $2551
+@jrMaze6:   ; 7TH LEVEL
+    .DW $2827
+    .DW $3727
+    .DW $284E
+    .DW $374E
+    .DW $2827
+    .DW $3727
+.ENDS
+
+
+/*
+    SCROLL TABLES
+*/
+.SECTION "JR.PAC SCROLL TABLES" BANK JRMAZE_BANK SLOT 2 FORCE ORG $3900;BANK 0 SLOT 0 FORCE ORG $7900
     /*
     $00 - $07: 04
     $08 - $0F: 03
@@ -1888,7 +2087,7 @@ jrScaleTable:
 
 
 jrRealScrollTable:
-;   H: $3E
+;   H: $3E, $147
     .DB $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28
     .DB $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28
     .DB $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28
@@ -1913,54 +2112,7 @@ jrRealScrollTable:
     .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8,
 
 
-colorDecTable:
-    ; DEC BY 1
-    .DB $00 $00 $01 $02 $00 $00 $01 $02
-    .DB $04 $04 $05 $06 $08 $08 $09 $0A
-    .DB $00 $00 $01 $02 $00 $00 $01 $02
-    .DB $04 $04 $05 $06 $08 $08 $09 $0A
-    .DB $10 $10 $11 $12 $10 $10 $11 $12
-    .DB $14 $14 $15 $16 $18 $18 $19 $1A
-    .DB $20 $20 $21 $22 $20 $20 $21 $22
-    .DB $24 $24 $25 $26 $28 $28 $29 $2A
-    ; DEC BY 2
-@decBy2:
-    .DB $00 $00 $00 $01 $00 $00 $00 $01
-    .DB $00 $00 $00 $01 $04 $04 $04 $05
-    .DB $00 $00 $00 $01 $00 $00 $00 $01
-    .DB $00 $00 $00 $01 $04 $04 $04 $05 
-    .DB $00 $00 $00 $01 $00 $00 $00 $01 
-    .DB $00 $00 $00 $01 $04 $04 $04 $05 
-    .DB $10 $10 $10 $11 $10 $10 $10 $11 
-    .DB $10 $10 $10 $11 $14 $14 $14 $15
-.ENDS
 
-
-
-.SECTION "JR. PAC-MAN TABLES" BANK 2 SLOT 2 FREE
-; JR.PAC-MAN PALETTE TABLE
-jrPalTable:
-    .DW bgPalJr00   ; 00
-    .DW bgPalJr01   ; 01
-    .DW bgPalJr02   ; 02
-    .DW bgPalJr03   ; 03
-    .DW bgPalJr04   ; 04
-
-; LEVEL PALETTE TABLE (REFERENCES PREVIOUS TABLE)
-jrLevelPalTable:
-    .DB $00 $01         ; LVL 01 - 02
-    .DB $02 $03 $04     ; LVL 03 - 05
-    .DB $01 $00 $03 $02 ; LVL 06 - 09
-    .DB $01 $04 $03 $00 ; LVL 10 - 13
-    .DB $01 $02 $03 $04 ; LVL 14 - 17
-    .DB $01 $00 $03 $02 ; LVL 18 - 21
-@plus:
-    .DB $00 $01         ; LVL 01 - 02
-    .DB $02 $03 $04     ; LVL 03 - 05
-    .DB $01 $00 $03 $02 ; LVL 06 - 09
-    .DB $01 $04 $03 $00 ; LVL 10 - 13
-    .DB $01 $02 $03 $04 ; LVL 14 - 17
-    .DB $01 $00 $03 $02 ; LVL 18 - 21
 .ENDS
 
 
@@ -1985,20 +2137,20 @@ jrLevelPalTable:
 ----------------------------------------------------------
 */
 .INCDIR "ASSETS/ATTRACT"
-.SECTION "ATTRACT MODE GFX DATA" FREE
+.SECTION "ATTRACT MODE GFX DATA" BANK SND_BANK SLOT 2 FREE
 ;   TITLE
     titleTileData:
         .INCBIN "TILE_TITLE.ZX7"
     titleTileMap:
         .INCBIN "MAP_TITLE.ZX7"
-;   OPTIONS
-    optionsTileData:
-        .INCBIN "TILE_OPTIONS.ZX7"
 ;   TITLE/OPTIONS
     titleArrowData:
         .INCBIN "TILE_ARROW.ZX7"
     titlePal:
         .INCBIN "PAL_TITLE.BIN"
+;   OPTIONS
+    optionsTileData:
+        .INCBIN "TILE_OPTIONS.ZX7"
 ;   INTRO
     introTileData:
         .INCBIN "TILE_INTRO.ZX7"
@@ -2173,6 +2325,8 @@ arcadeGFXData:
         .INCBIN "TILE_OTTOGHOSTS.ZX7"
     @ottoGhostsPlus:
         .INCBIN "TILE_OTTOGHOSTS_PLUS.ZX7"
+    @jrFruit:
+        .INCBIN "TILE_JRFRUIT.ZX7"
 .INCDIR "ASSETS/CUTSCENE/ARCADE"
     @cutscenePac:
         .INCBIN "TILE_PAC.ZX7"
@@ -2182,6 +2336,13 @@ arcadeGFXData:
         .INCBIN "TILE_GHOST_PLUS.ZX7"
     @cutsceneMs:
         .INCBIN "TILE_MSCUT.ZX7"
+
+.INCDIR "ASSETS/GAMEPLAY/SMOOTH"
+jrExplosionTiles:
+    .INCBIN "TILE_EXP.ZX7"
+.INCDIR "ASSETS"
+jrHudIconTiles:
+    .INCBIN "TILE_ICONS_JR.ZX7"
 
 
 
@@ -2202,8 +2363,12 @@ arcadeGFXData:
         .INCBIN "DOT_MAZE.ZX7"
     jrmaze0PowTable:
         .INCBIN "PDOT_MAZE.ZX7"
-    ;jrmaze0MDotTable:
-    ;jrmaze0MEatTable:
+    jrmaze0MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    jrmaze0MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    jrmaze0MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
 
 
 
@@ -2231,11 +2396,23 @@ arcadeGFXData:
 .BANK UNCOMP_BANK SLOT 2
 .ORG $0000
 
+;   EMPTY TILE
+pacTileS07:
+pacDTileS0F:
+annaTileS13:
+ottoTileS23:
+pacTileA07:
+pacDTileA0F:
+annaTileA14:
+ottoTileA24:
+    .DSB $20, $00
+
+
 .INCDIR "ASSETS/GAMEPLAY/SMOOTH"
 .INCLUDE "TILE_PAC.INC"
 .INCLUDE "TILE_DEATH.INC"
 .INCLUDE "TILE_MSPAC.INC"
-;   JR
+.INCLUDE "TILE_JR.INC"
 ;   JR DEATH
 .INCLUDE "TILE_OTTO.INC"
 .INCLUDE "TILE_ANNA.INC"
@@ -2244,7 +2421,7 @@ arcadeGFXData:
 .INCLUDE "TILE_PAC.INC"
 .INCLUDE "TILE_DEATH.INC"
 .INCLUDE "TILE_MSPAC.INC"
-;   JR
+.INCLUDE "TILE_JR.INC"
 ;   JR DEATH
 .INCLUDE "TILE_OTTO.INC"
 .INCLUDE "TILE_ANNA.INC"

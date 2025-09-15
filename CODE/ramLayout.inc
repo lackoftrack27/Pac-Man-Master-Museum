@@ -2,7 +2,7 @@
             RAM VARIABLES
 */
 
-;   STARTS AT $C000 [SIZE: $600]
+;   STARTS AT $C000 [SIZE: $400]
 .RAMSECTION "ram" SLOT 3
 ;   GENERAL GAME STUFF
     ; SPECIAL RESET KEY
@@ -47,6 +47,7 @@
     jrLeftMostTile: db
     jrColumnToUpdate: db
     updateColFlag: db
+    enableScroll: db
 ;   GAMEPLAY MODE STUFF
     ; INFO FOR CURRENT PLAYER
     currPlayerInfo INSTANCEOF playerInfo
@@ -64,15 +65,24 @@
     ; BIT 1: 0 - CURRENT PLAYER IS P1, 1 - CURRENT PLAYER IS P2
     playerType: db
 ;   FRUIT RELATED VARS
-    fruitSprTableNum: db
-    fruitXPos: dw
-    fruitYPos: dw
+    fruit INSTANCEOF actor
     fruitTileDefPtr: dw
     fruitPointTDefPtr: dw
     fruitScoreVal: dw
     fruitPathLen: db
     fruitPathBounce: db
     fruitPathPtr: dw
+
+    fruitTileXCenter: db
+    fruitTileYCenter: db
+    fruitTileMapPointer: dw ; POINTER FOR USE WITH TILEMAP IN VRAM
+    fruitTileMapRamPtr: dw  ; POINTER FOR USE WITH TILEMAP IN RAM (BOTH ARE THE SAME IN NON-SCROLLING GAMES)
+    fruitTileQuadrant: db   ; 0 - 3
+
+    fruitTileBufFlag: db
+    fruitTileBufCount: db
+    fruitTileBufAddr: dw
+    fruitTileBuf: dsb 12    ; [RELATIVE VRAM OFFSET:DB, TILE:DW] * 4
 ;   GHOST POINTS RELATED VARS
     ghostPointXpos: dw
     ghostPointYpos: db
@@ -100,7 +110,7 @@
     tileQuadrant: db    ; 0 - 3
     playerTileTblPtr: DW
     deathTileTblPtr: DW
-    scoreTileMapBuffer: DSB $0C
+    scoreTileMapBuffer: DSB $06
 ;   GLOBAL GHOST STUFF
     globalDotCounter: db
     frameCounter: db
@@ -142,6 +152,7 @@
     ghostSoundControl: db   ; BITS 0-2: SIREN TYPE, BIT 3: FRIGHT, BIT 4: EYES, BIT 5: NEW SOUND
     sndNoiseType: db
     ch2SoundControl: db
+    ch2SndControlJR: db
     chan0 INSTANCEOF sndChannel
     chan1 INSTANCEOF sndChannel
     chan2 INSTANCEOF sndChannel
@@ -153,19 +164,15 @@
 .ENDS
 
 
-;.RAMSECTION "Sprite Table Buffer" SLOT 3 ORG $0500 FORCE
-;    sprTableBuffer: dsb $100
-;.ENDS
 
-
-
-;   STARTS AT $C600 [SIZE: $19D8]
+;   STARTS AT $C400 [SIZE: $1B18]
 .RAMSECTION "mazeRam" SLOT 4
 ;   STATIC MAZE TABLES
     mazeEatenTbl: dsb $100        ; [BYTE ALIGNED]
-    mazeMutatedTbl: dsb $100      ; [BYTE ALIGNED] JR. PAC
+    mazeMutatedTbl: dsb $200      ; JR. PAC
     mazeEatenMutatedTbl: dsb $200 ; JR. PAC
     mazePowTbl: dsb $40           ; [BYTE ALIGNED]
+    mazeRstMutatedTbl: dsb $40
 ;   MAZE PALETTE DATA
     mazePalette: dsb $10
 ;   MAZE DATA GROUP FOR EACH PLAYER
@@ -173,7 +180,11 @@
     mazeGroup2 INSTANCEOF mazePlayerInfo
 .ENDS
 
-;   STARTS AT $DFD8 [SIZE: $28]
-.RAMSECTION "stackArea" SLOT 5
-    stackList: dsb $28          ; NOT REALLY USED, JUST PLACEHOLDER FOR STACK PTR
+;   STARTS AT $DF18 [SIZE: $A8]
+.RAMSECTION "ram 2" SLOT 5
+.ENDS
+
+;   STARTS AT $DFC0 [SIZE: $40]
+.RAMSECTION "stackArea" SLOT 6
+    stackList: dsb $40          ; NOT REALLY USED, JUST PLACEHOLDER FOR STACK PTR
 .ENDS

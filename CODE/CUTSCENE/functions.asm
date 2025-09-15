@@ -140,7 +140,7 @@ pacCutsceneInit:
     LD (pinky.sprTableNum), A   ; WAS $0A, NOW $14
     LD (inky.sprTableNum), A    ; WAS $0D, NOW $14
     LD (clyde.sprTableNum), A   ; WAS $11, NOW $14
-    LD (fruitSprTableNum), A
+    LD (fruit.sprTableNum), A
     ; SET BLINKY'S CURRENT X TILE
     LD A, $1E       ; ($00 >> $03) + $1E
     LD (blinky + CURR_X), A

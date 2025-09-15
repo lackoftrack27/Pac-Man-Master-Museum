@@ -20,10 +20,10 @@ titleCharTblSmooth:
     .DW msSNTileTbl@titlePtr + $08  ; HALF
     .DW msSNTileTbl@titlePtr + $10  ; CLOSED
 ;   JR.PAC-MAN SMOOTH [10] 04
-    .DW pacSNTileTbl@titlePtr        ; HALF
-    .DW pacSNTileTbl@titlePtr + $08  ; OPEN
-    .DW pacSNTileTbl@titlePtr        ; HALF
-    .DW pacSNTileTbl@titlePtr + $18  ; CLOSED
+    .DW jrSNTileTbl@titlePtr + $08  ; HALF
+    .DW jrSNTileTbl@titlePtr        ; OPEN
+    .DW jrSNTileTbl@titlePtr + $08  ; HALF
+    .DW jrSNTileTbl@titlePtr + $10  ; CLOSED
 ;   CRAZY OTTO SMOOTH [18] 0A
     .DW ottoSNTileTbl@titlePtr + $10    ; CLOSED
     .DW ottoSNTileTbl@titlePtr + $08    ; HALF 0
@@ -42,10 +42,10 @@ titleCharTblArcade:
     .DW msANTileTbl@titlePtr + $08  ; HALF
     .DW msANTileTbl@titlePtr + $10  ; CLOSED
 ;   JR.PAC-MAN ARCADE [10] 04
-    .DW pacANTileTbl@titlePtr        ; HALF
-    .DW pacANTileTbl@titlePtr + $08  ; OPEN
-    .DW pacANTileTbl@titlePtr        ; HALF
-    .DW pacANTileTbl@titlePtr + $18  ; CLOSED
+    .DW jrANTileTbl@titlePtr + $08  ; HALF
+    .DW jrANTileTbl@titlePtr        ; OPEN
+    .DW jrANTileTbl@titlePtr + $08  ; HALF
+    .DW jrANTileTbl@titlePtr + $10  ; CLOSED
 ;   CRAZY OTTO ARCADE [18] 0A
     .DW ottoANTileTbl@titlePtr + $10    ; CLOSED
     .DW ottoANTileTbl@titlePtr + $08    ; HALF 0
