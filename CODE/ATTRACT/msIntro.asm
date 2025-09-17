@@ -28,7 +28,7 @@ sStateAttractTable@msIntroMode:
     LD HL, msMarqueeTileData
     CALL zx7_decompressVRAM
 ;   RESTORE BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   DISABLE SPRITES AT INDEX $15
     LD HL, SPRITE_TABLE + $15 | VRAMWRITE

@@ -131,8 +131,8 @@ loadTileAssets:
 @@jrLoadAssets:
 ;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
     ; -----------------------------
-    LD A, ARCADE_BANK
-    LD (MAPPER_SLOT2), A
+    ;LD A, ARCADE_BANK
+    ;LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; EXPLOSION TILES
     LD HL, jrExplosionTiles
@@ -144,7 +144,7 @@ loadTileAssets:
     LD DE, $3AA0 | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; FRUIT POINTS
@@ -189,8 +189,8 @@ loadTileAssets:
     ; -----------------------------
 @arcade:
 ;   SET SLOT 2 BANK
-    LD A, ARCADE_BANK
-    LD (MAPPER_SLOT2), A
+    ;LD A, ARCADE_BANK
+    ;LD (MAPPER_SLOT2), A
 ;   LOAD SPRITE PALETTE FOR ARCADE
     LD HL, sprPalData@arcade
     LD BC, SPR_CRAM_SIZE * $100 + VDPDATA_PORT
@@ -367,7 +367,7 @@ loadTileAssets:
     CALL zx7_decompressVRAM
     ; -----------------------------
 @end:
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     RET
 
@@ -383,21 +383,20 @@ loadTileAssets:
     USES: AF, DE, HL
 */
 loadMaze:
+;   SET BANK FOR MAZE OTHER DATA
+    LD A, MAZE_OTHER_BANK
+    LD (MAPPER_SLOT2), A
 ;   MAKE MUTATED DOT TILE OFFSET IMPOSSIBLE (FOR PAC & MS.PAC)
     LD A, $FF
     LD (mazeMutatedTbl), A
 ;   CHECK IF GAME IS MS.PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
-    JR NZ, @msMazes     ; IF SO, SKIP
+    JP NZ, @msMazes     ; IF SO, SKIP
 ;   CHECK IF GAME IS JR.PAC
     BIT JR_PAC, A
-    JR NZ, @jrMazes     ; IF SO, SKIP
+    JP NZ, @jrMazes     ; IF SO, SKIP
 ;   LOAD PAC-MAN MAZE DATA
-    ; LOAD MAZE TILES (LOAD EVERY TIME!)
-    LD HL, maze0Tiles
-    LD DE, BACKGROUND_ADDR | VRAMWRITE
-    CALL zx7_decompressVRAM
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, maze0EatenTable
     LD DE, mazeEatenTbl
@@ -406,25 +405,34 @@ loadMaze:
     LD HL, maze0EatenTable@powDots
     LD DE, mazePowTbl
     CALL zx7_decompress
+    ; SET BANK FOR MAZE TILE DATA
+    LD A, MAZE_GFX_BANK
+    LD (MAPPER_SLOT2), A
+    ; LOAD MAZE TILES (LOAD EVERY TIME!)
+    LD HL, maze0Tiles
+    LD DE, BACKGROUND_ADDR | VRAMWRITE
+    CALL zx7_decompressVRAM
     ; CHECK IF PLAYER HAS DIED
     LD A, (currPlayerInfo.diedFlag)
     OR A
-    RET NZ  ; IF SO, END
+    JP NZ, @revertBank  ; IF SO, END
+    ; SET BANK FOR MAZE TILEMAP DATA
+    LD A, MAZE_TILEMAP_BANK
+    LD (MAPPER_SLOT2), A
     ; LOAD MAZE TILEMAP DATA
-    LD HL, mazeTileMap
+    LD HL, maze0TileMap
     LD DE, mazeGroup1.tileMap
     CALL zx7_decompress
+    ; SET BANK FOR MAZE OTHER DATA
+    LD A, MAZE_OTHER_BANK
+    LD (MAPPER_SLOT2), A
     ; LOAD MAZE COLLISION DATA
     LD HL, mazeCollsionData
     LD DE, mazeGroup1.collMap
-    JP zx7_decompress
+    CALL zx7_decompress
+    JP @revertBank
 @msMazes:
 ;   LOAD MS. PAC-MAN MAZE DATA
-    ; LOAD MAZE TILES (LOAD EVERY TIME!)
-    LD HL, msMazeTilesTable
-    CALL getMazeIndex
-    LD DE, BACKGROUND_ADDR | VRAMWRITE
-    CALL zx7_decompressVRAM
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, msMazeDotTable
     CALL getMazeIndex
@@ -435,64 +443,92 @@ loadMaze:
     CALL getMazeIndex
     LD DE, mazePowTbl
     CALL zx7_decompress
+    ; SET BANK FOR MAZE TILE DATA
+    LD A, MAZE_GFX_BANK
+    LD (MAPPER_SLOT2), A
+    ; LOAD MAZE TILES (LOAD EVERY TIME!)
+    LD HL, msMazeTilesTable
+    CALL getMazeIndex
+    LD DE, BACKGROUND_ADDR | VRAMWRITE
+    CALL zx7_decompressVRAM
     ; CHECK IF PLAYER HAS DIED
     LD A, (currPlayerInfo.diedFlag)
     OR A
-    RET NZ  ; IF SO, END
+    JP NZ, @revertBank  ; IF SO, END
+    ; SET BANK FOR MAZE TILEMAP DATA
+    LD A, MAZE_TILEMAP_BANK
+    LD (MAPPER_SLOT2), A
     ; LOAD MAZE TILEMAP DATA
     LD HL, msMazeTilemapTable
     CALL getMazeIndex
     LD DE, mazeGroup1.tileMap
     CALL zx7_decompress
+    ; SET BANK FOR MAZE OTHER DATA
+    LD A, MAZE_OTHER_BANK
+    LD (MAPPER_SLOT2), A
     ; LOAD MAZE COLLISION DATA
     LD HL, msMazeColTable
     CALL getMazeIndex
     LD DE, mazeGroup1.collMap
-    JP zx7_decompress
+    CALL zx7_decompress
+    JP @revertBank
 @jrMazes:
-;   LOAD JR.PAC-MAN MAZE DATA
-    ; SWITCH TO JR MAZE BANK
-    LD A, JRMAZE_BANK
-    LD (MAPPER_SLOT2), A
-    ; LOAD MAZE TILES (LOAD EVERY TIME!)
-    LD HL, jrmaze0Tiles
-    LD DE, BACKGROUND_ADDR | VRAMWRITE
-    CALL zx7_decompressVRAM
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
-    LD HL, jrmaze0DotTable
+    LD HL, jrMazeDotTable
+    CALL jrGetMazeIndex
     LD DE, mazeEatenTbl
     CALL zx7_decompress
     ; LOAD POWER DOT TABLE (LOAD EVERY TIME!)
-    LD HL, jrmaze0PowTable
+    LD HL, jrMazePowTable
+    CALL jrGetMazeIndex
     LD DE, mazePowTbl
     CALL zx7_decompress
     ; LOAD FIRST MUTATED DOT TABLE (LOAD EVERY TIME!)
-    LD HL, jrmaze0MDotTable
+    LD HL, jrMazeMDotTable
+    CALL jrGetMazeIndex
     LD DE, mazeMutatedTbl
     CALL zx7_decompress
     ; LOAD SECOND MUTATED DOT TABLE (LOAD EVERY TIME!)
-    LD HL, jrmaze0MEatTable
+    LD HL, jrMazeMEatTable
+    CALL jrGetMazeIndex
     LD DE, mazeEatenMutatedTbl
     CALL zx7_decompress
     ; LOAD MUTATED DOT RESET TABLE (LOAD EVERY TIME!)
-    LD HL, jrmaze0MRstTable
+    LD HL, jrMazeMRstTable
+    CALL jrGetMazeIndex
     LD DE, mazeRstMutatedTbl
     CALL zx7_decompress
+    ; SET BANK FOR MAZE TILE DATA
+    LD A, MAZE_GFX_BANK
+    LD (MAPPER_SLOT2), A
+    ; LOAD MAZE TILES (LOAD EVERY TIME!)
+    LD HL, jrMazeTilesTable
+    CALL jrGetMazeIndex
+    LD DE, BACKGROUND_ADDR | VRAMWRITE
+    CALL zx7_decompressVRAM
     ; CHECK IF PLAYER HAS DIED
     LD A, (currPlayerInfo.diedFlag)
     OR A
-    JR NZ, +    ; IF SO, END
+    JP NZ, @revertBank    ; IF SO, END
+    ; SET BANK FOR MAZE TILEMAP DATA
+    LD A, MAZE_TILEMAP_BANK
+    LD (MAPPER_SLOT2), A
     ; LOAD MAZE TILEMAP DATA
-    LD HL, jrmaze0TileMap
+    LD HL, jrMazeTilemapTable
+    CALL jrGetMazeIndex
     LD DE, mazeGroup1.tileMap
     CALL zx7_decompress
+    ; SET BANK FOR MAZE OTHER DATA
+    LD A, MAZE_OTHER_BANK
+    LD (MAPPER_SLOT2), A
     ; LOAD MAZE COLLISION DATA
-    LD HL, jrmaze0ColData
+    LD HL, jrMazeColTable
+    CALL jrGetMazeIndex
     LD DE, mazeGroup1.collMap
     CALL zx7_decompress
-+:
+@revertBank:
     ; REVERT BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     RET
 

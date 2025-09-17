@@ -635,11 +635,11 @@ mazeUpdate:
     LD A, (HL)
     INC HL
     LD (DE), A
-    BIT 7, A
-    JP Z, +
-    SUB A, $52 - $40
+    CP A, $52
+    JP C, +
+    SUB A, $12  ; $52 - $40 (TILEMAP_WIDTH - VRAM_WIDTH)
     LD (DE), A
-    ADD A, $52 - $40
+    ADD A, $12
 +:
     PUSH HL         ; SAVE POSITION OF POW DOT TABLE (NOW POINTING TO QUAD)
     ; ADDRESS OF QUAD IS ON STACK
@@ -897,7 +897,7 @@ allDotsEatenCheck:
 ;   $28 <-> $00 <-> $D8
 updateJRScroll:
     ; CHANGE BANK FOR TABLES
-    LD A, JRMAZE_BANK
+    LD A, JR_TABLES_BANK
     LD (MAPPER_SLOT2), A
 ;   UPDATE REAL SCROLL VALUE
     ; NEW TO OLD
@@ -955,7 +955,7 @@ updateJRScroll:
     CALL actorOffScreenCheck
 +:
     ; REVERT BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   DETERMINE WHICH COLUMN TO UPDATE
     LD A, (jrScrollReal)
@@ -1024,10 +1024,7 @@ removeMDots:
     LD HL, mazeGroup1.tileMap
     LD D, hibyte(mazeRstMutatedTbl)
     LD IX, _sizeof_mazeGroup1.tileMap >> $01
-    LD A, (mazeMutatedTbl)
-    LD C, A     ; TILE OFFSET
-    LD A, (mazeRstMutatedTbl)
-    LD B, A     ; UPPER BOUND LIMIT
+    LD BC, (mazeMutatedTbl)
 -:
     LD A, (HL)
     CP A, B
@@ -1035,7 +1032,7 @@ removeMDots:
     CP A, C
     JP C, +
     SUB A, C
-    ADD A, $41  ; +1
+    ADD A, $40
     LD E, A
     LD A, (DE)
     LD (HL), A

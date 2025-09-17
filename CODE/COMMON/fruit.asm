@@ -1454,11 +1454,11 @@ updateTileMapFruitPDot:
     LD A, (HL)
     INC HL
     LD (DE), A
-    BIT 7, A
-    JP Z, +
-    SUB A, $52 - $40
+    CP A, $52
+    JP C, +
+    SUB A, $12  ; $52 - $40 (TILEMAP_WIDTH - VRAM_WIDTH)
     LD (DE), A
-    ADD A, $52 - $40
+    ADD A, $12
 +:
     PUSH HL         ; SAVE POSITION OF POW DOT TABLE (NOW POINTING TO QUAD)
     ; ADDRESS OF QUAD IS ON STACK

@@ -179,19 +179,21 @@ randNumGen:
 ;   DETERMINE DATA OFFSET
     LD DE, rngDataOffset    ; ASSUME PAC-MAN (NON PLUS) GAME DATA
     LD A, (plusBitFlags)    ; CHECK IF NON PLUS GAME IS BEING PLAYED
-    AND A, $01 << PLUS
-    JR Z, +                 ; IF SO, SKIP
+    RRCA
+    JP NC, +                ; IF SO, SKIP
     SET 5, D                ; ELSE, ADD $2000 TO POINT TO PLUS GAME DATA
 +:
     ADD HL, DE              ; ADD OFFSET TO INDEX
 ;   GET VALUE FROM ORIGINAL GAME'S DATA
     ; SET BANK
-    LD A, RNG_BANK
+    RRCA
+    AND A, ($01 << MS_PAC | $01 << JR_PAC) >> $02
+    ADD A, RNG_PAC_BANK
     LD (MAPPER_SLOT2), A
     ; GET VALUE AT "RANDOM" INDEX
     LD E, (HL)
     ; RESTORE BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     ; RETURN VALUE
     LD A, E

@@ -22,7 +22,7 @@ sStateAttractTable@introMode:
     LD HL, introTileData@otto
     CALL zx7_decompressVRAM
 ;   RESTORE BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   LOAD BG PALETTE TO RAM
     ; CLEAR MS.PAC BIT (FOR CRAZY OTTO)

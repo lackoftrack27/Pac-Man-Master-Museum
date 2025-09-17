@@ -26,7 +26,7 @@ sStateAttractTable@optionsMode:
     LD HL, optionsTileData
     CALL zx7_decompressVRAM
 ;   RESTORE BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   CLEAR TILEMAP
     LD HL, NAMETABLE | VRAMWRITE

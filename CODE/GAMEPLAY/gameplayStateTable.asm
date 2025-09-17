@@ -122,6 +122,8 @@ gamePlayInit:
     LD L, A
     ; WRITE TILES TO VRAM
     CALL pacTileStreaming@writeToVRAM
+    ;LD A, $03
+    ;LD (currPlayerInfo.level), A
 /*
 ----------------------------------------------------------
             RESET FUNCTION FOR GAMEPLAY MODE  
@@ -146,7 +148,7 @@ generalResetFunc:
     OTIR
     LD B, 96
     OTIR
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   LOAD SPRITE TILES
     CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
@@ -236,7 +238,7 @@ generalResetFunc:
     LD (MAPPER_SLOT2), A
     LD BC, VDPDATA_PORT
     OTIR
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 +:
 ;   RESET SOME VARS ONLY IF ON LEVEL FOR THE FIRST TIME

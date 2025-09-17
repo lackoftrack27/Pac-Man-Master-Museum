@@ -183,6 +183,6 @@ pacTileStreaming:
     OUTI
 .ENDR
     ; SET BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     RET

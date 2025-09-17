@@ -47,7 +47,7 @@ sStateGameplayTable@ready00Mode:
 .REPEAT $08
     OUT (VDPDATA_PORT), A
 .ENDR
-;
+;   RESTORE GHOST TILES
     LD HL, SPRITE_ADDR + PAC_VRAM + $80 | VRAMWRITE
     RST setVDPAddress
     LD HL, workArea
@@ -118,7 +118,7 @@ sStateGameplayTable@ready01Mode:
     ; ELSE, ERASE READY TEXT
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
-    LD A, $F7
+    LD A, $D0
     LD B, $05
 -:
     OUT (VDPDATA_PORT), A

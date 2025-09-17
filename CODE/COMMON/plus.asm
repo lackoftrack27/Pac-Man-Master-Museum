@@ -43,9 +43,19 @@ plus_powerDotRNG:
     CALL ghostGameTrans_normal
     LD (IX + NEW_STATE_FLAG), $00
 @mazeInvisible:
+;   CALCULATE LEVEL LIMIT
+    ; SUBTRACT 1 IF GAME IS JR (LEVEL 1 - RIGHT AFTER 1ST CUTSCENE)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    RRCA
+    RRCA
+    LD B, A
+    LD A, $02   ; PAC/MS.PAC: LEVEL 2 - RIGHT AFTER 1ST CUTSCENE
+    SUB A, B
+    LD B, A
 ;   CHECK IF LEVEL IS 2 OR GREATER
     LD A, (currPlayerInfo.level)
-    CP A, $02
+    CP A, B
     RET C   ; IF NOT, END
 ;   AND RNG VALUE WITH 0x10
     LD A, C

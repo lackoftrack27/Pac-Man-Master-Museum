@@ -317,7 +317,7 @@ convPosToScreen:
     JR Z, @nonScroll
     PUSH HL
     ; CHANGE BANK FOR SCALE TABLE
-    LD A, JRMAZE_BANK
+    LD A, JR_TABLES_BANK
     LD (MAPPER_SLOT2), A
 ;   CONVERSION FROM 8px TILES TO 6px TILES (X)
         ; POS -> INDEX
@@ -351,7 +351,7 @@ convPosToScreen:
     SUB A, $02
     LD E, A
     ; REVERT BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     RET
 @nonScroll:

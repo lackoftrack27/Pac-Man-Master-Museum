@@ -186,7 +186,7 @@
     P2_TH           DB
 .ENDE
 
-
+/*
 ;   BANKS
 .ENUM $00
     CODE_BANK   DB
@@ -198,6 +198,24 @@
     SND_BANK    DB
     UNCOMP_BANK DB
 .ENDE
+*/
+
+.DEFINE CODE_BANK           $00
+.DEFINE HEADER_BANK         $01
+;
+.DEFINE ACTOR_GFX_BANK      $02
+.DEFINE DEFAULT_BANK        $02
+;
+.DEFINE MAZE_GFX_BANK       $03
+.DEFINE MAZE_TILEMAP_BANK   $04
+;
+.DEFINE MAZE_OTHER_BANK     $05
+.DEFINE JR_TABLES_BANK      $05
+;
+.DEFINE SOUND_BANK          $06
+.DEFINE UNCOMP_BANK         $07
+.DEFINE RNG_PAC_BANK        $08
+.DEFINE RNG_JR_BANK         $09
 
 /*
                     GAME

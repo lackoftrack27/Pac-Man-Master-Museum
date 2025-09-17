@@ -55,7 +55,7 @@ sStateAttractTable@titleMode:
     LD B, SPR_CRAM_SIZE
     OTIR
 ;   RESTORE BANK
-    LD A, SMOOTH_BANK
+    LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   REMOVE "PLUS" IF BIT ISN'T SET
     LD HL, plusBitFlags

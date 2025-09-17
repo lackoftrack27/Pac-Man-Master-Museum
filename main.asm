@@ -818,7 +818,7 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-                ATTRACT SUB STATE DATA [SND_BANK?]
+                ATTRACT SUB STATE DATA
 ----------------------------------------------------------
 */
 .INCDIR "CODE/ATTRACT"
@@ -828,7 +828,7 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-                CUTSCENE SUB STATE DATA [SND_BANK?]
+                CUTSCENE SUB STATE DATA
 ----------------------------------------------------------
 */
 .INCDIR "CODE/CUTSCENE"
@@ -860,11 +860,11 @@ DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR [BANK2 OR CODEBANK]
 
 /*
 ----------------------------------------------------------
-                    SOUND DATA [SND_BANK]
+                    SOUND DATA
 ----------------------------------------------------------
 */
 .INCDIR "CODE/SOUND"
-.SECTION "Sound Data" BANK SND_BANK SLOT 2 FREE
+.SECTION "Sound Data" BANK SOUND_BANK SLOT 2 FREE
     .INCLUDE "soundData.asm"
 .ENDS
 
@@ -1541,7 +1541,7 @@ dotExpireTable:
                     MS. PAC-MAN TABLES
 ----------------------------------------------------------
 */
-.SECTION "MS. PAC-MAN TABLES" FREE ;BANK 2 SLOT 2 FREE    ; PUT IN BANK 2, SLOT 2
+.SECTION "MS. PAC-MAN TABLES" FREE
 
 ; MS. PAC-MAN PALETTE TABLE
 msPalTable:
@@ -1896,7 +1896,7 @@ fruitBounceFrames:
                     JR. PAC-MAN TABLES
 ----------------------------------------------------------
 */
-.SECTION "JR. PAC-MAN TABLES" FREE ;BANK 2 SLOT 2 FREE
+.SECTION "JR. PAC-MAN TABLES" FREE
 ; JR.PAC-MAN PALETTE TABLE
 jrPalTable:
     .DW bgPalJr00   ; 00
@@ -1921,6 +1921,79 @@ jrLevelPalTable:
     .DB $01 $02 $03 $04 ; LVL 14 - 17
     .DB $01 $00 $03 $02 ; LVL 18 - 21
 
+; 1, 0, 3, 2, 5, 4, 6
+; MAZE COLLISION TABLE
+jrMazeColTable:
+    .DW maze6ColData
+    .DW maze5ColData
+    .DW maze8ColData
+    .DW maze7ColData
+    .DW maze10ColData
+    .DW maze9ColData
+    .DW maze11ColData
+; MAZE TILE MAP TABLE
+jrMazeTilemapTable:
+    .DW maze6TileMap
+    .DW maze5TileMap
+    .DW maze8TileMap
+    .DW maze7TileMap
+    .DW maze10TileMap
+    .DW maze9TileMap
+    .DW maze11TileMap
+; MAZE TILES TABLE
+jrMazeTilesTable:
+    .DW maze6Tiles
+    .DW maze5Tiles
+    .DW maze8Tiles
+    .DW maze7Tiles
+    .DW maze10Tiles
+    .DW maze9Tiles
+    .DW maze11Tiles
+; MAZE DOT TABLE
+jrMazeDotTable:
+    .DW maze6DotTable
+    .DW maze5DotTable
+    .DW maze8DotTable
+    .DW maze7DotTable
+    .DW maze10DotTable
+    .DW maze9DotTable
+    .DW maze11DotTable
+; MAZE PDOT TABLE
+jrMazePowTable:
+    .DW maze6PowTable
+    .DW maze5PowTable
+    .DW maze8PowTable
+    .DW maze7PowTable
+    .DW maze10PowTable
+    .DW maze9PowTable
+    .DW maze11PowTable
+; MAZE MDOT TABLE 0 [NORMAL -> MUTATED]
+jrMazeMDotTable:
+    .DW maze6MDotTable
+    .DW maze5MDotTable
+    .DW maze8MDotTable
+    .DW maze7MDotTable
+    .DW maze10MDotTable
+    .DW maze9MDotTable
+    .DW maze11MDotTable
+; MAZE MDOT TABLE 1 [MUTATED -> EATEN]
+jrMazeMEatTable:
+    .DW maze6MEatTable
+    .DW maze5MEatTable
+    .DW maze8MEatTable
+    .DW maze7MEatTable
+    .DW maze10MEatTable
+    .DW maze9MEatTable
+    .DW maze11MEatTable
+; MAZE MDOT TABLE 2 [MUTATED -> NORMAL]
+jrMazeMRstTable:
+    .DW maze6MRstTable
+    .DW maze5MRstTable
+    .DW maze8MRstTable
+    .DW maze7MRstTable
+    .DW maze10MRstTable
+    .DW maze9MRstTable
+    .DW maze11MRstTable
 
 ; DOT COUNT TABLE
 jrMazeDotCounts:
@@ -1997,7 +2070,7 @@ jrMazePDotTargets:
 /*
     SCROLL TABLES
 */
-.SECTION "JR.PAC SCROLL TABLES" BANK JRMAZE_BANK SLOT 2 FORCE ORG $3900;BANK 0 SLOT 0 FORCE ORG $7900
+.SECTION "JR.PAC SCROLL TABLES" BANK JR_TABLES_BANK SLOT 2 FORCE ORG $3900
     /*
     $00 - $07: 04
     $08 - $0F: 03
@@ -2110,9 +2183,6 @@ jrRealScrollTable:
     .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8
     .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8
     .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8,
-
-
-
 .ENDS
 
 
@@ -2137,7 +2207,7 @@ jrRealScrollTable:
 ----------------------------------------------------------
 */
 .INCDIR "ASSETS/ATTRACT"
-.SECTION "ATTRACT MODE GFX DATA" BANK SND_BANK SLOT 2 FREE
+.SECTION "ATTRACT MODE GFX DATA" BANK SOUND_BANK SLOT 2 FREE
 ;   TITLE
     titleTileData:
         .INCBIN "TILE_TITLE.ZX7"
@@ -2166,27 +2236,128 @@ jrRealScrollTable:
 
 
 
-
-
-;   BANK CHANGE
-.BANK SMOOTH_BANK SLOT 2
-
-
+/*
+----------------------------------------------------------
+                    MAZE TILEMAP DATA
+----------------------------------------------------------
+*/
+.SECTION "MAZE TILEMAP DATA" BANK MAZE_TILEMAP_BANK SLOT 2 FREE
+;   MAZE 0
+.INCDIR "ASSETS/MAZE0"
+    maze0TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 1
+.INCDIR "ASSETS/MAZE1"
+    maze1TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 2
+.INCDIR "ASSETS/MAZE2"
+    maze2TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 3
+.INCDIR "ASSETS/MAZE3"
+    maze3TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 4
+.INCDIR "ASSETS/MAZE4"
+    maze4TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 5
+.INCDIR "ASSETS/JRMAZE0"
+    maze5TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 6
+.INCDIR "ASSETS/JRMAZE1"
+    maze6TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 7
+.INCDIR "ASSETS/JRMAZE2"
+    maze7TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 8
+.INCDIR "ASSETS/JRMAZE3"
+    maze8TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 9
+.INCDIR "ASSETS/JRMAZE4"
+    maze9TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 10
+.INCDIR "ASSETS/JRMAZE5"
+    maze10TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+;   MAZE 11
+.INCDIR "ASSETS/JRMAZE6"
+    maze11TileMap:
+        .INCBIN "MAP_MAZE.ZX7"
+.ENDS
 
 /*
 ----------------------------------------------------------
-                        MAZE DATA
+                    MAZE TILE DATA
 ----------------------------------------------------------
 */
-.SECTION "MAZE DATA" FREE
+.SECTION "MAZE TILE DATA" BANK MAZE_GFX_BANK SLOT 2 FREE
+;   MAZE 0
+.INCDIR "ASSETS/MAZE0"
+    maze0Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 1
+.INCDIR "ASSETS/MAZE1"
+    maze1Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 2
+.INCDIR "ASSETS/MAZE2"
+    maze2Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 3
+.INCDIR "ASSETS/MAZE3"
+    maze3Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 4
+.INCDIR "ASSETS/MAZE4"
+    maze4Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 5
+.INCDIR "ASSETS/JRMAZE0"
+    maze5Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 6
+.INCDIR "ASSETS/JRMAZE1"
+    maze6Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 7
+.INCDIR "ASSETS/JRMAZE2"
+    maze7Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 8
+.INCDIR "ASSETS/JRMAZE3"
+    maze8Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 9
+.INCDIR "ASSETS/JRMAZE4"
+    maze9Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 10
+.INCDIR "ASSETS/JRMAZE5"
+    maze10Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+;   MAZE 11
+.INCDIR "ASSETS/JRMAZE6"
+    maze11Tiles:
+        .INCBIN "TILE_MAZE.ZX7"
+.ENDS
+
+/*
+----------------------------------------------------------
+                    MAZE OTHER DATA
+----------------------------------------------------------
+*/
+.SECTION "MAZE DATA (OTHER THAN TILEMAP && GFX)" BANK MAZE_OTHER_BANK SLOT 2 FREE
 ;   MAZE 0
 .INCDIR "ASSETS/MAZE0"
     mazeCollsionData:
         .INCBIN "COL_MAZE.ZX7"
-    mazeTileMap:
-        .INCBIN "MAP_MAZE.ZX7"
-    maze0Tiles:
-        .INCBIN "TILE_MAZE.ZX7"
     maze0EatenTable:
         .INCBIN "DOT_MAZE.ZX7"
     @powDots:
@@ -2195,10 +2366,6 @@ jrRealScrollTable:
 .INCDIR "ASSETS/MAZE1"
     maze1ColData:
         .INCBIN "COL_MAZE.ZX7"
-    maze1TileMap:
-        .INCBIN "MAP_MAZE.ZX7"
-    maze1Tiles:
-        .INCBIN "TILE_MAZE.ZX7"
     maze1DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze1PowTable:
@@ -2207,10 +2374,6 @@ jrRealScrollTable:
 .INCDIR "ASSETS/MAZE2"
     maze2ColData:
         .INCBIN "COL_MAZE.ZX7"
-    maze2TileMap:
-        .INCBIN "MAP_MAZE.ZX7"
-    maze2Tiles:
-        .INCBIN "TILE_MAZE.ZX7"
     maze2DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze2PowTable:
@@ -2219,10 +2382,6 @@ jrRealScrollTable:
 .INCDIR "ASSETS/MAZE3"
     maze3ColData:
         .INCBIN "COL_MAZE.ZX7"
-    maze3TileMap:
-        .INCBIN "MAP_MAZE.ZX7"
-    maze3Tiles:
-        .INCBIN "TILE_MAZE.ZX7"
     maze3DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze3PowTable:
@@ -2231,23 +2390,117 @@ jrRealScrollTable:
 .INCDIR "ASSETS/MAZE4"
     maze4ColData:
         .INCBIN "COL_MAZE.ZX7"
-    maze4TileMap:
-        .INCBIN "MAP_MAZE.ZX7"
-    maze4Tiles:
-        .INCBIN "TILE_MAZE.ZX7"
     maze4DotTable:
         .INCBIN "DOT_MAZE.ZX7"
     maze4PowTable:
         .INCBIN "PDOT_MAZE.ZX7"
+;   MAZE 5
+.INCDIR "ASSETS/JRMAZE0"
+    maze5ColData:
+        .INCBIN "COL_MAZE.ZX7"
+    maze5DotTable:
+        .INCBIN "DOT_MAZE.ZX7"
+    maze5PowTable:
+        .INCBIN "PDOT_MAZE.ZX7"
+    maze5MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    maze5MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    maze5MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
+;   MAZE 6
+.INCDIR "ASSETS/JRMAZE1"
+    maze6ColData:
+        .INCBIN "COL_MAZE.ZX7"
+    maze6DotTable:
+        .INCBIN "DOT_MAZE.ZX7"
+    maze6PowTable:
+        .INCBIN "PDOT_MAZE.ZX7"
+    maze6MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    maze6MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    maze6MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
+;   MAZE 7
+.INCDIR "ASSETS/JRMAZE2"
+    maze7ColData:
+        .INCBIN "COL_MAZE.ZX7"
+    maze7DotTable:
+        .INCBIN "DOT_MAZE.ZX7"
+    maze7PowTable:
+        .INCBIN "PDOT_MAZE.ZX7"
+    maze7MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    maze7MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    maze7MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
+;   MAZE 8
+.INCDIR "ASSETS/JRMAZE3"
+    maze8ColData:
+        .INCBIN "COL_MAZE.ZX7"
+    maze8DotTable:
+        .INCBIN "DOT_MAZE.ZX7"
+    maze8PowTable:
+        .INCBIN "PDOT_MAZE.ZX7"
+    maze8MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    maze8MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    maze8MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
+;   MAZE 9
+.INCDIR "ASSETS/JRMAZE4"
+    maze9ColData:
+        .INCBIN "COL_MAZE.ZX7"
+    maze9DotTable:
+        .INCBIN "DOT_MAZE.ZX7"
+    maze9PowTable:
+        .INCBIN "PDOT_MAZE.ZX7"
+    maze9MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    maze9MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    maze9MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
+;   MAZE 10
+.INCDIR "ASSETS/JRMAZE5"
+    maze10ColData:
+        .INCBIN "COL_MAZE.ZX7"
+    maze10DotTable:
+        .INCBIN "DOT_MAZE.ZX7"
+    maze10PowTable:
+        .INCBIN "PDOT_MAZE.ZX7"
+    maze10MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    maze10MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    maze10MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
+;   MAZE 11
+.INCDIR "ASSETS/JRMAZE6"
+    maze11ColData:
+        .INCBIN "COL_MAZE.ZX7"
+    maze11DotTable:
+        .INCBIN "DOT_MAZE.ZX7"
+    maze11PowTable:
+        .INCBIN "PDOT_MAZE.ZX7"
+    maze11MDotTable:
+        .INCBIN "MDOT0_MAZE.ZX7"
+    maze11MEatTable:
+        .INCBIN "MDOT1_MAZE.ZX7"
+    maze11MRstTable:
+        .INCBIN "MDOT2_MAZE.ZX7"
 .ENDS
-
 
 /*
 ----------------------------------------------------------
                     ACTOR TILE DATA
 ----------------------------------------------------------
 */
-.SECTION "ACTOR GFX DATA" FREE
+.SECTION "ACTOR GFX DATA" BANK ACTOR_GFX_BANK SLOT 2 FREE
+;   SMOOTH
     .INCDIR "ASSETS/GAMEPLAY/SMOOTH"
     ghostTiles:
         .INCBIN "TILE_GHOSTS.ZX7"
@@ -2271,36 +2524,8 @@ jrRealScrollTable:
         .INCBIN "TILE_OTTOGHOSTS.ZX7"
     @plus:
         .INCBIN "TILE_OTTOGHOSTS_PLUS.ZX7"
-.ENDS
-
-/*
-----------------------------------------------------------
-                    CUTSCENE TILE DATA
-----------------------------------------------------------
-*/
-.SECTION "CUTSCENE GFX DATA" FREE
-    .INCDIR "ASSETS/CUTSCENE/SMOOTH"
-    cutscenePacTiles:
-        .INCBIN "TILE_PAC.ZX7"
-    cutsceneGhostTiles:
-        .INCBIN "TILE_GHOST.ZX7"
-    @plus:
-        .INCBIN "TILE_GHOST_PLUS.ZX7"
-    msCutsceneTiles:
-        .INCBIN "TILE_MSCUT.ZX7"
-.ENDS
-
-
-
-;   BANK CHANGE
-.BANK ARCADE_BANK SLOT 2
-.ORG $0000
-
-/*
-----------------------------------------------------------
-                ACTOR TILE DATA [ARCADE]
-----------------------------------------------------------
-*/
+    
+;   ARCADE
 .INCDIR "ASSETS/GAMEPLAY/ARCADE"
 arcadeGFXData:
     @ghosts:
@@ -2343,52 +2568,43 @@ jrExplosionTiles:
 .INCDIR "ASSETS"
 jrHudIconTiles:
     .INCBIN "TILE_ICONS_JR.ZX7"
+.ENDS
+
+/*
+----------------------------------------------------------
+                    CUTSCENE TILE DATA
+----------------------------------------------------------
+*/
+.SECTION "CUTSCENE GFX DATA" BANK ACTOR_GFX_BANK SLOT 2 FREE
+    .INCDIR "ASSETS/CUTSCENE/SMOOTH"
+    cutscenePacTiles:
+        .INCBIN "TILE_PAC.ZX7"
+    cutsceneGhostTiles:
+        .INCBIN "TILE_GHOST.ZX7"
+    @plus:
+        .INCBIN "TILE_GHOST_PLUS.ZX7"
+    msCutsceneTiles:
+        .INCBIN "TILE_MSCUT.ZX7"
+.ENDS
 
 
 
 
-
-;   BANK CHANGE
-.BANK JRMAZE_BANK SLOT 2
-.ORG $0000
-
-.INCDIR "ASSETS/JRMAZE0"
-    jrmaze0ColData:
-        .INCBIN "COL_MAZE.ZX7"
-    jrmaze0TileMap:
-        .INCBIN "MAP_MAZE.ZX7"
-    jrmaze0Tiles:
-        .INCBIN "TILE_MAZE.ZX7"
-    jrmaze0DotTable:
-        .INCBIN "DOT_MAZE.ZX7"
-    jrmaze0PowTable:
-        .INCBIN "PDOT_MAZE.ZX7"
-    jrmaze0MDotTable:
-        .INCBIN "MDOT0_MAZE.ZX7"
-    jrmaze0MEatTable:
-        .INCBIN "MDOT1_MAZE.ZX7"
-    jrmaze0MRstTable:
-        .INCBIN "MDOT2_MAZE.ZX7"
-
-
-
-
-
-
-
-;   BANK CHANGE
-.BANK RNG_BANK SLOT 2
-.ORG $0000
 /*
 ----------------------------------------------------------
         8KB OF ORIGINAL GAME DATA FOR RNG FUNCTION
 ----------------------------------------------------------
 */
-.SECTION "ORIGINAL GAME DATA FOR RNG" FREE
+.SECTION "ORIGINAL GAME DATA FOR RNG [PAC/MS.PAC]" BANK RNG_PAC_BANK SLOT 2 FREE
     .INCDIR "ASSETS"
     rngDataOffset:
         .INCBIN "PAC_RNG.BIN"   ; 8KB
-    @plus:
+        .INCBIN "PLUS_RNG.BIN"  ; 8KB
+.ENDS
+
+.SECTION "ORIGINAL GAME DATA FOR RNG [JR.PAC]" BANK RNG_JR_BANK SLOT 2 FREE
+    .INCDIR "ASSETS"
+        .INCBIN "JR_RNG.BIN"    ; 8KB
         .INCBIN "PLUS_RNG.BIN"  ; 8KB
 .ENDS
 
