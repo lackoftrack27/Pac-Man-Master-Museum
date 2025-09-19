@@ -1037,7 +1037,17 @@ hudTileMaps:
     .DB $F6 $F3 MASK_TILE
 @jrtwoUP:
 ;   "2UP"
-    .DB $F6 $F3 MASK_TILE
+    .DB $F7 $F3 MASK_TILE
+@jrPlayerOne:
+    .DW $01C0 $01C1 $01C2 $01C3 $01C4 $01C5 $01CB $01CC $01CD
+    .DW $01C6 $01C7 $01C8 $01C9 $01CA       $01CE $01CF $01D0
+@jrPlayerTwo:
+    .DW $01C0 $01C1 $01C2 $01C3 $01C4 $01C5 $01D1 $01D2 $01CD
+    .DW $01C6 $01C7 $01C8 $01C9 $01CA       $01D3 $01D4 $01D5
+@jrReady:
+    .DW $00F5 $00F6 $00F7 $00F8 $00F9
+@jrGameover:
+    .DW $00FA $00FB $00FC       $00FD $00FE $00FF
 
 hudLifeTileDefs:
     .DW $19DC $19DE $19DD $19DF
@@ -2198,6 +2208,10 @@ jrRealScrollTable:
         .INCBIN "TILE_HUD.ZX7"
     jrHudTextTiles:
         .INCBIN "TILE_HUD_JR.ZX7"
+    jrHudIconTiles:
+        .INCBIN "TILE_ICONS_JR.ZX7"
+    jrMazeTxtCommTiles:
+        .INCBIN "TILE_MAZETXT_JR.ZX7"
 .ENDS
 
 
@@ -2501,7 +2515,7 @@ jrRealScrollTable:
 */
 .SECTION "ACTOR GFX DATA" BANK ACTOR_GFX_BANK SLOT 2 FREE
 ;   SMOOTH
-    .INCDIR "ASSETS/GAMEPLAY/SMOOTH"
+.INCDIR "ASSETS/GAMEPLAY/SMOOTH"
     ghostTiles:
         .INCBIN "TILE_GHOSTS.ZX7"
     @plus:
@@ -2524,6 +2538,8 @@ jrRealScrollTable:
         .INCBIN "TILE_OTTOGHOSTS.ZX7"
     @plus:
         .INCBIN "TILE_OTTOGHOSTS_PLUS.ZX7"
+    jrExplosionTiles:
+        .INCBIN "TILE_EXP.ZX7"
     
 ;   ARCADE
 .INCDIR "ASSETS/GAMEPLAY/ARCADE"
@@ -2561,13 +2577,6 @@ arcadeGFXData:
         .INCBIN "TILE_GHOST_PLUS.ZX7"
     @cutsceneMs:
         .INCBIN "TILE_MSCUT.ZX7"
-
-.INCDIR "ASSETS/GAMEPLAY/SMOOTH"
-jrExplosionTiles:
-    .INCBIN "TILE_EXP.ZX7"
-.INCDIR "ASSETS"
-jrHudIconTiles:
-    .INCBIN "TILE_ICONS_JR.ZX7"
 .ENDS
 
 /*

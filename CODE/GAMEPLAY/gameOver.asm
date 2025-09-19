@@ -25,7 +25,10 @@ sStateGameplayTable@gameoverMode:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     DJNZ - 
-;   WRITE "PLAYER ONE/TWO" TILES TO VRAM
+;   WRITE "PLAYER ONE/TWO" TILES TO VRAM (IF GAME ISN'T JR)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, @@@displayTileMaps
     ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
     RST setVDPAddress
@@ -40,6 +43,7 @@ sStateGameplayTable@gameoverMode:
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
+@@@displayTileMaps:
 ;   DISPLAY "PLAYER ONE" OR "PLAYER TWO" IF IN 2 PLAYER MODE
     ; CHECK IF TWO PLAYER MODE IS ENABLED
     LD A, (playerType)

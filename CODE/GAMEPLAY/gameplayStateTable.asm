@@ -101,7 +101,13 @@ gamePlayInit:
     DEC (HL)
 ;   SETUP PLAYER TILE POINTERS
     CALL setupTilePtrs
-;   UPLOAD TILES FOR LIFE HUD
+
+    ;LD A, $06
+    ;LD (currPlayerInfo.level), A
+;   UPLOAD TILES FOR LIFE HUD (IF GAME ISN'T JR)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, generalResetFunc
     ; SET VDP ADDRESS
     LD C, VDPCON_PORT
     LD HL, $3B80 | VRAMWRITE
@@ -122,8 +128,6 @@ gamePlayInit:
     LD L, A
     ; WRITE TILES TO VRAM
     CALL pacTileStreaming@writeToVRAM
-    ;LD A, $03
-    ;LD (currPlayerInfo.level), A
 /*
 ----------------------------------------------------------
             RESET FUNCTION FOR GAMEPLAY MODE  
@@ -136,6 +140,9 @@ generalResetFunc:
 ;   RESET SOUND VARS
     CALL sndInit
 ;   LOAD MAZE TEXT SPRITES
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, +
     ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + MAZETXT_VRAM + ($0B * TILE_SIZE) | VRAMWRITE
     RST setVDPAddress
@@ -150,6 +157,12 @@ generalResetFunc:
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
+    JP @loadSprites
++:
+    LD HL, jrMazeTxtCommTiles
+    LD DE, SPRITE_ADDR + MAZETXT_VRAM + ($0B * TILE_SIZE) | VRAMWRITE
+    CALL zx7_decompressVRAM
+@loadSprites:
 ;   LOAD SPRITE TILES
     CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
     CALL loadTileAssets
@@ -184,7 +197,7 @@ generalResetFunc:
 ;   WRITE TILEMAP DATA TO VRAM DEPENDING ON GAME
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, +     ; IF GAME ISN'T JR. PAC, SKIP
+    JR Z, @drawTileMap_NoScroll ; IF GAME ISN'T JR. PAC, SKIP
     ; ENABLE SCROLL
     LD A, $01
     LD (enableScroll), A
@@ -209,38 +222,71 @@ generalResetFunc:
     ; DO FOR WHOLE SCREEN
     DEC D
     JR NZ, -
-    JR ++
-+:
+    JR @prepareMazeText
+@drawTileMap_NoScroll:
 ;   WRITE TILEMAP DATA TO VRAM (PAC-MAN / MS.PAC-MAN)
     LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress
     LD HL, mazeGroup1.tileMap
     LD BC, $600
     CALL copyToVDP
-++:
+@prepareMazeText:
+;   PAC/MS.PAC DRAW MAZE TEXT AS SPRITES, JR DRAWS AS BG
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, @saveTileMapJr
+    ; SKIP IF GAMEMODE ISN'T 1ST READY STATE
     LD A, (subGameMode)
     CP A, GAMEPLAY_READY00
-    JR NZ, +
-;   WRITE "PLAYER"
-    ; SAVE SOME TILES IN RAM
+    JR NZ, @firstTimeChk
+    ; WRITE "PLAYER" TILES FOR PAC/MS.PAC
+        ; SAVE SOME TILES IN RAM
     LD HL, SPRITE_ADDR + PAC_VRAM + $80
     RST setVDPAddress
     LD HL, workArea
     LD BC, $80 * $100 + VDPDATA_PORT
     INIR
-    ; SET VDP ADDRESS
+        ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
     RST setVDPAddress
-    ; GET CORRECT TILES
+        ; GET CORRECT TILES
     LD HL, mazeTxtTilePLAYER
-    ; WRITE TO VRAM
+        ; WRITE TO VRAM
     LD A, UNCOMP_BANK
     LD (MAPPER_SLOT2), A
     LD BC, VDPDATA_PORT
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
-+:
+    JP @firstTimeChk
+@saveTileMapJr:
+;   SAVE TILEMAP AREA TO RAM FOR "PLAYER ONE/TWO" & "READY"
+    LD C, VDPCON_PORT
+    ; PLAYER ROW 0
+    LD DE, NAMETABLE + ($0C * $02) + ($08 * $40)
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD HL, workArea
+    LD B, $12
+    INIR
+    ; PLAYER ROW 1
+    INC C
+    LD DE, NAMETABLE + ($0C * $02) + ($09 * $40)
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD B, $12
+    INIR
+    ; READY
+    INC C
+    LD DE, NAMETABLE + ($0E * $02) + ($0D * $40)
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD B, $0A
+    INIR
+@firstTimeChk:
 ;   RESET SOME VARS ONLY IF ON LEVEL FOR THE FIRST TIME
     LD A, (currPlayerInfo.diedFlag)
     OR A
@@ -270,8 +316,6 @@ firstTimeEnd:
     LD (rngIndex), HL       ; RNG INDEX
     LD (mainTimer2), HL     ; SCATTER/CHASE TIMER
     LD (mainTimer3), HL     ; FRUIT TIMER
-    ;LD (fruitXPos), HL      ; FRUIT POSITION
-    ;LD (fruitYPos), HL      ; FRUIT POSITION
     LD (powDotFrameCounter), A  ; POWER DOT FRAME COUNTER FOR PALETTE CYCLE
     LD (xUPCounter), A      ; 1UP / 2UP FLASH COUNTER
     LD (sprFlickerControl), A   ; SPRITE FLICKER FLAGS

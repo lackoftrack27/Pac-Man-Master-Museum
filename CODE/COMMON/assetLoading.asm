@@ -130,10 +130,6 @@ loadTileAssets:
     ; -----------------------------
 @@jrLoadAssets:
 ;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
-    ; -----------------------------
-    ;LD A, ARCADE_BANK
-    ;LD (MAPPER_SLOT2), A
-    ; -----------------------------
     ; EXPLOSION TILES
     LD HL, jrExplosionTiles
     LD DE, (192 * 32) | VRAMWRITE
@@ -141,11 +137,8 @@ loadTileAssets:
     ; -----------------------------
     ; HUD ICONS
     LD HL, jrHudIconTiles
-    LD DE, $3AA0 | VRAMWRITE
+    LD DE, $3C00 | VRAMWRITE
     CALL zx7_decompressVRAM
-    ; -----------------------------
-    LD A, DEFAULT_BANK
-    LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; FRUIT POINTS
     LD HL, msFruitPointTiles
@@ -188,14 +181,11 @@ loadTileAssets:
     JP zx7_decompressVRAM
     ; -----------------------------
 @arcade:
-;   SET SLOT 2 BANK
-    ;LD A, ARCADE_BANK
-    ;LD (MAPPER_SLOT2), A
 ;   LOAD SPRITE PALETTE FOR ARCADE
     LD HL, sprPalData@arcade
     LD BC, SPR_CRAM_SIZE * $100 + VDPDATA_PORT
     OTIR
-;   CHECK IF GAME IS MS. PAC
+;   CHECK IF GAME IS MS.PAC
     LD A, (plusBitFlags)
     BIT MS_PAC, A
     JP NZ, @@msLoadAssets    ; IF SO, SKIP
@@ -227,9 +217,7 @@ loadTileAssets:
     ; GHOST POINTS
     LD HL, arcadeGFXData@ghostPoints
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    JP @end
+    JP zx7_decompressVRAM
     ; -----------------------------
 +:
 ;   UNIQUE PLUS TILE ASSETS
@@ -246,9 +234,7 @@ loadTileAssets:
     ; GHOST POINTS PLUS
     LD HL, arcadeGFXData@ghostPointsPlus
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    JP @end
+    JP zx7_decompressVRAM
     ; -----------------------------
 @@msLoadAssets:
 ;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
@@ -278,13 +264,11 @@ loadTileAssets:
     ; -----------------------------
     LD A, (plusBitFlags)
     BIT OTTO, A
-    JP Z, @end
+    RET Z
     ; OTTO GHOSTS
     LD HL, arcadeGFXData@ottoGhosts
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    JP @end
+    JP zx7_decompressVRAM
     ; -----------------------------
 +:
     ; FRUIT PLUS
@@ -304,13 +288,11 @@ loadTileAssets:
     ; -----------------------------
     LD A, (plusBitFlags)
     BIT OTTO, A
-    JP Z, @end
+    RET Z
     ; OTTO GHOSTS PLUS
     LD HL, arcadeGFXData@ottoGhostsPlus
     LD DE, SPRITE_ADDR + GHOST_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    JP @end
+    JP zx7_decompressVRAM
     ; -----------------------------
 @@jrLoadAssets:
 ;   COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
@@ -321,7 +303,7 @@ loadTileAssets:
     ; -----------------------------
     ; HUD ICONS
     LD HL, jrHudIconTiles
-    LD DE, $3AA0 | VRAMWRITE
+    LD DE, $3C00 | VRAMWRITE
     CALL zx7_decompressVRAM
     ; -----------------------------
     ; FRUIT POINTS
@@ -346,9 +328,7 @@ loadTileAssets:
     ; GHOST POINTS
     LD HL, arcadeGFXData@ghostPoints
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    JR @end
+    JP zx7_decompressVRAM
     ; -----------------------------
 +:
     ; FRUIT PLUS
@@ -364,12 +344,7 @@ loadTileAssets:
     ; GHOST POINTS PLUS
     LD HL, arcadeGFXData@ghostPointsPlus
     LD DE, SPRITE_ADDR + GSCORE_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-@end:
-    LD A, DEFAULT_BANK
-    LD (MAPPER_SLOT2), A
-    RET
+    JP zx7_decompressVRAM
 
 
 
@@ -533,15 +508,21 @@ loadMaze:
     RET
 
 
+/*
+    INFO: LOAD HUD TILES
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, DE, HL
+*/
 loadHudTiles:
 ;   LOAD HUD TEXT TILES
+    LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE
     LD HL, hudTextTiles     ; ASSUME PAC-MAN / MS.PAC-MAN HUD
     ; SKIP IF GAME ISN'T JR.PAC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, +
-    LD HL, jrHudTextTiles   ; JR.PAC'S HUD TILES
-+:
-    LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE
+    JP Z, zx7_decompressVRAM
+    ; USE JR'S HUD TILES INSTEAD
+    LD HL, jrHudTextTiles
     JP zx7_decompressVRAM
 

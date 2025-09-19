@@ -186,19 +186,6 @@
     P2_TH           DB
 .ENDE
 
-/*
-;   BANKS
-.ENUM $00
-    CODE_BANK   DB
-    HEADER_BANK DB
-    SMOOTH_BANK DB
-    ARCADE_BANK DB
-    JRMAZE_BANK DB
-    RNG_BANK    DB
-    SND_BANK    DB
-    UNCOMP_BANK DB
-.ENDE
-*/
 
 .DEFINE CODE_BANK           $00
 .DEFINE HEADER_BANK         $01

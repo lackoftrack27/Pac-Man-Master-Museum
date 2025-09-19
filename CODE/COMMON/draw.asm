@@ -726,7 +726,7 @@ drawFruitHUD:
     JR C, +     ; IF NOT, SKIP...
     LD A, 6   ; ELSE, SET OFFSET TO 6
 +:
-    ADD A, $D5  ; INITIAL FRUIT SPRITE
+    ADD A, $E0  ; INITIAL FRUIT SPRITE
 ;   SET VDP ADDRESS
     LD C, VDPCON_PORT
     LD HL, $003C | VRAMWRITE
@@ -921,7 +921,7 @@ addLifeOnScreen:
     RST addToHL
     RST setVDPAddress
 ;   DRAW LIFE
-    LD A, $DC
+    LD A, $E7
     OUT (VDPDATA_PORT), A
     LD A, $09
     OUT (VDPDATA_PORT), A
@@ -979,7 +979,7 @@ drawLives:
     LD A, (currPlayerInfo.lives)
     LD B, A
 -:
-    LD A, $DC
+    LD A, $E7
     OUT (VDPDATA_PORT), A
     LD A, $09
     OUT (VDPDATA_PORT), A
@@ -1000,13 +1000,16 @@ drawLives:
     USES: AF, BC, DE, HL
 */
 drawReadyTilemap:
-    LD DE, (($0C * $08) + $06 - $01) * $100 + (($0A * $08) + $02)   ; YX
-;   SET POSITION DEPENDING ON GAME
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP Z, +
-    LD DE, (($0D * $08) + $01) * $100 + (($0E * $08) + $02)   ; YX
-+:
+    JP NZ, @jrReadyBG
+    LD DE, (($0C * $08) + $06 - $01) * $100 + (($0A * $08) + $02)   ; YX
+;   SET POSITION DEPENDING ON GAME
+    ;LD A, (plusBitFlags)
+    ;AND A, $01 << JR_PAC
+    ;JP Z, +
+    ;LD DE, (($0D * $08) + $01) * $100 + (($0E * $08) + $02)   ; YX
+;+:
 ;   SET VDP ADDRESS FOR Y VALUES
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
@@ -1045,6 +1048,15 @@ drawReadyTilemap:
     OUT (C), A
     OUT (C), B
     RET
+@jrReadyBG:
+    LD BC, $0A * $100 + VDPCON_PORT
+    LD DE, NAMETABLE + ($0E * $02) + ($0D * $40) | VRAMWRITE
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD HL, hudTileMaps@jrReady
+    OTIR
+    RET
 
 
 /*
@@ -1054,13 +1066,16 @@ drawReadyTilemap:
     USES: AF, BC, DE, HL
 */
 drawPlayerTilemap:
-    LD DE, (($08 * $08) + $02 - $01) * $100 + (($08 * $08) + $06)   ; YX
-;   SET POSITION DEPENDING ON GAME
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP Z, +
-    LD DE, (($09 * $08) - $03) * $100 + (($0C * $08) + $06)   ; YX
-+:
+    JP NZ, @jrPlayerBG
+    LD DE, (($08 * $08) + $02 - $01) * $100 + (($08 * $08) + $06)   ; YX
+;   SET POSITION DEPENDING ON GAME
+    ;LD A, (plusBitFlags)
+    ;AND A, $01 << JR_PAC
+    ;JP Z, +
+    ;LD DE, (($09 * $08) - $03) * $100 + (($0C * $08) + $06)   ; YX
+;+:
 ;   SET VDP ADDRESS FOR Y VALUES
     LD HL, SPRITE_TABLE + $01 | VRAMWRITE
     RST setVDPAddress
@@ -1129,6 +1144,34 @@ drawPlayerTilemap:
     OUT (C), A
     OUT (C), B
     RET
+@jrPlayerBG:
+    LD HL, hudTileMaps@jrPlayerOne
+    LD A, (playerType)
+    AND A, $01 << CURR_PLAYER
+    JP Z, +
+    LD HL, hudTileMaps@jrPlayerTwo
++:
+    LD C, VDPCON_PORT
+        ; PLAYER ROW 0
+    LD DE, NAMETABLE + ($0C * $02) + ($08 * $40) | VRAMWRITE
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD B, $12
+    OTIR
+        ; PLAYER ROW 1
+    INC C
+    LD DE, NAMETABLE + ($0C * $02) + ($09 * $40) | VRAMWRITE
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD B, $0A
+    OTIR
+    IN F, (C)
+    IN F, (C)
+    LD B, $06
+    OTIR
+    RET
 
 
 /*
@@ -1138,13 +1181,12 @@ drawPlayerTilemap:
     USES: AF, BC, DE, HL
 */
 drawGameOverTilemap:
-    LD DE, (($0C * $08) + $06 - $01) * $100 + (($08 * $08) + $06)   ; YX
-;   SET POSITION DEPENDING ON GAME
+;
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP Z, +
-    LD DE, (($0D * $08) + $01) * $100 + (($0C * $08) + $06)   ; YX
-+:
+    JP NZ, @jrGoverBG
+;
+    LD DE, (($0C * $08) + $06 - $01) * $100 + (($08 * $08) + $06)   ; YX
 ;   SET VDP ADDRESS FOR Y VALUES
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
@@ -1190,6 +1232,19 @@ drawGameOverTilemap:
     INC B
     OUT (C), A
     OUT (C), B
+    RET
+@jrGoverBG:
+    LD BC, $06 * $100 + VDPCON_PORT
+    LD DE, NAMETABLE + ($0D * $02) + ($0D * $40) | VRAMWRITE
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD HL, hudTileMaps@jrGameover
+    OTIR
+    IN F, (C)
+    IN F, (C)
+    LD B, $06
+    OTIR
     RET
 
 

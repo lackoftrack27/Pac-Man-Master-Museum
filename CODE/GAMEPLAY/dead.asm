@@ -167,8 +167,6 @@ sStateGameplayTable@dead02Mode:
     BIT PLAYER_MODE, (HL)
     JR Z, + ; IF NOT, SKIP...
 @@@swapPlayers:
-;   TURN OFF VBLANK INTS (BUT NOT SCREEN!)
-    CALL turnOffVblankInts
 ;   TOGGLE CURRENT PLAYER BIT (BIT 1)
     LD A, $01 << CURR_PLAYER
     XOR A, (HL)

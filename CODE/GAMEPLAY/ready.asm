@@ -40,19 +40,44 @@ sStateGameplayTable@ready00Mode:
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
-;   ERASE PLAYER TEXT
+;   RESTORE DIFFERENT THINGS DEPENDING ON GAME...
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, @@@jrExit
+;   ERASE PLAYER TEXT (PAC/MS.PAC)
     LD HL, SPRITE_TABLE + $01 | VRAMWRITE
     RST setVDPAddress
     LD A, $F7
 .REPEAT $08
     OUT (VDPDATA_PORT), A
 .ENDR
-;   RESTORE GHOST TILES
+;   RESTORE GHOST TILES (PAC/MS.PAC)
     LD HL, SPRITE_ADDR + PAC_VRAM + $80 | VRAMWRITE
     RST setVDPAddress
     LD HL, workArea
     LD BC, $80 * $100 + VDPDATA_PORT
     OTIR
+    JP @@@removeLife
+@@@jrExit:
+;   RESTORE MAZE TILEMAP (JR)
+    LD C, VDPCON_PORT
+        ; PLAYER ROW 0
+    LD DE, NAMETABLE + ($0C * $02) + ($08 * $40) | VRAMWRITE
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD HL, workArea
+    LD B, $12
+    OTIR
+        ; PLAYER ROW 1
+    INC C
+    LD DE, NAMETABLE + ($0C * $02) + ($09 * $40) | VRAMWRITE
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD B, $12
+    OTIR
+@@@removeLife:
 ;   REMOVE A LIFE
     CALL removeLifeonScreen
 ;   SET SUBSTATE TO READY01, SET NEW-STATE-FLAG
@@ -91,8 +116,8 @@ sStateGameplayTable@ready01Mode:
     ; CHECK IF IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_ATTRACT
-    JP Z, drawGameOverTilemap   ; IF SO, DRAW 'GAME  OVER' (VIA TILEMAP)
-    JP drawReadyTilemap         ; ELSE, DRAW 'READY' (VIA SPRITES)
+    JP Z, drawGameOverTilemap   ; IF SO, DRAW 'GAME  OVER'
+    JP drawReadyTilemap         ; ELSE, DRAW 'READY'
     ; RETURN HERE
 @@@afterTextDraw:
     ; CHECK IF PAC-MAN HAS DIED
@@ -108,20 +133,29 @@ sStateGameplayTable@ready01Mode:
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
-    ; SWITCH TO NORMAL MODE AND SETUP
+;   SWITCH TO NORMAL MODE AND SETUP
     LD HL, $01 * $100 + GAMEPLAY_NORMAL
     LD (subGameMode), HL
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_GAMEPLAY
     RET NZ  ; IF SO, SKIP...
-    ; ELSE, ERASE READY TEXT
+;   RESTORE DIFFERENT THINGS DEPENDING ON GAME
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP Z, @@end
+    ; REMOVE READY TEXT (JR)
+    LD BC, $0A * $100 + VDPCON_PORT
+    LD DE, NAMETABLE + ($0E * $02) + ($0D * $40) | VRAMWRITE
+    OUT (C), E
+    OUT (C), D
+    DEC C
+    LD HL, workArea + $24
+    OTIR
+@@end:
+    ; DISABLE UNNEEDED SPRITES
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
     LD A, $D0
-    LD B, $05
--:
     OUT (VDPDATA_PORT), A
-    DJNZ -
-@@end:
     RET

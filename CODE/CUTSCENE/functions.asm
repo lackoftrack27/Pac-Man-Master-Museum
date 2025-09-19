@@ -77,8 +77,6 @@ pacCutsceneInit:
     BIT STYLE_0, A
     JR Z, + ; IF SO, SKIP
     LD HL, pacCutsceneGfxTable@arcade   ; ELSE, DO ARCADE
-    ;LD A, ARCADE_BANK
-    ;LD (MAPPER_SLOT2), A
 +:
     LD A, (plusBitFlags)
     BIT PLUS, A     ; CHECK FOR PLUS
@@ -101,8 +99,6 @@ pacCutsceneInit:
     ; BIG PAC-MAN
     LD DE, SPRITE_ADDR + PAC_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
-    LD A, DEFAULT_BANK
-    LD (MAPPER_SLOT2), A
 ;   PLAY MUSIC
     LD A, MUS_COFFEE
     CALL sndPlayMusic
@@ -330,8 +326,6 @@ msCutSetup:
     ; -----------------------------
 @arcadeGFX:
     ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
-    ;LD A, ARCADE_BANK
-    ;LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; CUTSCENE DATA
     LD HL, arcadeGFXData@cutsceneMs
@@ -351,8 +345,6 @@ msCutSetup:
     OTIR
     ; -----------------------------
 @wait:
-    LD A, DEFAULT_BANK
-    LD (MAPPER_SLOT2), A
 ;   TURN ON SCREEN
     CALL waitForVblank
     JP turnOnScreen
