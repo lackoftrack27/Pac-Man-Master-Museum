@@ -322,6 +322,7 @@ firstTimeEnd:
     LD (eatSubState), A     ; EAT SUBSTATE
     LD (pacPoweredUp), A    ; SUPER FLAG
     LD (dotExpireCounter), A
+    LD (globalDotCounter), A
 ;   ENABLE SPRITE CYCLING
     INC A
     LD (sprFlickerControl), A
