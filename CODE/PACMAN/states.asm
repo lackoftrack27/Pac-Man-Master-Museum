@@ -52,7 +52,7 @@ pacStateTable@update@normalMode:
 */
 @@@@speedPatCheck:
     LD HL, (spdPatternPtr)
-    CALL actorSpdPatternUpdate
+    actorSpdPatternUpdate
     RET NC
     INC HL
     INC HL

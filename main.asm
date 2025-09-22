@@ -5,6 +5,35 @@
 .INCLUDE "constants.inc"
 .INCLUDE "banking.inc"
 .INCLUDE "ramLayout.inc"
+.MACRO actorSpdPatternUpdate
+;      0      1       2      3
+;   LOW_HW HIGH_HW LOW_LW HIGH_LW
+;   LOAD HIGH WORD INTO BC
+    LD C, (HL)
+    INC HL          ; -> HIGH WORD HIGH BYTE
+    LD B, (HL)
+    INC HL          ; -> LOW WORD LOW BYTE
+;   LOAD LOW WORD INTO DE
+    LD E, (HL)
+    INC HL          ; -> LOW WORD HIGH BYTE
+    LD D, (HL)
+;   LEFT SHIFT LOW WORD
+    SLA E
+    RL D
+;   STORE LOW WORD
+    LD (HL), D
+    DEC HL          ; -> LOW WORD LOW BYTE
+    LD (HL), E
+;   SHIFT HIGH WORD (CARRY)
+    RL C
+    RL B
+;   STORE HIGH WORD
+    DEC HL          ; -> HIGH WORD HIGH BYTE
+    LD (HL), B
+    DEC HL          ; -> HIGH WORD LOW BYTE
+    LD (HL), C
+.ENDM
+
 .MACRO addToHLSigned
     OR A
     JP P, +
@@ -16,6 +45,7 @@
     SUB A, L
     LD H, A
 .ENDM
+
 .MACRO multBy29
 ;   HL * 29 (32 - 02 - 01)
     LD E, L
@@ -30,6 +60,7 @@
     POP DE
     SBC HL, DE
 .ENDM
+
 .MACRO addToHL_M
     ADD A, L
     LD L, A

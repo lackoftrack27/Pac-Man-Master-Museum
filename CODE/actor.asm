@@ -30,6 +30,8 @@
     ld      hl,#4d4c	; yes, load HL with speed bit patterns for pacman in power pill state (low bytes)
     inc     (hl)		; increase
     */
+
+    /*
 actorSpdPatternUpdate:
 ;      0      1       2      3
 ;   LOW_HW HIGH_HW LOW_LW HIGH_LW
@@ -58,6 +60,7 @@ actorSpdPatternUpdate:
     DEC HL          ; -> HIGH WORD LOW BYTE
     LD (HL), C
     RET
+    */
 
 
 /*

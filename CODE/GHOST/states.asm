@@ -69,7 +69,7 @@ ghostStateTable@update@scatter:
     LD E, IXL
     ADD HL, DE
 +:
-    CALL actorSpdPatternUpdate
+    actorSpdPatternUpdate
     RET NC
     INC HL
     INC HL
