@@ -236,8 +236,8 @@ ghostPathFindingAI:
 blinkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
-    AND A, $01
-    JP NZ, @chase  ; IF SO, SET TARGET TO BE PAC-MAN
+    RRCA
+    JP C, @chase  ; IF SO, SET TARGET TO BE PAC-MAN
 ;   IF NOT, HE MUST BE IN SCATTER...
     ; CHECK IF DIFF STATE ISN'T 0
     LD A, (difficultyState)
@@ -273,8 +273,8 @@ blinkyTarget:
 pinkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
-    AND A, $01
-    JP NZ, @chase  ; IF SO, PREPARE CHASE TARGET
+    RRCA
+    JP C, @chase  ; IF SO, PREPARE CHASE TARGET
 @scatter:
     ; SET TARGET TO UPPER LEFT CORNER (PAC-MAN ONLY)
     LD HL, $1D39
@@ -333,13 +333,14 @@ pinkyTarget:
 inkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
-    AND A, $01
-    JP NZ, @chase   ; IF SO, PREPARE CHASE TARGET
+    RRCA
+    JP C, @chase   ; IF SO, PREPARE CHASE TARGET
 @scatter:
     ; SET TARGET TO BOTTOM RIGHT CORNER (PAC-MAN/MS.PAC-MAN)
     LD HL, $4020
     ; CHECK IF GAME IS PAC-MAN OR MS.PAC-MAN
     LD A, (plusBitFlags)
+    AND A, $0F      ; REMOVE STYLE BIT
     CP A, $01 << JR_PAC
     JP C, @@setScatter  ; IF SO, SKIP
     ; DO APPROPRIATE FUNCTION
@@ -403,8 +404,8 @@ inkyTarget:
 clydeTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
-    AND A, $01
-    JP NZ, @chase  ; IF SO, PREPARE CHASE TARGET
+    RRCA
+    JP C, @chase  ; IF SO, PREPARE CHASE TARGET
 @scatter:
     ; SET TARGET TO BOTTOM LEFT CORNER (PAC-MAN/MS.PAC-MAN/JR.PAC-MAN)
     LD HL, $403B
