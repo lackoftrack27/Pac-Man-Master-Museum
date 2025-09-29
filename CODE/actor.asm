@@ -153,7 +153,8 @@ rowColToRamPtr:
 ;   MULTIPLY ROW BY 41 (TILES PER ROW)
     LD L, H
     LD H, $00
-    CALL multBy41
+    ;CALL multBy41
+    multBy41
 ;   ADD X AND Y (COLUMN + ROW * 41)
     ADD A, L
     LD L, A
@@ -318,11 +319,12 @@ convPosToScreen:
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JR Z, @nonScroll
-    PUSH HL
     ; CHANGE BANK FOR SCALE TABLE
     LD A, JR_TABLES_BANK
     LD (MAPPER_SLOT2), A
 ;   CONVERSION FROM 8px TILES TO 6px TILES (X)
+    /*
+    EX DE, HL
         ; POS -> INDEX
     LD L, (IX + X_WHOLE)
     LD H, (IX + X_WHOLE + 1)
@@ -332,17 +334,30 @@ convPosToScreen:
     ADD A, hibyte(jrScaleTable)
     LD H, A
         ; GET VALUE
-    LD A, (HL)
-    INC HL
-    LD H, (HL)
-    LD L, A
+    LD L, (HL)
     ; WORLD POS -> SCREEN POS
     LD A, (jrCameraPos)
-    LD E, A
-    LD D, $00
-    SBC HL, DE  ; SCREEN POS = WORLD POS - CAMERA POS
-    LD D, L
-    POP HL    
+    NEG
+    ADD A, L
+    LD H, A
+    EX DE, HL
+    */
+    LD A, (jrCameraPos)
+    LD C, A
+        ; POS -> INDEX
+    LD E, (IX + X_WHOLE)
+    LD D, (IX + X_WHOLE + 1)
+    SLA E
+    RL D
+        ; ADD HIGH BYTES
+    LD A, D
+    ADD A, hibyte(jrScaleTable)
+    LD D, A
+        ; GET VALUE
+    LD A, (DE)
+    ; WORLD POS -> SCREEN POS
+    SUB A, C
+    LD D, A
 ;   CONVERSION FROM 8px TILES TO 6px TILES (Y)
     LD A, (IX + Y_WHOLE)
     LD IYH, A   ; IYH = Y
@@ -458,8 +473,27 @@ actorUpdate:
     LD (IX + X_WHOLE + 1), $00
     LD (IX + Y_WHOLE + 1), $00
 +:
-;   UPDATE CURRENT TILE
-    CALL updateCurrTile
+;   UPDATE CURRENT TILE (COPY OF ROUTINE, DONE TO REMOVE CALL OVERHEAD)
+    ; CURRENT Y
+    LD A, (IX + Y_WHOLE)
+    RRCA
+    RRCA
+    RRCA
+    AND A, $1F
+    ADD A, $20  ; 21
+    LD (IX + CURR_Y), A
+    ; CURRENT X
+    LD L, (IX + X_WHOLE)
+    LD H, (IX + X_WHOLE + 1)
+    SRL H
+    RR L
+    SRL H
+    RR L
+    SRL H
+    RR L
+    LD A, L
+    ADD A, $1E
+    LD (IX + CURR_X), A
 
 /*
 ---------------------------------------------
@@ -503,21 +537,21 @@ updateCollTiles:
     LD (IX + RIGHT_X), D ; -1
     LD (IX + RIGHT_Y), E ; 0
 ;   GET ID VALUES FROM COLLSION MAP
-    LD H, $00
     LD A, (IX + UP_Y)
     SUB A, $21
     LD L, A
     ; MULTIPLY BY EITHER 16 (PAC/MS.) OR 29 (JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, +
-    multBy29
+    JP NZ, +
+    LD H, $00
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
     JP @addX
 +:
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
+    multBy29
 @addX:
     ; CHECK IF X TILE IS EVEN OR ODD
     LD A, (IX + UP_X)
@@ -638,21 +672,21 @@ updateCollTiles:
 getTileID:
     PUSH DE
 ;   GET ID VALUES FROM COLLSION MAP
-    LD H, $00
     LD A, D
     SUB A, $21
     LD L, A
     ; MULTIPLY BY EITHER 16 (PAC/MS.) OR 29 (JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, +
-    multBy29
+    JR NZ, +
+    LD H, $00
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
     JP @addX
 +:
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
+    multBy29
 @addX:
     POP DE
     ; CHECK IF X TILE IS EVEN OR ODD

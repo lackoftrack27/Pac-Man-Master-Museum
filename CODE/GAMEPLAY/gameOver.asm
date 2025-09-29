@@ -67,14 +67,14 @@ sStateGameplayTable@gameoverMode:
     ADD HL, DE
     JP C, +
     LD (pacman.xPos), DE
-    JP ++
+    JP @@@enterEnd
 +:
     LD DE, $007A
     OR A
     SBC HL, DE
-    JP NC, ++
+    JP NC, @@@enterEnd
     LD (pacman.xPos), DE
-++:
+@@@enterEnd:
     XOR A
     LD (vblankFlag), A
     RET 
@@ -89,34 +89,23 @@ sStateGameplayTable@gameoverMode:
 ;   DRAW 1UP
     CALL draw1UP
 @@update:
-;   MOVE SCREEN TO CENTER
+;   MOVE SCREEN TO CENTER (IF GAME IS JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, ++
+    JR Z, @@@updateTimer
     LD HL, (pacman.xPos)
     LD DE, $00E8
     SBC HL, DE
     ADD HL, DE
-    JR Z, ++
+    JR Z, @@@updateTimer
     JR C, +
     DEC HL
     LD (pacman.xPos), HL
-    JP ++
+    JP @@@updateTimer
 +:
     INC HL
     LD (pacman.xPos), HL
-    /*
-    LD HL, jrScrollReal
-    LD A, (HL)
-    OR A
-    JP Z, ++
-    JP P, +
-    INC (HL)
-    JP ++
-+:
-    DEC (HL)
-    */
-++:
+@@@updateTimer:
 ;   DECREMENT TIMER 0
     LD HL, mainTimer0
     DEC (HL)

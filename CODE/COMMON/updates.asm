@@ -115,18 +115,15 @@ getInput:
     IN A, CONTROLPORT1
     CPL     ; INVERT SO 1 = PRESSED, 0 = NO PRESS
     LD (controlPort1), A
+    LD B, A
     ; REST OF PLAYER 2
     IN A, CONTROLPORT2
     CPL
     LD (controlPort2), A
-;   SET UP PORTS
-    LD A, (controlPort1)
-    LD B, A
-    LD A, (controlPort2)
     LD C, A
 ;   CHECK WHICH PLAYER IS PLAYING
     LD A, (playerType)
-    AND A, $01 << $01
+    AND A, $01 << CURR_PLAYER
     JP NZ, +    ; IF PLAYER 2, SKIP...
 ;   GET INPUTS FROM PLAYER 1 (LEFT, RIGHT, UP, DOWN)
     ; ASSUME LEFT IS PRESSED
@@ -753,18 +750,18 @@ mazeUpdate:
     LD A, (pacman + CURR_Y)
     SUB A, $21
     LD L, A
-    LD H, $00
     ; MULTIPLY BY EITHER 16 (PAC/MS.) OR 29 (JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP Z, +
-    multBy29
+    JP NZ, +
+    LD H, $00
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
     JP @addX
 +:
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
+    multBy29
 @addX:
     ; ADD X TILE TO OFFSET
     LD A, (pacman + CURR_X)
@@ -892,10 +889,12 @@ allDotsEatenCheck:
     LD L, $F4   ; DOT AMOUNT FOR PAC-MAN (ASSUME GAME IS PAC-MAN)
 ;   CHECK IF GAME IS MS. PAC
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JP NZ, @msCheck
-    BIT JR_PAC, A
-    JP NZ, @jrCheck
+    RRCA
+    RRCA
+    JP C, @msCheck
+;   CHECK IF GAME IS JR. PAC
+    RRCA
+    JP C, @jrCheck
 @pacCheck:
 ;   CHECK IF DOTS EATEN COUNTER MATCHES MAZE AMOUNT
     LD A, (currPlayerInfo.dotCount)
@@ -1021,8 +1020,7 @@ updatePlayerDotCount:
     INC HL
     LD (currPlayerInfo.jrDotCount), HL
 ;   CHECK IF JR DOT COUNT IS ODD
-    LD A, L
-    RRCA
+    RRC L
     RET NC  ; IF NOT, END
 ;   CHECK IF NORMAL DOT COUNT == $F4
     LD A, (currPlayerInfo.dotCount)

@@ -12,12 +12,7 @@
 ------------------------------------------------
 */
 ghostStateTable@update@scatter:
-;   CHECK STATE
-    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    ;JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
-    ; STATE IS NO LONGER NEW
-    ;LD (IX + NEW_STATE_FLAG), $00
 @@@update:
 /*
 ------------------------------------------------
@@ -181,9 +176,6 @@ ghostStateTable@update@scatter:
 ------------------------------------------------
 */
 ghostStateTable@update@gotoHome:
-;   CHECK STATE
-    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    ;JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
 @@@update:
 ;   MOVE GHOST
@@ -219,12 +211,7 @@ ghostStateTable@update@gotoHome:
 ------------------------------------------------
 */
 ghostStateTable@update@gotoCenter:
-;   CHECK STATE
-    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    ;JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
-;   STATE IS NO LONGER NEW
-    ;LD (IX + NEW_STATE_FLAG), $00
 @@@update:
 ;   FORCE GHOST TO GO DOWN
     LD (IX + CURR_DIR), DIR_DOWN
@@ -365,12 +352,7 @@ ghostStateTable@update@gotoRest:
 ------------------------------------------------
 */
 ghostStateTable@update@rest:
-;   CHECK STATE
-    ;BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
-    ;JR Z, @@@update                 ; IF NOT, SKIP TRANSITION 
 @@@enter:
-;   STATE IS NO LONGER NEW
-    ;LD (IX + NEW_STATE_FLAG), $00
 @@@update:
 ;   CHECK IF GHOST NEEDS TO REVERSE
     LD A, (IX + Y_WHOLE)

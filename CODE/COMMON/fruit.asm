@@ -755,7 +755,8 @@ fruitState3:
     LD H, $00
     PUSH HL     ; SAVE RAM_ROW FOR LATER
     ; MULTIPLY BY 41 (TILES PER ROW)
-    CALL multBy41
+    ;CALL multBy41
+    multBy41
     ; ADD X AND Y
     LD C, B
     LD B, $00
@@ -1280,7 +1281,7 @@ updateCollMapFruitMDot:
     LD A, (fruit + CURR_Y)
     SUB A, $21
     LD L, A
-    LD H, $00
+    ;LD H, $00
     multBy29
 ;   ADD X TILE TO OFFSET
     LD A, (fruit + CURR_X)
@@ -1384,7 +1385,7 @@ updateCollMapFruitPDot:
     LD A, (fruit + CURR_Y)
     SUB A, $21
     LD L, A
-    LD H, $00
+    ;LD H, $00
     multBy29
 ;   ADD X TILE TO OFFSET
     LD A, (fruit + CURR_X)

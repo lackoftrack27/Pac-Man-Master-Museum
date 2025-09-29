@@ -988,11 +988,6 @@ drawLives:
 
 
 
-
-
-
-
-
 /*
     INFO: DRAWS "READY!"
     INPUT: NONE
@@ -1000,17 +995,13 @@ drawLives:
     USES: AF, BC, DE, HL
 */
 drawReadyTilemap:
+;   RENDER "READY!" TEXT USING BG TILES IF GAME IS JR
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP NZ, @jrReadyBG
+;   ELSE, RENDER USING SPRITES
     LD DE, (($0C * $08) + $06 - $01) * $100 + (($0A * $08) + $02)   ; YX
-;   SET POSITION DEPENDING ON GAME
-    ;LD A, (plusBitFlags)
-    ;AND A, $01 << JR_PAC
-    ;JP Z, +
-    ;LD DE, (($0D * $08) + $01) * $100 + (($0E * $08) + $02)   ; YX
-;+:
-;   SET VDP ADDRESS FOR Y VALUES
+    ; WRITE Y VALUES
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
     LD A, D
@@ -1019,7 +1010,7 @@ drawReadyTilemap:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
-;   SET VDP ADDRESS FOR X AND INDEX VALUES
+    ; WRITE X AND INDEX VALUES
     LD HL, SPRITE_TABLE_XN + ($19 * $02) | VRAMWRITE
     RST setVDPAddress
     LD BC, (MAZETXT_INDEX + $0B) * $100 + VDPDATA_PORT  ; TILE ID AND VDP DATA PORT
@@ -1049,11 +1040,14 @@ drawReadyTilemap:
     OUT (C), B
     RET
 @jrReadyBG:
+    ; RENDER TEXT ON BACKGROUND
+        ; SET VDP ADDRESS
     LD BC, $0A * $100 + VDPCON_PORT
     LD DE, NAMETABLE + ($0E * $02) + ($0D * $40) | VRAMWRITE
     OUT (C), E
     OUT (C), D
     DEC C
+        ; WRITE TILEMAP
     LD HL, hudTileMaps@jrReady
     OTIR
     RET
@@ -1066,17 +1060,13 @@ drawReadyTilemap:
     USES: AF, BC, DE, HL
 */
 drawPlayerTilemap:
+;   RENDER "PLAYER XXX" TEXT USING BG TILES IF GAME IS JR
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP NZ, @jrPlayerBG
+;   ELSE, RENDER USING SPRITES
     LD DE, (($08 * $08) + $02 - $01) * $100 + (($08 * $08) + $06)   ; YX
-;   SET POSITION DEPENDING ON GAME
-    ;LD A, (plusBitFlags)
-    ;AND A, $01 << JR_PAC
-    ;JP Z, +
-    ;LD DE, (($09 * $08) - $03) * $100 + (($0C * $08) + $06)   ; YX
-;+:
-;   SET VDP ADDRESS FOR Y VALUES
+    ; WRITE Y VALUES
     LD HL, SPRITE_TABLE + $01 | VRAMWRITE
     RST setVDPAddress
     LD A, D
@@ -1088,7 +1078,7 @@ drawPlayerTilemap:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
-;   SET VDP ADDRESS FOR X AND INDEX VALUES
+    ; WRITE X AND INDEX VALUES
     LD HL, SPRITE_TABLE_XN + ($01 * $02) | VRAMWRITE
     RST setVDPAddress
     LD BC, $59 * $100 + VDPDATA_PORT  ; TILE ID AND VDP DATA PORT
@@ -1145,12 +1135,14 @@ drawPlayerTilemap:
     OUT (C), B
     RET
 @jrPlayerBG:
+    ; RENDER EITHER "PLAYER ONE" OR "PLAYER TWO" DEPENDING ON WHO IS PLAYING
     LD HL, hudTileMaps@jrPlayerOne
     LD A, (playerType)
     AND A, $01 << CURR_PLAYER
     JP Z, +
     LD HL, hudTileMaps@jrPlayerTwo
 +:
+    ; RENDER TEXT ON BACKGROUND
     LD C, VDPCON_PORT
         ; PLAYER ROW 0
     LD DE, NAMETABLE + ($0C * $02) + ($08 * $40) | VRAMWRITE
@@ -1181,13 +1173,13 @@ drawPlayerTilemap:
     USES: AF, BC, DE, HL
 */
 drawGameOverTilemap:
-;
+;   RENDER "GAME  OVER" TEXT USING BG TILES IF GAME IS JR
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP NZ, @jrGoverBG
-;
+;   ELSE, RENDER USING SPRITES
     LD DE, (($0C * $08) + $06 - $01) * $100 + (($08 * $08) + $06)   ; YX
-;   SET VDP ADDRESS FOR Y VALUES
+    ; WRITE Y VALUES
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress
     LD A, D
@@ -1197,7 +1189,7 @@ drawGameOverTilemap:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
-;   SET VDP ADDRESS FOR X AND INDEX VALUES
+    ; WRITE X AND INDEX VALUES
     LD HL, SPRITE_TABLE_XN + ($19 * $02) | VRAMWRITE
     RST setVDPAddress
     LD BC, (MAZETXT_INDEX + $10) * $100 + VDPDATA_PORT  ; TILE ID AND VDP DATA PORT
@@ -1234,11 +1226,14 @@ drawGameOverTilemap:
     OUT (C), B
     RET
 @jrGoverBG:
+    ; RENDER TEXT ON BACKGROUND
+        ; SET VDP ADDRESS
     LD BC, $06 * $100 + VDPCON_PORT
     LD DE, NAMETABLE + ($0D * $02) + ($0D * $40) | VRAMWRITE
     OUT (C), E
     OUT (C), D
     DEC C
+        ; WRITE TILEMAP
     LD HL, hudTileMaps@jrGameover
     OTIR
     IN F, (C)
@@ -1278,7 +1273,6 @@ drawNewColumn:
     LD A, (jrScrollReal)
     SUB A, B
     OR A
-    ;LD BC, ($17 * $03) * $100 + VDPDATA_PORT    ; SETUP LOOP FOR LATER
     LD B, 46
     LD A, (jrLeftMostTile) 
     JP P, +
@@ -1286,7 +1280,6 @@ drawNewColumn:
 +:
     ADD A, A
     LD HL, mazeGroup1.tileMap
-    ;RST addToHL
     ADD A, L
     LD L, A
     ADC A, H

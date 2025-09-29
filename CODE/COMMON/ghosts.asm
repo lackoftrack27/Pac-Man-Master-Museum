@@ -155,9 +155,10 @@ dotExpireUpdate:
     INFO: DETERMINES IF A GHOST CAN LEAVE HOME BASED ON PERSONAL OR GLOBAL DOT COUNTER
     INPUT: NONE
     OUTPUT: NONE
-    USES: AF, BC, HL
+    USES: AF, BC, DE, HL
 */
 ghostDotReleaser:
+    LD DE, GHOST_GOTOEXIT * $100 + $01
     LD B, GHOST_REST
     LD A, (plusBitFlags)
     LD C, A
@@ -178,12 +179,9 @@ ghostDotReleaser:
     JP Z, @inkyDiedFlag
     CP A, $07
     JP C, @inkyDiedFlag
-;   RELEASE PINKY
 +:
-    LD A, GHOST_GOTOEXIT
-    LD (pinky + STATE), A
-    LD A, $01
-    LD (pinky + NEW_STATE_FLAG), A
+;   RELEASE PINKY
+    LD (pinky + NEW_STATE_FLAG), DE
 @inkyDiedFlag:
 ;   SKIP IF INKY IS AT REST
     LD A, (inky + STATE)
@@ -197,12 +195,9 @@ ghostDotReleaser:
     JP Z, @clydeDiedFlag
     CP A, $11
     JP C, @clydeDiedFlag
-;   RELEASE INKY
 +:
-    LD A, GHOST_GOTOEXIT
-    LD (inky + STATE), A
-    LD A, $01
-    LD (inky + NEW_STATE_FLAG), A
+;   RELEASE INKY
+    LD (inky + NEW_STATE_FLAG), DE
 @clydeDiedFlag:
 ;   END IF CLYDE IS AT REST
     LD A, (clyde + STATE)
@@ -216,8 +211,8 @@ ghostDotReleaser:
     RET Z
     CP A, $20
     RET C
-;   RESET DIED FLAG AND GLOBAL DOT COUNTER
 +:
+;   RESET DIED FLAG AND GLOBAL DOT COUNTER
     XOR A
     LD (currPlayerInfo.diedFlag), A
     LD (globalDotCounter), A
@@ -233,10 +228,7 @@ ghostDotReleaser:
     CP A, (HL)
     JP C, @inky
 ;   RELEASE PINKY
-    LD A, GHOST_GOTOEXIT
-    LD (pinky + STATE), A
-    LD A, $01
-    LD (pinky + NEW_STATE_FLAG), A
+    LD (pinky + NEW_STATE_FLAG), DE
 @inky:
     INC HL
 ;   SKIP IF INKY IS AT REST
@@ -248,10 +240,7 @@ ghostDotReleaser:
     CP A, (HL)
     JP C, @clyde
 ;   RELEASE INKY
-    LD A, GHOST_GOTOEXIT
-    LD (inky + STATE), A
-    LD A, $01
-    LD (inky + NEW_STATE_FLAG), A
+    LD (inky + NEW_STATE_FLAG), DE
 @clyde:
     INC HL
 ;   END IF CLYDE IS AT REST
@@ -263,10 +252,7 @@ ghostDotReleaser:
     CP A, (HL)
     RET C
 ;   RELEASE CLYDE
-    LD A, GHOST_GOTOEXIT
-    LD (clyde + STATE), A
-    LD A, $01
-    LD (clyde + NEW_STATE_FLAG), A
+    LD (clyde + NEW_STATE_FLAG), DE
     RET
 
 
@@ -281,14 +267,12 @@ ghostDotReleaser:
 ghostUpdateDeadState:
 ;   DETERMINE WHICH GHOST WAS EATEN
     AND A, $7F  ; CLEAR BIT 7
-    DEC A
-    ; 0-BLINKY,1-PINKY,2-INKY,3-CLYDE
-    LD E, A     ; E = (SPR_NUM - 5) / 4
-    LD H, _sizeof_ghost
-    CALL multiply8Bit
-    EX DE, HL
-    LD IX, blinky
+    LD B, A
+    LD IX, blinky - _sizeof_ghost
+    LD DE, _sizeof_ghost
+-:
     ADD IX, DE
+    DJNZ -
 ;   SET FLAGS FOR EATEN GHOST
     ; SET STATE TO "GO HOME"
     LD (IX + STATE), GHOST_GOTOHOME
@@ -317,9 +301,9 @@ ghostOutHomeUpdate:
     OR A
     JP NZ, +    ; IF NOT, SKIP
     ; CHECK IF GHOST IS ALIVE
-    LD A, (blinky + ALIVE_FLAG)
-    OR A
-    JP Z, +     ; IF NOT, SKIP
+    ;LD A, (blinky + ALIVE_FLAG)
+    ;OR A
+    ;JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, blinky
     CALL ghostStateTable@update@scatter
@@ -330,9 +314,9 @@ ghostOutHomeUpdate:
     OR A
     JP NZ, +    ; IF NOT, SKIP
     ; CHECK IF GHOST IS ALIVE
-    LD A, (pinky + ALIVE_FLAG)
-    OR A
-    JP Z, +     ; IF NOT, SKIP
+    ;LD A, (pinky + ALIVE_FLAG)
+    ;OR A
+    ;JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, pinky
     CALL ghostStateTable@update@scatter
@@ -343,9 +327,9 @@ ghostOutHomeUpdate:
     OR A
     JP NZ, +    ; IF NOT, SKIP
     ; CHECK IF GHOST IS ALIVE
-    LD A, (inky + ALIVE_FLAG)
-    OR A
-    JP Z, +     ; IF NOT, SKIP
+    ;LD A, (inky + ALIVE_FLAG)
+    ;OR A
+    ;JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, inky
     CALL ghostStateTable@update@scatter
@@ -356,9 +340,9 @@ ghostOutHomeUpdate:
     OR A
     RET NZ      ; IF NOT, SKIP
     ; CHECK IF GHOST IS ALIVE
-    LD A, (clyde + ALIVE_FLAG)
-    OR A
-    RET Z       ; IF NOT, SKIP
+    ;LD A, (clyde + ALIVE_FLAG)
+    ;OR A
+    ;RET Z       ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, clyde
     JP ghostStateTable@update@scatter
@@ -375,11 +359,11 @@ ghostToHomeUpdate:
 ;   BLINKY
     ; CHECK IF GHOST IS GOING HOME
     LD A, (blinky + STATE)
-    OR A
-    JP Z, +     ; IF NOT, SKIP
-    CP A, GHOST_REST
+    DEC A
+    CP A, GHOST_REST - 1
     JP NC, +    ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
+    INC A
     LD IX, blinky
     LD HL, ghostStateTable@update
     RST jumpTableExec
@@ -387,11 +371,11 @@ ghostToHomeUpdate:
 ;   PINKY
     ; CHECK IF GHOST IS GOING HOME
     LD A, (pinky + STATE)
-    OR A
-    JP Z, +     ; IF NOT, SKIP
-    CP A, GHOST_REST
+    DEC A
+    CP A, GHOST_REST - 1
     JP NC, +    ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
+    INC A
     LD IX, pinky
     LD HL, ghostStateTable@update
     RST jumpTableExec
@@ -399,11 +383,11 @@ ghostToHomeUpdate:
 ;   INKY
     ; CHECK IF GHOST IS GOING HOME
     LD A, (inky + STATE)
-    OR A
-    JP Z, +     ; IF NOT, SKIP
-    CP A, GHOST_REST
+    DEC A
+    CP A, GHOST_REST - 1
     JP NC, +    ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
+    INC A
     LD IX, inky
     LD HL, ghostStateTable@update
     RST jumpTableExec
@@ -411,11 +395,11 @@ ghostToHomeUpdate:
 ;   CLYDE
     ; CHECK IF GHOST IS GOING HOME
     LD A, (clyde + STATE)
-    OR A
-    RET Z       ; IF NOT, SKIP
-    CP A, GHOST_REST
+    DEC A
+    CP A, GHOST_REST - 1
     RET NC      ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
+    INC A
     LD IX, clyde
     LD HL, ghostStateTable@update
     JP jumpTableExec

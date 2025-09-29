@@ -35,7 +35,7 @@ multBy6_16:
     ADD HL, DE
     RET
 
-
+/*
 multBy41:
 ;   HL * 41 (32 + 08 + 01)
     LD E, L
@@ -50,6 +50,7 @@ multBy41:
     POP DE
     ADD HL, DE
     RET
+    */
 
 /*
     INFO: MULTIPLIES A UNSIGNED 8-BIT NUMBER BY 6

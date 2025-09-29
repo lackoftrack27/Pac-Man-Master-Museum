@@ -413,7 +413,8 @@ pacStateTable@update@normalMode:
     LD H, $00
     PUSH HL     ; SAVE RAM_ROW FOR LATER
     ; MULTIPLY BY 41 (TILES PER ROW)
-    CALL multBy41
+    ;CALL multBy41
+    multBy41
     ; ADD X AND Y
     LD A, B ; RAM_COL INTO A
     ADD A, L
@@ -513,7 +514,6 @@ pacStateTable@update@normalMode:
 @@@exit:
 ;   NO EXIT
 @@@end:
-    ;RET
     JP mazeUpdate
 
 
