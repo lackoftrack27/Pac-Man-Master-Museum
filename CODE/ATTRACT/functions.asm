@@ -369,9 +369,13 @@ generalIntroSetup01:
     CALL powDotCyclingUpdate@refresh
 ;   DRAW STATIC HUD ELEMENTS
     ; 1UP
-    CALL draw1UPDemo
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    CALL Z, draw1UPDemo
     ; "HIGH SCORE" AND "SCORE"
-    CALL drawScoresText
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    CALL Z, drawScoresText
 ;   TURN ON DISPLAY
     CALL waitForVblank
     JP turnOnScreen

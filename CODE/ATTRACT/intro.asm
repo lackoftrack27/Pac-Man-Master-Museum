@@ -57,8 +57,6 @@ sStateAttractTable@introMode:
     LD A, $01
     LD (sprFlickerControl), A
 @@draw:
-;   POWER PELLET PALETTE CYCLING
-    CALL drawPowDots
 ;   UPDATE GHOST VISUAL COUNTERS
     CALL ghostVisCounterUpdate
 @@update:
@@ -79,8 +77,6 @@ sStateAttractTable@introMode:
     JR @@@stateJump
 +:
 ;   DRAW FUNCTION FOR STATES 15 AND ABOVE
-    ; UPDATE POWER DOT PALETTE CYCLE
-    CALL powDotCyclingUpdate
     ; DISPLAY PAC-MAN
     CALL pacTileStreaming
     CALL displayPacMan
@@ -97,6 +93,10 @@ sStateAttractTable@introMode:
     LD A, (ghostPointSprNum)
     OR A
     CALL NZ, drawGhostPoints
+    ; POWER PELLET PALETTE CYCLING
+    CALL drawPowDots
+    ; UPDATE POWER DOT PALETTE CYCLE
+    CALL powDotCyclingUpdate
 ;   UPDATE FUNCTION TABLE
 @@@stateJump:
 ;   CONVERT STATE INTO OFFSET

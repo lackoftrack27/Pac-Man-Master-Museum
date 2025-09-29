@@ -49,7 +49,7 @@ sStateAttractTable:
     .dw @demoInputCheck     ; 08 [GAME OVER]
     .DW @msIntroMode        ; 09
     .dw @introMode          ; 0A    CRAZY OTTO
-    .DW $0000;@jrIntroMode
+    .DW @jrIntroMode
 
 /*
 ----------------------------------------------
@@ -60,6 +60,7 @@ sStateAttractTable:
 .INCLUDE "options.asm"
 .INCLUDE "intro.asm"
 .INCLUDE "msIntro.asm"
+.INCLUDE "jrIntro.asm"
 .INCLUDE "demo.asm"
 
 .INCLUDE "functions.asm"    ; COMMON FUNCTIONS

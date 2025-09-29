@@ -134,30 +134,48 @@ sStateGameplayTable@comp01Mode:
     LD HL, (currPlayerInfo.levelTablePtr)
     LD A, (HL)
     CP A, $14   ; HIGHEST LEVEL
-    JP Z, generalResetFunc  
-    ; IF SO, DON'T INCREMENT POINTER
-    ; ELSE, INCREMENT POINTER
+    JP Z, generalResetFunc  ; IF SO, DON'T INCREMENT POINTER, SKIP CUTSCENE CHECK
+    ; INCREMENT LEVEL POINTER
     INC HL
     LD (currPlayerInfo.levelTablePtr), HL
-;   CUTSCENE CHECK (2, 5, 9, 13, 17)
+;   CUTSCENE CHECK
     LD B, $02   ; CUTSCENE SUBSTATE FOR SCENE 2
-    ; GET CURRENT LEVEL
+    ; CUTSCENES APPEAR AT DIFFERENT LEVELS IN JR PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JP NZ, +
+    ; CUTSCENE CHECK [PAC/MS] (2, 5, 9, 13, 17)
     LD A, (currPlayerInfo.level)
     CP A, $11   ; CHECK IF LEVEL IS 17  02
-    JR Z, +
+    JR Z, @@@switchToCutscene
     CP A, $0D   ; CHECK IF LEVEL IS 13  02
-    JR Z, +
-    CP A, $09   ; CHECK IF LEVEL IS 9   02
-    JR Z, +
+    JR Z, @@@switchToCutscene
+    CP A, $09   ; CHECK IF LEVEL IS 09  02
+    JR Z, @@@switchToCutscene
     DEC B
-    CP A, $05   ; CHECK IF LEVEL IS 5   01
-    JR Z, +
+    CP A, $05   ; CHECK IF LEVEL IS 05  01
+    JR Z, @@@switchToCutscene
     DEC B
-    CP A, $02   ; CHECK IF LEVEL IS 2   00
-    JR Z, +
-;   DO GENERAL GAMEPLAY RESET
+    CP A, $02   ; CHECK IF LEVEL IS 02  00
+    JR Z, @@@switchToCutscene
     JP generalResetFunc
 +:
+    ; CUTSCENE CHECK [JR] (1, 3, 5, 7, 9)
+    LD A, (currPlayerInfo.level)
+    CP A, $09   ; CHECK IF LEVEL IS 09  02
+    JR Z, @@@switchToCutscene
+    CP A, $07   ; CHECK IF LEVEL IS 07  02
+    JR Z, @@@switchToCutscene
+    CP A, $05   ; CHECK IF LEVEL IS 05  02
+    JR Z, @@@switchToCutscene
+    DEC B
+    CP A, $03   ; CHECK IF LEVEL IS 03  01
+    JR Z, @@@switchToCutscene
+    DEC B
+    CP A, $01   ; CHECK IF LEVEL IS 01  00
+    JR Z, @@@switchToCutscene
+    JP generalResetFunc
+@@@switchToCutscene:
 ;   SETUP CUTSCENE STATE
     ; SET SUBSTATE
     LD A, (plusBitFlags)    ; ADD 0/4/8 DEPENDING ON GAME

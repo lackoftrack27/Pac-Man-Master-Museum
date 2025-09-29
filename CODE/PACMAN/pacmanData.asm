@@ -10,6 +10,8 @@ dirVectors:
     .DW $0001   ; DOWN
     .DW $FF00   ; RIGHT
 
+jrTileList:
+    .DB $55 $56 $57 $58
 playerTileList:
     .DB $59 $5A $5B $5C
 playerTwoTileList:

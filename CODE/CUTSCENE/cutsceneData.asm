@@ -82,6 +82,17 @@ pacCutGhostDefs         (SPRITE_ADDR + GHOST_CUT_VRAM) / TILE_SIZE
     .DB VAL+$04, VAL+$0A, VAL+$05, VAL+$0B  ; LEFT 1
 .ENDM
 
+.MACRO jrSceneGhostDefs ARGS, VAL
+    .DB VAL+$06, VAL+$08, VAL+$07, VAL+$09  ; UP 0
+    .DB VAL+$06, VAL+$0A, VAL+$07, VAL+$0B  ; UP 1
+    .DB VAL+$04, VAL+$08, VAL+$05, VAL+$09  ; LEFT 0
+    .DB VAL+$04, VAL+$0A, VAL+$05, VAL+$0B  ; LEFT 1
+    .DB VAL+$02, VAL+$08, VAL+$03, VAL+$09  ; DOWN 0
+    .DB VAL+$02, VAL+$0A, VAL+$03, VAL+$0B  ; DOWN 1
+    .DB VAL, VAL+$08, VAL+$01, VAL+$09      ; RIGHT 0
+    .DB VAL, VAL+$0A, VAL+$01, VAL+$0B      ; RIGHT 1
+.ENDM
+
 
 .MACRO msSceneOttoGhostDefs ARGS, VAL
     .DB VAL, VAL+$0F, VAL+$01, VAL+$10      ; RIGHT 0
@@ -240,12 +251,15 @@ msSceneGhostTileTbl:
     ; PINKY & INKY
     msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $0C
     msSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $18
+    ; BLINKY & CLYDE (JR)
+    jrSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $00
+    jrSceneGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $24
 @otto:
     ; PINKY & INKY (OTTO)
     msSceneOttoGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $1E
     msSceneOttoGhostDefs    (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $3C
 
-;   $21 - $FE
+
 
 
 
@@ -253,6 +267,7 @@ msSceneGhostTileTbl:
 ;   --------------
 ;   TILE LISTS FOR CUTSCENE SPRITES
 ;   --------------
+;   $21 - $FE
 msSceneCharTable:
     .DSB $04, BLANK_TILE    ; EMPTY SPRITE          [00]
     msSceneDefs         (SPRITE_ADDR + MS_CUT_VRAM) / TILE_SIZE
@@ -358,6 +373,9 @@ msSceneCharacters:
     .DB $F3
     .DW charWord
 .ENDM
+.MACRO SETBGPRI ARGS val
+    .DB $F4, val
+.ENDM
 .MACRO PLAYSND ARGS val
     .DB $F5, val
 .ENDM
@@ -369,6 +387,18 @@ msSceneCharacters:
 .ENDM
 .MACRO CLEARNUM
     .DB $F8
+.ENDM
+.MACRO SETBGPAL ARGS val
+    .DB $F9, val
+.ENDM
+.MACRO CLRPOWDOT ARGS val
+    .DB $FA, val
+.ENDM
+.MACRO SETJRVAR ARGS val
+    .DB $FB, val
+.ENDM
+.MACRO DECPTR ARGS val
+    .DB $FC, val
 .ENDM
 .MACRO CUTEND
     .DB $FF
@@ -900,3 +930,443 @@ msScene2Prog4:
     SETN    $20
     PAUSE
     CUTEND
+
+
+/*
+----------------------------------------------
+        CUTSCENE MODE DATA FOR JR.PAC-MAN
+----------------------------------------------
+*/
+
+
+.MACRO jrSceneDefs ARGS, VAL
+    .DB VAL+$00, VAL+$17, VAL+$01, VAL+$18              ; HEART 0
+    .DB VAL+$02, VAL+$19, VAL+$03, BLANK_TILE           ; HEART 1
+    .DB VAL+$04, VAL+$1A, VAL+$05, BLANK_TILE           ; HEART 2
+    .DB VAL+$06, VAL+$1B, BLANK_TILE, BLANK_TILE        ; HEART 3
+    .DB VAL+$08, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; STORK HEAD
+    .DB VAL+$09, BLANK_TILE, VAL+$0A, BLANK_TILE        ; STORK FLAP 0
+    .DB VAL+$0B, VAL+$1C, VAL+$0C, VAL+$1D              ; STORK FLAP 1
+    .DB VAL+$0D, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; STORK SACK
+    .DB VAL+$0E, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; JR PAC
+    .DB VAL+$15, VAL+$22, VAL+$16, VAL+$23              ; GROWING JR 0
+    .DB VAL+$13, VAL+$21, VAL+$14, BLANK_TILE           ; GROWING JR 1
+    .DB VAL+$11, VAL+$20, VAL+$12, VAL+$1F              ; GROWING JR 2
+    .DB VAL+$0F, VAL+$1E, VAL+$10, VAL+$1F              ; GROWING JR 3
+.ENDM
+
+;   --------------
+;   TILE LISTS FOR CUTSCENE SPRITES
+;   --------------
+;   $21 - $FE
+jrSceneCharTable:
+    .DSB $04, BLANK_TILE    ; EMPTY SPRITE          [00]
+    jrSceneDefs         (SPRITE_ADDR + JR_CUT_VRAM) / TILE_SIZE
+
+
+
+
+jrSceneCharacters:
+@emptySpr:
+    .DB $00 $FF
+;   --------
+@pacRight:      ; OPEN, HALF, CLOSED, HALF
+    .DB $02 $02 $01 $01 $04 $04 $03 $03 $FF
+@pacStatic:
+    .DB $01 $FF
+;   --------
+@jrPacRight:    ; HALF, OPEN, HALF, CLOSED
+    .DB $05 $05 $06 $06 $05 $05 $07 $07 $FF
+@jrPacLeft:
+    .DB $08 $08 $09 $09 $08 $08 $0A $0A $FF
+;   --------
+@msPacRight:    ; CLOSED, HALF, OPEN, HALF
+    .DB $10 $10 $0D $0D $0E $0E $0F $0F $FF
+@msPacLeft:
+    .DB $14 $14 $11 $11 $12 $12 $13 $13 $FF
+@msPacStatic:
+    .DB $0D $FF
+;   --------
+@pinkyRight:
+    .DB $19 $19 $19 $1A $1A $1A $FF
+@pinkyLeft:
+    .DB $1B $1B $1B $1C $1C $1C $FF
+@inkyRight:
+    .DB $1D $1D $1D $1E $1E $1E $FF
+@inkyLeft:
+    .DB $1F $1F $1F $20 $20 $20 $FF
+@blinkyUp:
+    .DB $21 $21 $21 $22 $22 $22 $FF
+@blinkyLeft:
+    .DB $23 $23 $23 $24 $24 $24 $FF
+@blinkyDown:
+    .DB $25 $25 $25 $26 $26 $26 $FF
+@blinkyRight:
+    .DB $27 $27 $27 $28 $28 $28 $FF
+@clydeUp:
+    .DB $29 $29 $29 $2A $2A $2A $FF
+@clydeLeft:
+    .DB $2B $2B $2B $2C $2C $2C $FF
+@clydeDown:
+    .DB $2D $2D $2D $2E $2E $2E $FF
+@clydeRight:
+    .DB $2F $2F $2F $30 $30 $30 $FF
+;   --------
+@heart:
+    .DB $00 $00 $00 $00 $00 $00 $00 $00 $34 $33 $32 $31 $32 $33 $34 $FF
+@storkHead:
+    .DB $35 $FF
+@storkBody:
+    .DB $36 $36 $36 $36 $37 $37 $37 $37 $FF
+@storkSack:
+    .DB $38 $FF
+@babyPac:
+    .DB $39 $FF
+@growingJr0:
+    .DB $3A $FF
+@growingJr1:
+    .DB $3B $FF
+@growingJr2:
+    .DB $3C $FF
+@growingJr3:
+    .DB $3D $FF
+
+
+
+
+;   DATA FOR ATTRACT MODE
+jrAttractProgTable:
+    .DW jrAttractProg0
+    .DW jrAttractProg1
+    .DW jrAttractProg2
+    .DW jrAttractProg3
+    .DW jrAttractProg4
+    .DW jrAttractProg5
+
+
+jrAttractProg0:
+    SETN    $01
+    PAUSE
+    SETN    $01
+    PAUSE
+    DECPTR  $01
+    SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@storkSack
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $A0
+    PAUSE
+    SETN    $80
+    PAUSE
+    SETPOS  $14 $28
+    SETN    $FF
+    LOOP    $08 $00
+    SETN    $60
+    LOOP    $08 $00
+    SETBGPRI    $00
+    SETN    $F8
+    LOOP    $08 $0B
+    PLAYSND $10
+    SETN    $0A
+    LOOP    $08 $F5
+    SETN    $0A
+    LOOP    $08 $0B
+    PLAYSND $10
+    SETN    $06
+    LOOP    $08 $F5
+    SETN    $06
+    LOOP    $08 $0B
+    PLAYSND $10
+    SETN    $30
+    PAUSE
+    SETN    $03
+    LOOP    $F0 $F0
+    SETN    $03
+    LOOP    $10 $10
+    SETN    $03
+    LOOP    $10 $10
+    SETN    $03
+    LOOP    $F0 $10
+    SETCHAR jrSceneCharacters@growingJr0
+    SETN    $01
+    LOOP    $00 $00
+    SETBGPRI    $01
+    SETN    $0B
+    PAUSE
+    SETCHAR jrSceneCharacters@growingJr1
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $0B
+    PAUSE
+    SETCHAR jrSceneCharacters@growingJr2
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $0B
+    PAUSE
+    SETCHAR jrSceneCharacters@growingJr3
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $FF
+    PAUSE
+    CUTEND
+
+
+
+jrAttractProg1:
+    SETN    $01
+    PAUSE
+    SETN    $01
+    PAUSE
+    DECPTR  $01
+    SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@storkHead
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $A0
+    PAUSE
+    SETN    $80
+    PAUSE
+    SETPOS  $10 $28
+    SETN    $FF
+    LOOP    $08 $00
+    SETN    $FF
+    LOOP    $08 $00
+    SETN    $FF
+    LOOP    $08 $00
+    SETN    $A0
+    LOOP    $08 $00
+    SETPOS  $00 $00
+    CUTEND
+
+
+
+jrAttractProg2:
+    SETN    $01
+    PAUSE
+    SETN    $01
+    PAUSE
+    DECPTR  $01
+    SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@storkBody
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $A0
+    PAUSE
+    SETN    $80
+    PAUSE
+    SETPOS  $00 $28
+    SETN    $FF
+    LOOP    $08 $00
+    SETN    $FF
+    LOOP    $08 $00
+    SETN    $FF
+    LOOP    $08 $00
+    SETN    $A0
+    LOOP    $08 $00
+    SETPOS  $00 $00
+    CUTEND
+
+
+jrAttractProg3:
+    SETJRVAR    $00
+    SETBGPRI    $01
+    ; BLINKY
+    SETPOS  $00 $E0
+    SETCHAR jrSceneCharacters@blinkyLeft
+    SETN    $48
+    LOOP    $0A $00
+    SETN    $20
+    LOOP    $0A $04
+    SETN    $40
+    LOOP    $0A $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@blinkyRight
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@blinkyLeft
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@blinkyRight
+    SETN    $40
+    LOOP    $F6 $00
+    SETN    $20
+    LOOP    $F6 $FC
+    SETN    $48
+    LOOP    $F6 $00
+    ; PINKY
+    SETPOS  $00 $E0
+    SETCHAR jrSceneCharacters@pinkyLeft
+    SETN    $48
+    LOOP    $0A $00
+    SETN    $20
+    LOOP    $0A $04
+    SETN    $40
+    LOOP    $0A $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@pinkyRight
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@pinkyLeft
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@pinkyRight
+    SETN    $40
+    LOOP    $F6 $00
+    SETN    $20
+    LOOP    $F6 $FC
+    SETN    $48
+    LOOP    $F6 $00
+    ; INKY
+    SETPOS  $00 $E0
+    SETCHAR jrSceneCharacters@inkyLeft
+    SETN    $48
+    LOOP    $0A $00
+    SETN    $20
+    LOOP    $0A $04
+    SETN    $40
+    LOOP    $0A $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@inkyRight
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@inkyLeft
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@inkyRight
+    SETN    $40
+    LOOP    $F6 $00
+    SETN    $20
+    LOOP    $F6 $FC
+    SETN    $48
+    LOOP    $F6 $00
+    ; "TIM"
+    SETJRVAR    $01
+    SETPOS  $00 $E0
+    SETCHAR jrSceneCharacters@clydeLeft
+    SETN    $48
+    LOOP    $0A $00
+    SETN    $20
+    LOOP    $0A $04
+    SETN    $40
+    LOOP    $0A $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@clydeRight
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@clydeLeft
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $20
+    PAUSE
+    SETCHAR jrSceneCharacters@clydeUp
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $E0
+    PAUSE
+    SETN    $F0
+    PAUSE
+    ; MS.PAC-MAN
+    ;SETCHAR jrSceneCharacters@msPacStatic
+    SETCHAR jrSceneCharacters@emptySpr
+    SETN    $28
+    LOOP    $70 $F7 ; BLANK
+    SETCHAR jrSceneCharacters@msPacStatic
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $FF
+    PAUSE
+    SETCHAR jrSceneCharacters@msPacRight
+    SETN    $26
+    PAUSE
+    SETN    $86
+    LOOP    $00 $00
+    SETN    $30
+    PAUSE
+    CUTEND
+
+
+jrAttractProg4:
+    SETN    $01
+    PAUSE
+    SETN    $01
+    PAUSE
+    DECPTR  $01
+    SETPOS  $00 $00
+    ;SETCHAR jrSceneCharacters@babyPac
+    SETCHAR jrSceneCharacters@emptySpr
+    SETN    $C0
+    PAUSE
+    SETN    $FF
+    PAUSE
+    SETN    $FF
+    LOOP    $10 $00 ; BLANK
+    SETN    $74
+    LOOP    $10 $00 ; BLANK
+    SETBGPAL    $01
+    SETN    $3C
+    LOOP    $10 $00 ; BLANK
+    CUTEND
+
+
+
+jrAttractProg5:
+    SETN    $01
+    PAUSE
+    SETN    $01
+    PAUSE
+    DECPTR  $01
+    SETPOS  $00 $00
+    ;SETCHAR jrSceneCharacters@pacStatic
+    SETCHAR jrSceneCharacters@emptySpr
+    SETN    $01
+    LOOP    $00 $00 ; BLANK
+    SETPOS  $00 $D2
+    SETN    $98
+    LOOP    $10 $00 ; BLANK
+    SETN    $FF
+    LOOP    $10 $00 ; BLANK
+    SETCHAR jrSceneCharacters@pacStatic
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $FF
+    PAUSE
+    SETN    $FF
+    PAUSE
+    SETN    $80
+    PAUSE
+    SETCHAR jrSceneCharacters@pacRight
+    SETN    $17
+    PAUSE
+    SETN    $86
+    LOOP    $00 $00
+    CUTEND
+
+
+
+
+
+
+
+
+
+
+
+

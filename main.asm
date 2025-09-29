@@ -47,6 +47,7 @@
 .ENDM
 
 .MACRO multBy29
+    /*
 ;   HL * 29 (32 - 02 - 01)
     LD E, L
     LD D, H
@@ -59,6 +60,31 @@
     SBC HL, DE
     POP DE
     SBC HL, DE
+    */
+    LD H, hibyte(mult29Table)
+    LD A, L
+    ADD A, A
+    ADD A, lobyte(mult29Table)
+    LD L, A
+    LD A, (HL)
+    INC L
+    LD H, (HL)
+    LD L, A
+.ENDM
+
+.MACRO multBy41
+;   HL * 41 (32 + 08 + 01)
+    LD E, L
+    LD D, H
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, HL
+    PUSH HL
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, DE
+    POP DE
+    ADD HL, DE
 .ENDM
 
 .MACRO addToHL_M
@@ -1216,13 +1242,11 @@ powDotPalTable: ; $80
     .DB $03 $03 $02 $01
     .DB $03 $02 $01 $00
     .DB $02 $01 $00 $00
-/*
-    PLAYER ANIMATION TABLES
-*/
-normAniTbl: ; $A4
-    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
-slowAniTbl: ; $B4
-    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
+
+
+mult29Table:
+    .DW $0000 $001D $003A $0057 $0074 $0091 $00AE $00CB $00E8 $0105 $0122 $013F $015C $0179 $0196 $01B3 
+    .DW $01D0 $01ED $020A $0227 $0244 $0261 $027E $029B $02B8 $02D5 $02F2 $030F $032C $0349 ;$0366 $0383 
 .ENDS
 
 /*
@@ -1232,6 +1256,13 @@ slowAniTbl: ; $B4
 */
 
 .SECTION "COMMON TABLES" FREE
+/*
+    PLAYER ANIMATION TABLES
+*/
+normAniTbl: ; $A4
+    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
+slowAniTbl: ; $B4
+    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
 /*
     GHOST POINTS TILE INDEXES
 */
@@ -2223,7 +2254,8 @@ jrRealScrollTable:
     .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8
     .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8
     .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8
-    .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8,
+    .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8
+    .DB $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8, $D8
 .ENDS
 
 
@@ -2608,6 +2640,7 @@ arcadeGFXData:
         .INCBIN "TILE_GHOST_PLUS.ZX7"
     @cutsceneMs:
         .INCBIN "TILE_MSCUT.ZX7"
+    @cutsceneJr:
 .ENDS
 
 /*
@@ -2625,6 +2658,8 @@ arcadeGFXData:
         .INCBIN "TILE_GHOST_PLUS.ZX7"
     msCutsceneTiles:
         .INCBIN "TILE_MSCUT.ZX7"
+    jrCutsceneTiles:
+        .INCBIN "TILE_JRCUT.ZX7"
 .ENDS
 
 

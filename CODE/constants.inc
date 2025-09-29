@@ -391,6 +391,8 @@
 .DEFINE HUDTEXT_VRAM            $EA * TILE_SIZE
 .DEFINE HUDZERO_INDEX           (HUDTEXT_VRAM / TILE_SIZE) + $0B
 
+.DEFINE JR_CUT_VRAM             $13A0 - SPRITE_ADDR
+
 
 
 ;   FRUIT           (32)
