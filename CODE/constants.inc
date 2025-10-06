@@ -84,6 +84,8 @@
     ATTRACT_INTRO       DB
     ATTRACT_GAMEOVER    DB
     ATTRACT_MSINTRO     DB
+    ATTRACT_OTTOINTRO   DB
+    ATTRACT_JRINTRO     DB
 .ENDE
 
 ;   GAMEPLAY MODE SUB STATES
@@ -195,6 +197,7 @@
 ;
 .DEFINE MAZE_GFX_BANK       $03
 .DEFINE MAZE_TILEMAP_BANK   $04
+.DEFINE CUTSCENE_DATA_BANK  $04
 ;
 .DEFINE MAZE_OTHER_BANK     $05
 .DEFINE JR_TABLES_BANK      $05
@@ -391,35 +394,7 @@
 .DEFINE HUDTEXT_VRAM            $EA * TILE_SIZE
 .DEFINE HUDZERO_INDEX           (HUDTEXT_VRAM / TILE_SIZE) + $0B
 
-.DEFINE JR_CUT_VRAM             $13A0 - SPRITE_ADDR
-
-
-
-;   FRUIT           (32)
-;   (MS.) PAC-MAN   (40)
-;   -------------------------------
-
-
-;   -----------PAC-MAN-------------
-;   GHOSTS          (72)
-;   FRUIT POINTS    (12)
-;   GHOST POINTS    (8)
-;   PAC-MAN DEATH
-
-;   -----------PAC-MAN-------------
-;   GHOSTS          (72)
-;   CUTSCENE DATA
-
-
-;   ----------MS.PAC-MAN-----------
-;   GHOSTS          (72)
-;   FRUIT POINTS    (12)
-;   GHOST POINTS    (8)
-
-;   ----------MS.PAC-MAN-----------
-;   PAC-MAN         (40)
-;   CUTSCENE DATA
-
+.DEFINE JR_CUT_VRAM             $11A0 - SPRITE_ADDR
 
 
 /*

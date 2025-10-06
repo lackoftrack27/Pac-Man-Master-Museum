@@ -261,6 +261,15 @@ msIntroDisplayText:
     JR NZ, -
     RET
 
+introClearText:
+    XOR A
+    OUT (VDPDATA_PORT), A
+    INC A
+    OUT (VDPDATA_PORT), A
+    DJNZ introClearText
+    RET
+
+
 
 /*
     INFO: DISPLAY OPTION TEXT (ON TILEMAP)

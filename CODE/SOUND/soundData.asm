@@ -2673,8 +2673,6 @@ musJrInter0:
 @ch1:
     ; CHANNEL 1 DATA
     smpsDetune      $FF
-@ch2:
-    ; CHANNEL 2 DATA
     .DB nF2, $10, nRst, nF2, nRst, nBb2, $08, nRst, nF2
     .DB nRst, nG2, nRst, nA2, nRst, nBb2, nRst, nD3
     .DB nRst, nF2, nRst, nA2, nRst, nBb2, nRst, nD3
@@ -2698,6 +2696,277 @@ musJrInter0:
     .DB nCs3, nRst, nD2, nRst, nA2, nRst, nF2, nRst
     .DB nF3, nRst, nA2, nRst, nA3, nRst, nA2, nRst
     .DB nA3, nRst, nD3, nRst, nA2, nRst, nD2, 
+    smpsStop
+@ch2:
+    ; CHANNEL 2 DATA
+    .DB nF2, $10, nRst, nF2, nRst, nBb2, $08, nRst, nF2
+    .DB nRst, nG2, nRst, nA2, nRst, nBb2, nRst, nD3
+    .DB nRst, nF2, nRst, nA2, nRst, nBb2, nRst, nD3
+    .DB nRst, nF2, nRst, nD3, nRst, nBb2, nRst, nF3
+    .DB nRst, nD3, nRst, nCs3, nRst, nC3, nRst, nF3
+    .DB nRst, nF2, nRst, nEb3, nRst, nA2, nRst, nEb3
+    .DB nRst, nF2, nRst, nA2, nRst, nBb2, nRst, nF3
+    .DB nRst, nD3, nRst, nF3, nRst, nA2, nRst, nA3
+    .DB nRst, nA2, nRst, nA3, nRst
+    smpsPSGVoice    $00
+    .DB nD3, $10, nD3, $08, nE3, nF3
+    smpsPSGVoice    $01
+    .DB nRst, nD3, nRst
+    .DB nA2, nRst, nBb2, nRst, nB2, ;nRst, ;nCs3, nRst
+    ;.DB nD3, nRst, nF3, nRst, nA2, nRst, nD3, nRst
+
+
+    smpsPSGVoice    $00
+    smpsChangeVol   $FC
+    smpsLiteralRead $01 ; LITERAL READ MODE ON
+
+    literalWord     $031b
+    literalWord     $018e
+    literalWord     $0109
+    literalWord     $00c7
+    literalWord     $009f
+
+    literalWord     $0255
+    literalWord     $0155
+    literalWord     $00ef
+    literalWord     $00b8
+    literalWord     $0095
+    literalWord     $007e
+
+    literalWord     $01dd
+    literalWord     $012a
+    literalWord     $00d9
+    literalWord     $00aa
+    literalWord     $008c
+    literalWord     $0077
+
+    literalWord     $018e
+    literalWord     $0109
+    literalWord     $00c7
+    literalWord     $009f
+    literalWord     $0085
+    literalWord     $0072
+
+    literalWord     $0155
+    literalWord     $00ef
+    literalWord     $00b8
+    literalWord     $0095
+    literalWord     $007e
+    literalWord     $006c
+
+    literalWord     $012a
+    literalWord     $00d9
+    literalWord     $00aa
+    literalWord     $008c
+    literalWord     $0077
+    literalWord     $0068
+
+    literalWord     $0109
+    literalWord     $00c7
+    literalWord     $009f
+    literalWord     $0085
+    literalWord     $0072
+    literalWord     $0063
+
+    literalWord     $00ef
+    literalWord     $00b8
+    literalWord     $0095
+    literalWord     $007e
+    literalWord     $006c
+    literalWord     $005f
+
+    literalWord     $00d9
+    literalWord     $00aa
+    literalWord     $008c
+    literalWord     $0077
+    literalWord     $0068
+    literalWord     $005c
+
+    literalWord     $00c7
+    literalWord     $009f
+    literalWord     $0085
+    literalWord     $0072
+    literalWord     $0063
+    literalWord     $0058
+
+    literalWord     $00b8
+    literalWord     $0095
+    literalWord     $007e
+    literalWord     $006c
+    literalWord     $005f
+    literalWord     $0055
+
+    literalWord     $00aa
+    literalWord     $008c
+    literalWord     $0077
+    literalWord     $0068
+    literalWord     $005c
+    literalWord     $0052
+
+    literalWord     $009f
+    literalWord     $0085
+    literalWord     $0072
+    literalWord     $0063
+    literalWord     $0058
+    literalWord     $0050
+
+    literalWord     $0095
+    literalWord     $007e
+    literalWord     $006c
+    literalWord     $005f
+    literalWord     $0055
+    literalWord     $004d
+
+    literalWord     $008c
+    literalWord     $0077
+    literalWord     $0068
+    literalWord     $005c
+    literalWord     $0052
+    literalWord     $004b
+
+    literalWord     $0085
+    literalWord     $0072
+    literalWord     $0063
+    literalWord     $0058
+    literalWord     $0050
+    literalWord     $0048
+
+    literalWord     $007e
+    literalWord     $006c
+    literalWord     $005f
+    literalWord     $0055
+    literalWord     $004d
+    literalWord     $0046
+
+    literalWord     $0077
+    literalWord     $0068
+    literalWord     $005c
+    literalWord     $0052
+    literalWord     $004b
+    literalWord     $0044
+
+    literalWord     $0072
+    literalWord     $0063
+    literalWord     $0058
+    literalWord     $0050
+    literalWord     $0048
+    literalWord     $0042
+
+    literalWord     $006c
+    literalWord     $005f
+    literalWord     $0055
+    literalWord     $004d
+    literalWord     $0046
+    literalWord     $0040
+
+    literalWord     $0068
+    literalWord     $005c
+    literalWord     $0052
+    literalWord     $004b
+    literalWord     $0044
+    literalWord     $003f
+
+    literalWord     $0063
+    literalWord     $0058
+    literalWord     $0050
+    literalWord     $0048
+    literalWord     $0042
+    literalWord     $003d
+
+    literalWord     $005f
+    literalWord     $0055
+    literalWord     $004d
+    literalWord     $0046
+    literalWord     $0040
+    literalWord     $003c
+
+    literalWord     $005c
+    literalWord     $0052
+    literalWord     $004b
+    literalWord     $0044
+    literalWord     $003f
+    literalWord     $003a
+
+    literalWord     $0058
+    literalWord     $0050
+    literalWord     $0048
+    literalWord     $0042
+    literalWord     $003d
+    literalWord     $0039
+
+    literalWord     $0055
+    literalWord     $004d
+    literalWord     $0046
+    literalWord     $0040
+    literalWord     $003c
+    literalWord     $0037
+
+    literalWord     $0052
+    literalWord     $004b
+    literalWord     $0044
+    literalWord     $003f
+    literalWord     $003a
+    literalWord     $0036
+
+    literalWord     $0050
+    literalWord     $0048
+    literalWord     $0042
+    literalWord     $003d
+    literalWord     $0039
+    literalWord     $0035
+
+    literalWord     $004d
+    literalWord     $0046
+    literalWord     $0040
+    literalWord     $003c
+    literalWord     $0037
+    literalWord     $0034
+
+    literalWord     $004b
+    literalWord     $0044
+    literalWord     $003f
+    literalWord     $003a
+    literalWord     $0036
+    literalWord     $0033
+
+    literalWord     $0048
+    literalWord     $0042
+    literalWord     $003d
+    literalWord     $0039
+    literalWord     $0035
+    literalWord     $0032
+
+    literalWord     $0046
+    literalWord     $0040
+    literalWord     $003c
+    literalWord     $0037
+    literalWord     $0034
+    literalWord     $0031
+
+    literalWord     $0044
+    literalWord     $003f
+    literalWord     $003a
+    literalWord     $0036
+    literalWord     $0033
+    literalWord     $0030
+
+    literalWord     $0042
+    literalWord     $003d
+    literalWord     $0039
+
+
+    smpsLiteralRead $00
+    smpsPSGVoice    $01
+    smpsChangeVol   $02
+    ;smpsChangeVol $FE
+    ;.DB nF2, nRst, nA2, nRst, nD2, nRst
+    ;.DB nF2, nRst, nE2, nRst, nCs3, nRst, nA2, nRst
+    ;.DB nRst, $08
+    .DB nCs3, $08, nRst, nD2, nRst, nA2, nRst, nF2, nRst
+    .DB nD3, nRst, nG2, nRst, nE3, nRst, nA2, nRst
+    .DB nCs3, nRst, nD2, nRst, nA2, nRst, nF2, nRst
+    .DB nF3, nRst, nA2, nRst, nA3, nRst, nA2, nRst
+    .DB nA3, nRst, nD3, nRst, nA2, nRst, nD2,
     smpsStop
 
 
@@ -2765,7 +3034,8 @@ musJrInter1:
     .DB nA2, $10, nA2, $08
     smpsPSGVoice $00
     .DB nB2, $10, nCs3, $08, nD3, $10, nD3, nRst, $08, nD3
-    .DB nA2, $10, nA2, nRst, $08, nA2, nD3, $10, nA2, $08, nF2, $10, nA2, $08
+    //.DB nA2, $10, nA2, nRst, $08, nA2, nD3, $10, nA2, $08, nF2, $10, nA2, $08
+    .DB nA2, $10, nA2, nA2, $08, nA2, nD3, $10, nA2, $08, nF2, $10, nA2, $08
     .DB nD2, $10
     smpsStop
 

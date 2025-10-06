@@ -23,6 +23,11 @@ sStateAttractTable@titleMode:
     CALL setInactivityTimer
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen
+;   RESET H-SCROLL
+    XOR A
+    OUT (VDPCON_PORT), A
+    LD A, $88
+    OUT (VDPCON_PORT), A
 ;   LOAD HUD TEXT TILES
     LD HL, hudTextTiles
     LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE

@@ -194,6 +194,9 @@ generalResetFunc:
     LD (jrColumnToUpdate), A
     LD (updateColFlag), A
     LD (jrCameraPos), A
+    OUT (VDPCON_PORT), A
+    LD A, $88
+    OUT (VDPCON_PORT), A
 ;   WRITE TILEMAP DATA TO VRAM DEPENDING ON GAME
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
@@ -205,9 +208,15 @@ generalResetFunc:
     LD A, $28
     LD (jrCameraPos), A
 ;   WRITE TILEMAP DATA TO VRAM (JR. PAC)
-    ; SET VDP ADDRESS
-    LD HL, (NAMETABLE + $40) | VRAMWRITE
+    LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress
+    LD B, $20
+-:
+    XOR A
+    OUT (VDPDATA_PORT), A
+    INC A
+    OUT (VDPDATA_PORT), A
+    DJNZ -
     ; POINT TO LEFT MOST TILE OF MAZE
     LD HL, mazeGroup1.tileMap + $08
     ; LOOP SETUP

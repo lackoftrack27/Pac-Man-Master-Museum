@@ -926,6 +926,10 @@ allDotsEatenCheck:
 
 ;   $28 <-> $00 <-> $D8
 updateJRScroll:
+    ; DON'T RUN IN ATTRACT INTRO, CUTSCENE MODE
+    LD A, (subGameMode)
+    CP A, ATTRACT_JRINTRO
+    RET Z
     ; CHANGE BANK FOR TABLES
     LD A, JR_TABLES_BANK
     LD (MAPPER_SLOT2), A
@@ -960,6 +964,7 @@ updateJRScroll:
     LD L, A
     LD A, (HL)
     LD (jrLeftMostTile), A
+@cutsceneJump:
 ;   UPDATE CAMERA POS
     LD A, (jrScrollReal)
     LD B, A

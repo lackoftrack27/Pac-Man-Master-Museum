@@ -500,7 +500,7 @@ mainGameLoop:
 ;   CHECK PAUSE
     LD A, (pauseRequest)
     OR A
-    JR NZ, pauseMode    ; IF PASUE BUTTON WAS PRESSED (AND HONORED), SWITCH TO PAUSE "MODE"
+    JP NZ, pauseMode    ; IF PASUE BUTTON WAS PRESSED (AND HONORED), SWITCH TO PAUSE "MODE"
 ;   UPDATE RNG VALUE (USED IN PLUS)
     ; RNG = RNG * 5 + 1
     LD HL, plusRNGValue
@@ -530,8 +530,14 @@ mainGameLoop:
     LD A, (subGameMode)
     RST jumpTableExec
 ;   UPDATE JR PAC SCROLL
-    LD A, (enableScroll)
-    OR A
+    LD A, (mainGameMode)
+    CP A, M_STATE_CUTSCENE
+    SBC A, A
+    LD HL, enableScroll
+    AND A, (HL)
+
+    ;LD A, (enableScroll)    ; MUST BE 1 (FLAG SET)
+    ;OR A
     CALL NZ, updateJRScroll
 ;   TASK PROCESSING (RETURN FROM INT IN OG)
     ; CHECK IF TASK LIST IS EMPTY
@@ -893,6 +899,10 @@ lineIntHandler:
     .INCLUDE "cutsceneData.asm"
 .ENDS
 
+.SECTION "CUTSCENE COMMAND DATA (MS/JR)" BANK CUTSCENE_DATA_BANK SLOT 2 FREE
+    .INCLUDE "commandData.asm"
+.ENDS
+
 
 /*
 ----------------------------------------------------------
@@ -1038,6 +1048,12 @@ bgPalJr03:
     .DB $00 $0F $04 $0A $0A $00 $00 $3F $0A $05 $2A $3F $3F $3F $0F $00
 bgPalJr04:
     .DB $00 $3C $30 $28 $28 $00 $00 $3F $0A $05 $2A $3F $3F $3F $0F $00
+
+
+bgPalJrFD:
+    .DB $00 $04 $05 $15 $02 $0C $0A $0B $30 $2A $0F $3F $3F $3F $3F $00
+bgPalJrFE:
+    .DB $00 $04 $05 $15 $02 $0C $0A $0B $0F $0F $2A $3F $3F $3F $3F $00
 
 ; SPRITE PALETTE ("SMOOTH")
 sprPalData:
@@ -2664,6 +2680,42 @@ arcadeGFXData:
 
 
 
+/*
+----------------------------------------------------------
+                JR CUTSCENE BG TILE DATA
+----------------------------------------------------------
+*/
+.SECTION "JR CUTSCENE BG TILE DATA [PART 1]" BANK MAZE_GFX_BANK SLOT 2 FREE
+    .INCDIR "ASSETS/CUTSCENE"
+    jrAttractTiles:
+        .INCBIN "TILE_JRATTRACT.ZX7"
+    jrIntroTxtTiles:
+        .INCBIN "TILE_JRINTROTXT.ZX7"
+    jrCut0Tiles:
+        .INCBIN "TILE_JRCUT0.ZX7"
+.ENDS
+
+.SECTION "JR CUTSCENE BG TILE DATA [PART 2]" BANK MAZE_OTHER_BANK SLOT 2 FREE
+    .INCDIR "ASSETS/CUTSCENE"
+    jrCut1Tiles:
+        .INCBIN "TILE_JRCUT1.ZX7"
+.ENDS
+
+
+/*
+----------------------------------------------------------
+                JR CUTSCENE BG TILEMAP DATA
+----------------------------------------------------------
+*/
+.SECTION "JR CUTSCENE BG TILEMAP DATA" BANK MAZE_TILEMAP_BANK SLOT 2 FREE
+    .INCDIR "ASSETS/CUTSCENE"
+    jrAttractTilemap:
+        .INCBIN "MAP_JRATTRACT.ZX7"
+    jrCut0Tilemap:
+        .INCBIN "MAP_JRCUT0.ZX7"
+    jrCut1Tilemap:
+        .INCBIN "MAP_JRCUT1.ZX7"
+.ENDS
 
 /*
 ----------------------------------------------------------

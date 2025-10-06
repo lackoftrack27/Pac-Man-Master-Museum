@@ -290,7 +290,7 @@ actorOffScreenCheck:
     LD A, (jrCameraPos)
     LD E, A
     INC D       ; ADD SCREEN WIDTH
-    INC HL
+    INC HL      ; PREVENT ACTOR FROM BEING SEEN WRAPPING OVER TO LEFT SIDE
     INC HL
     SBC HL, DE
     RET C

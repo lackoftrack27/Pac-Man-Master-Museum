@@ -96,7 +96,9 @@ pacStateTable@update@normalMode:
     CP A, $04   ; CHECK IF AT CENTER PIXEL
     JP NZ, @@@@prepareVector ; IF NOT, SKIP...
 ;   CHECK IF PAC-MAN IS ABOUT TO TELEPORT
-    CALL actorWarpCheck
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    CALL Z, actorWarpCheck
     JR C, +     ; IF SO, SKIP PATHFINDING
     LD A, $04
     CALL addTask

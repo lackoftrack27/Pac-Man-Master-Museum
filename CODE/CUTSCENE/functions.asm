@@ -222,7 +222,7 @@ pacCutResSpritePal:
 --------------------------------------------------------
 */
 
-;   6 INDEPENDENT SUB PROGRAMS RUNNING IN PARALLEL
+;   8 INDEPENDENT SUB PROGRAMS RUNNING IN PARALLEL
 
 ;   COMMANDS:
 ;           $F0 - "LOOP":       X, Y
@@ -235,21 +235,33 @@ pacCutResSpritePal:
 ;           $F8 - "CLR NUM":     
 ;           $FF - "END":
 
-/*
-.DEFINE cutFuncList     workArea + $20      ; 12 BYTES
-.DEFINE cutFuncTimers   workArea + $2C      ; 6 BYTES
-.DEFINE cutFuncChars    workArea + $32      ; 12 BYTES
-.DEFINE cutFuncTempPos  workArea + $3E      ; 12 BYTES
-.DEFINE cutFuncPos      workArea + $4A      ; 12 BYTES
-.DEFINE cutFuncDoneFlags    workArea + $56  ; 6 BYTES
-.DEFINE cutFuncCharOffset   workArea + $5C  ; 6 BYTES
-*/
-
 .DEFINE msCut_MainTileTblPtr    workArea
 .DEFINE msCut_SubTileTblPtr     workArea + $02
 .DEFINE msCut_GhostTileTblPtr   workArea + $04
 .DEFINE jrCut_JrTileTblPtr      workArea + $06
-.DEFINE jrCutsceneVarFB         workArea + $0F
+.DEFINE jrCutsceneVarFB         workArea + $08
+
+.DEFINE jrCut_OverrideFlags     workArea + $09  ; $08
+.DEFINE jrCutScreenFlagList     workArea + $11  ; $08
+
+
+commandJumpTable:
+    JP cutAniProcess@cmdLoop
+    JP cutAniProcess@cmdSetPos
+    JP cutAniProcess@cmdSetN
+    JP cutAniProcess@cmdSetChar
+    JP cutAniProcess@cmdSetBGPri        ; JR
+    JP cutAniProcess@cmdPlaySnd
+    JP cutAniProcess@cmdPause
+    JP cutAniProcess@cmdClrText
+    JP cutAniProcess@cmdClrNum
+    JP cutAniProcess@cmdSetBGPal        ; JR
+    JP cutAniProcess@cmdClrPowDot       ; JR
+    JP cutAniProcess@cmdSetJrVar        ; JR
+    JP cutAniProcess@cmdDecPtr          ; JR
+    JP cutAniProcess@cmdSetOverrideFlag ; JR
+    JP cutAniProcess@cmdSetHighXPos     ; JR
+    JP cutAniProcess@cmdStop
 
 
 cutsceneSubPrgSetup:
@@ -259,6 +271,15 @@ cutsceneSubPrgSetup:
     LD (HL), $00
     LD DE, cutsceneControl + 1
     LD BC, _sizeof_cutsceneControl - 1
+    LDIR
+;   INIT. CHARACTERS TO EMPTY SPRITE
+    LD HL, cutsceneControl.charList
+    LD (HL), lobyte(jrSceneCharacters@emptySpr)
+    INC HL
+    LD (HL), hibyte(jrSceneCharacters@emptySpr)
+    DEC HL
+    LD DE, cutsceneControl.charList + $02
+    LD BC, _sizeof_cutsceneControl.charList - $02
     LDIR
 ;   COPY PROG PTRS TO RAM
     POP HL  ; CUTSCENE'S PROGRAM TABLE
@@ -294,16 +315,14 @@ cutsceneTilePtrSetup:
     RST addToHL ; POINT TO ANNA
 +:
     LD (msCut_SubTileTblPtr), HL
-    /*
 ;   JR TILE PTR
-    LD HL, jrSceneSubTileTbl@jrPacSN ; JR.PAC-MAN [SMOOTH]
+    LD HL, jrSceneJrTileTbl@jrPacSN ; JR.PAC-MAN [SMOOTH]
     LD A, (plusBitFlags)
     BIT STYLE_0, A
     JR Z, +
-    LD HL, jrSceneSubTileTbl@jrPacAN ; JR.PAC-MAN [ARCADE]
+    LD HL, jrSceneJrTileTbl@jrPacAN ; JR.PAC-MAN [ARCADE]
 +:
     LD (jrCut_JrTileTblPtr), HL
-    */
 ;   GHOST TILE PTR
     LD HL, msSceneGhostTileTbl      ; NORMAL GHOSTS
     LD A, (plusBitFlags)
@@ -324,50 +343,31 @@ msCutSetup:
 ;   TILE POINTER SETUP
     CALL cutsceneTilePtrSetup
 ;   LOAD TILE DATA FOR CUTSCENES
-    ; SMOOTH / ARCADE CONTROL PATH
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    JP NZ, @arcadeGFX
-@smoothGFX:
-    ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
-    ; CUTSCENE DATA
+    LD DE, babyOttoTileS
     LD HL, msCutsceneTiles
-    LD DE, SPRITE_ADDR + MS_CUT_VRAM | VRAMWRITE
-    CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; LOAD BABY OTTO IF GAME IS OTTO
     LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, @wait
-    LD HL, $1A40 | VRAMWRITE
-    RST setVDPAddress
-    LD HL, babyOttoTileS
-    LD BC, $20 * $100 + VDPDATA_PORT
-    LD A, UNCOMP_BANK
-    LD (MAPPER_SLOT2), A
-    OTIR
-    JR @wait
-    ; -----------------------------
-@arcadeGFX:
-    ; COMMON ASSETS (IN REGARDS TO NON PLUS / PLUS)
-    ; -----------------------------
-    ; CUTSCENE DATA
+    AND A, $01 << STYLE_0
+    JR Z, +
+    LD DE, babyOttoTileA
     LD HL, arcadeGFXData@cutsceneMs
++:
+    PUSH DE
     LD DE, SPRITE_ADDR + MS_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
-    ; -----------------------------
-    ; LOAD BABY OTTO IF GAME IS OTTO
+    POP HL
     LD A, (plusBitFlags)
     AND A, $01 << OTTO
     JR Z, @wait
-    LD HL, $1A40 | VRAMWRITE
-    RST setVDPAddress
-    LD HL, babyOttoTileA
-    LD BC, $20 * $100 + VDPDATA_PORT
+    LD DE, $1A40 | VRAMWRITE
+    LD BC, $20 * $100 + VDPCON_PORT
+    OUT (C), E
+    OUT (C), D
+    DEC C
     LD A, UNCOMP_BANK
     LD (MAPPER_SLOT2), A
     OTIR
-    ; -----------------------------
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
 @wait:
 ;   TURN ON SCREEN
     CALL waitForVblank
@@ -547,9 +547,10 @@ msSceneCommonDrawUpdate:
 */
 cutAniProcess:
 ;   SETUP
-    LD B, $06   ; COUNTER
-    ;LD IX, cutFuncList + $0A    ; POINT TO LAST FUNC
-    LD IX, cutsceneControl.ptrList + $0A
+    LD A, CUTSCENE_DATA_BANK
+    LD (MAPPER_SLOT2), A
+    LD B, $08   ; COUNTER
+    LD IX, cutsceneControl.ptrList + $0E
 @loop:
 ;   GET SUB PROG PTR
     LD L, (IX + 0)
@@ -557,7 +558,23 @@ cutAniProcess:
 ;   GET BYTE
     LD A, (HL)
 ;   CHECK FOR COMMAND
+    LD IY, commandJumpTable
+    AND A, $0F
+    LD C, A
+    ADD A, A
+    ADD A, C
+    ADD A, IYL
+    LD IYL, A
+    ADC A, IYH
+    SUB A, IYL
+    LD IYH, A
+    JP (IY)
+    /*
     ; JR SPECIFIC COMMANDS
+    CP A, $FE
+    JP Z, @cmdSetHighXPos
+    CP A, $FD
+    JP Z, @cmdSetOverrideFlag
     CP A, $FC
     JP Z, @cmdDecPtr
     CP A, $FB
@@ -586,6 +603,7 @@ cutAniProcess:
     CP A, $F8
     JP Z, @cmdClrNum
     JP @cmdStop
+    */
 
 /*
     COMMAND - "LOOP": X, Y
@@ -780,6 +798,9 @@ cutAniProcess:
     $F7
 */
 @cmdClrText:
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR NZ, @@cmdBlankTiles
 ;   CLEAR TEXT (ACT NAME) ON SCREEN
     LD HL, NAMETABLE + ($09 * $02) + ($07 * $40) | VRAMWRITE
     RST setVDPAddress
@@ -795,6 +816,58 @@ cutAniProcess:
 ;   FINISH
     LD DE, $0001    ; ADVANCE PROG PTR BY 1 BYTE
     JP cmdCleanUp01
+@@cmdBlankTiles:
+;   REMOVE PRIORITY FROM FENCE IN CUTSCENE 1
+    LD A, $01
+    LD C, VDPCON_PORT
+    ; ROW 0
+    LD HL, NAMETABLE + (10 * $02) + (12 * $40) + $01 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C
+    OUT (VDPDATA_PORT), A   ; T 0
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 1
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 2
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 3
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 4
+    ; ROW 1
+    INC C
+    LD HL, NAMETABLE + (10 * $02) + (13 * $40) + $01 | VRAMWRITE
+    OUT (C), L
+    OUT (C), H
+    DEC C
+    OUT (VDPDATA_PORT), A   ; T 0
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 1
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 2
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 3
+    LD D, (IX + 0)
+    IN F, (C)
+    LD D, (IX + 0)
+    OUT (VDPDATA_PORT), A   ; T 4
+;   FINISH
+    JP jrCmdCleanUp
+
 
 
 /*
@@ -802,6 +875,9 @@ cutAniProcess:
     $F8
 */
 @cmdClrNum:
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR NZ, @@cmdNop
 ;   CLEAR ACT NUMBER ON SCREEN
     LD HL, SPRITE_TABLE + $18 | VRAMWRITE
     RST setVDPAddress
@@ -810,6 +886,16 @@ cutAniProcess:
 ;   FINISH
     LD DE, $0001    ; ADVANCE PROG PTR BY 1 BYTE
     JP cmdCleanUp01
+@@cmdNop:
+;   GET PROG PTR
+    LD L, (IX + 0)
+    LD H, (IX + 1)
+;   ADD BYTE ADVANCEMENT
+    INC HL
+;   SAVE
+    LD (IX + 0), L
+    LD (IX + 1), H
+    JP cutAniProcess@loop
 
 
 /*
@@ -833,6 +919,12 @@ cutAniProcess:
     $FA
 */
 @cmdClrPowDot:
+;   CLEAR EATEN POWER DOT TILE
+    LD HL, NAMETABLE + (22 * $02) + ($05 * $40) | VRAMWRITE
+    RST setVDPAddress
+    LD A, $02
+    OUT (VDPDATA_PORT), A
+;   FRIGHT SFX IS BAKED INTO MUSIC
     JP jrCmdCleanUp
 
 
@@ -853,10 +945,7 @@ cutAniProcess:
 */
 @cmdDecPtr:
     INC HL
-    ;LD D, (HL)
     LD A, (jrCutsceneVarFB)
-    ;OR A
-    ;SBC A, D
     SUB A, (HL)
     JP Z, jrCmdCleanUp
     LD L, (IX + 0)
@@ -867,6 +956,43 @@ cutAniProcess:
     LD (IX + 0), L
     LD (IX + 1), H
     JP jrCmdCleanUp
+
+
+/*
+    COMMAND - "SET OVERRIDE FLAG FOR OFFSCREEN FLAG"
+    $FD
+    [NEW]
+*/
+@cmdSetOverrideFlag:
+;   GET BYTE FROM PROGRAM
+    INC HL
+    LD C, (HL)
+;   GET CORRECT ADDRESS FOR OVERRIDE FLAGS
+    LD HL, jrCut_OverrideFlags - $01
+    LD A, B
+    RST addToHL
+;   STORE FLAG VALUE
+    LD (HL), C
+    JP jrCmdCleanUp
+
+
+/*
+    COMMAND - "SET HIGH BYTE OF X POSITION"
+    $FE
+    [NEW]
+*/
+@cmdSetHighXPos:
+;   GET BYTE FROM PROGRAM
+    INC HL
+    LD C, (HL)
+;   GET CORRECT ADDRESS
+    LD HL, cutsceneControl.highXList - $01
+    LD A, B
+    RST addToHL
+;   STORE VALUE
+    LD (HL), C
+    JP jrCmdCleanUp
+    
 
 
 /*
@@ -893,9 +1019,16 @@ cutAniProcess:
     AND A, (HL)
     INC HL
     AND A, (HL)
+    INC HL
+    AND A, (HL)
+    INC HL
+    AND A, (HL)
 ;   FINISH
     LD DE, $0000        ; ADVANCE BY 0 BYTES...
     JR Z, cmdCleanUp01  ; IF ANY FLAG ISN'T SET (PROG NOT DONE)
+;   RESTORE BANK
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
 ;   WAIT 30 FRAMES
     LD A, 30
     LD (mainTimer0), A
@@ -905,7 +1038,10 @@ cutAniProcess:
     LD HL, mainTimer0
     DEC (HL)
     JR NZ, -
-;   SWITCH TO GAMEPLAY (GAMEPLAY MODE)
+
+    XOR A
+    LD (vblankFlag), A
+;   SWITCH TO GAMEPLAY (CUTSCENE MODE)
     LD A, (mainGameMode)
     OR A
     JP NZ, switchToGameplay
@@ -1016,66 +1152,117 @@ jrCutSetup:
 ;   COMMON CUTSCENE SETUP
     CALL commonCutsceneInit
     XOR A
+    LD L, A
+    LD H, A
+    ;   RESET ALL SCROLL VARS
+    LD (jrScrollReal), HL
+    LD (jrOldScrollReal), HL
+    LD (jrColumnToUpdate), A
+    LD (updateColFlag), A
+    LD (jrCameraPos), A
+    LD (enableScroll), A
+    OUT (VDPCON_PORT), A
+    LD A, $88
+    OUT (VDPCON_PORT), A
+    ;   SPECIAL CUTSCENE VAR
+    XOR A
     LD (jrCutsceneVarFB), A
+    ;   OFFSCREEN FLAGS
     LD (blinky + OFFSCREEN_FLAG), A
     LD (pinky + OFFSCREEN_FLAG), A
     LD (inky + OFFSCREEN_FLAG), A
     LD (clyde + OFFSCREEN_FLAG), A
     LD (pacman + OFFSCREEN_FLAG), A
     LD (fruit + OFFSCREEN_FLAG), A
+    ;   INIT. OVERRIDE FLAGS 
+    LD HL, jrCut_OverrideFlags
+    LD DE, jrCut_OverrideFlags + $01
+    LD BC, $05
+    LD (HL), $01
+    LDIR
+    ;   INIT. OFFSCREEN FLAGS FOR CUTSCENES (COPY OF ACTOR FLAGS)
+    LD HL, jrCutScreenFlagList
+    LD DE, jrCutScreenFlagList + $01
+    LD BC, $07
+    LD (HL), $00
+    LDIR
 ;   TILE POINTER SETUP
     CALL cutsceneTilePtrSetup
 ;   LOAD GRAPHICS
-    LD HL, jrCutsceneTiles  ; ASSUME SMOOTH
+    ; MS.PAC GFX (STORK, SACK, HEART)
+    LD HL, msCutsceneTiles
+        ; SMOOTH / ARCADE CONTROL PATH
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    JR Z, +
+    LD HL, arcadeGFXData@cutsceneMs
++:
     LD DE, SPRITE_ADDR + JR_CUT_VRAM | VRAMWRITE
-    ; SMOOTH / ARCADE CONTROL PATH
+    CALL zx7_decompressVRAM
+    ; JR. GFX
+    LD HL, jrCutsceneTiles  ; ASSUME SMOOTH
+    LD DE, SPRITE_ADDR + JR_CUT_VRAM + ($0D * $20) | VRAMWRITE
+        ; SMOOTH / ARCADE CONTROL PATH
     LD A, (plusBitFlags)
     AND A, $01 << STYLE_0
     JP Z, zx7_decompressVRAM
     LD HL, arcadeGFXData@cutsceneJr 
     JP zx7_decompressVRAM
-    /*
-@wait:
-;   TURN ON SCREEN
-    CALL waitForVblank
-    JP turnOnScreen
-    */
 
-.DEFINE jrCutScreenFlagList     workArea + $10
+
 
 jrSceneCommonDrawUpdate:
 ;   DO CUTSCENE DRAW
-    ; SETUP
-    LD IYL, $06                     ; COUNTER
-    LD IX, cutsceneControl.charList + $0A       ; START AT LAST CHAR
-    LD DE, cutsceneControl.charOffsetList + $05 ; START AT LAST OFFSET
-    LD BC, cutsceneControl.posList + $0B        ; START AT LAST Y
     ; COPY OFFSCREEN FLAGS TO SEQUENTIAL ARRAY
-    LD HL, jrCutScreenFlagList
+    LD DE, jrCutScreenFlagList
+    LD HL, jrCut_OverrideFlags
     LD A, (blinky + OFFSCREEN_FLAG)
-    LD (HL), A
+    AND A, (HL)
+    LD (DE), A
+    INC DE
     INC HL
     LD A, (pinky + OFFSCREEN_FLAG)
-    LD (HL), A
+    AND A, (HL)
+    LD (DE), A
+    INC DE
     INC HL
     LD A, (inky + OFFSCREEN_FLAG)
-    LD (HL), A
+    AND A, (HL)
+    LD (DE), A
+    INC DE
     INC HL
     LD A, (clyde + OFFSCREEN_FLAG)
-    LD (HL), A
+    AND A, (HL)
+    LD (DE), A
+    INC DE
     INC HL
     LD A, (pacman + OFFSCREEN_FLAG)
-    LD (HL), A
+    AND A, (HL)
+    LD (DE), A
+    INC DE
     INC HL
     LD A, (fruit + OFFSCREEN_FLAG)
-    LD (HL), A
+    AND A, (HL)
+    LD (DE), A
+    ; SETUP
+    ;LD IYL, $08                     ; COUNTER
+    ;LD IX, cutsceneControl.charList + $0E       ; START AT LAST CHAR
+    ;LD DE, cutsceneControl.charOffsetList + $07 ; START AT LAST OFFSET
+    ;LD BC, cutsceneControl.posList + $0F        ; START AT LAST Y
+
+    LD IYL, $07                     ; COUNTER
+    LD IX, cutsceneControl.charList + $0C       ; START AT LAST CHAR
+    LD DE, cutsceneControl.charOffsetList + $06 ; START AT LAST OFFSET
+    LD BC, cutsceneControl.posList + $0D        ; START AT LAST Y
 -:
     ; SKIP IF OFFSCREEN FLAG IS SET
     LD HL, jrCutScreenFlagList - $01
     LD A, IYL
-    RST addToHL
+    addToHL_M
+    LD A, (HL)
     OR A
     JP Z, +
+@clearObject:
     ; CLEAR OBJECT
     LD A, IYL
     DEC A
@@ -1084,7 +1271,7 @@ jrSceneCommonDrawUpdate:
     OUT (VDPCON_PORT), A   ; LOW BYTE
     LD A, hibyte(SPRITE_TABLE) | hibyte(VRAMWRITE)
     OUT (VDPCON_PORT), A   ; HIGH BYTE
-    LD A, $F7
+    LD A, $F0
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
@@ -1104,22 +1291,33 @@ jrSceneCommonDrawUpdate:
     PUSH DE     ; SAVE OFFSET PTR
     PUSH BC
     ; ADD OFFSET TO ARRAY PTR
-    RST addToHL
+    addToHL_M
+    LD A, (HL)
     ; CHARACTER TYPE CHECK
     LD HL, jrSceneCharTable
     OR A
-    JR Z, @convPos  ; BYPASS IF 0
+    JP Z, @convPos  ; BYPASS IF 0
 ;   ------
 ;   CUTSCENE SPECIFIC GFX
 ;   ------
     CP A, $31
+    JR C, ++
+        ; SCARED GHOST PLUS (ADD 4)
+    CP A, $50
     JR C, +
+    LD B, A
+    LD A, (plusBitFlags)
+    AND A, $01 << PLUS
+    ADD A, A
+    ADD A, A
+    ADD A, B
++:
     SUB A, $30
     ADD A, A
     ADD A, A
-    RST addToHL
-    JR @convPos
-+:
+    addToHL_M
+    JP @convPos
+++:
 ;   ------
 ;   GHOST SPECIFIC GFX
 ;   ------
@@ -1130,11 +1328,11 @@ jrSceneCommonDrawUpdate:
     ADD A, A
     ADD A, A
     LD HL, (msCut_GhostTileTblPtr)
-    RST addToHL
-    JR @convPos
+    addToHL_M
+    JP @convPos
 +:
 ;   ------
-;   MAIN CHARACTER GFX
+;   MAIN CHARACTER GFX [MS.PAC, OTTO]
 ;   ------
     CP A, $0D
     JR C, +
@@ -1148,7 +1346,7 @@ jrSceneCommonDrawUpdate:
     SUB A, $0D
     ADD A, A
     LD HL, (msCut_MainTileTblPtr)
-    RST addToHL
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
@@ -1156,7 +1354,7 @@ jrSceneCommonDrawUpdate:
         ; WRITE TILE DATA TO VRAM
     CALL pacTileStreaming@writeToVRAM
     LD HL, playerTileList
-    JR @convPos
+    JP @convPos
 +:
 ;   ------
 ;   JR CHARACTER GFX
@@ -1173,7 +1371,7 @@ jrSceneCommonDrawUpdate:
     SUB A, $05
     ADD A, A
     LD HL, (jrCut_JrTileTblPtr)
-    RST addToHL
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
@@ -1181,10 +1379,10 @@ jrSceneCommonDrawUpdate:
         ; WRITE TILE DATA TO VRAM
     CALL pacTileStreaming@writeToVRAM
     LD HL, jrTileList
-    JR @convPos
+    JP @convPos
 +:
 ;   ------
-;   SUB CHARACTER GFX
+;   SUB CHARACTER GFX [PAC-MAN, ANNA]
 ;   ------
         ; SET VDP ADDRESS
     LD C, VDPCON_PORT
@@ -1196,7 +1394,7 @@ jrSceneCommonDrawUpdate:
     DEC A
     ADD A, A
     LD HL, (msCut_SubTileTblPtr)
-    RST addToHL
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
@@ -1224,8 +1422,8 @@ jrSceneCommonDrawUpdate:
     PUSH HL
     LD HL, cutsceneControl.highXList - $01
     LD A, IYL
-    RST addToHL
-    LD D, A
+    addToHL_M
+    LD D, (HL)
     POP HL
     SLA E
     RL D
@@ -1246,7 +1444,7 @@ jrSceneCommonDrawUpdate:
     LD C, A     ; C = Y / 4
     LD A, IYH
     SUB A, C    ; A = IYH - C
-    SUB A, $0C  ; $0c
+    SUB A, $06  ; $0c
     LD E, A
     ; REVERT BANK
     LD A, DEFAULT_BANK
@@ -1270,6 +1468,10 @@ jrSceneCommonDrawUpdate:
     JP NZ, -
 ;   SUB PROGRAM UPDATE
     CALL cutAniProcess
+    ; EXIT IF CUTSCENE ENDED
+    LD A, (isNewState)
+    OR A
+    RET NZ
 ;   SCROLL POSITION UPDATE
     LD HL, cutsceneControl.posList
     LD DE, cutsceneControl.highXList
@@ -1332,4 +1534,59 @@ jrSceneCommonDrawUpdate:
     INC DE
     LD A, (HL)
     LD (fruit + Y_WHOLE), A
-    RET
+;   CALCULATE SCROLL VALUE
+    ; CHANGE BANK FOR TABLES
+    LD A, JR_TABLES_BANK
+    LD (MAPPER_SLOT2), A
+    ; NEW TO OLD
+    LD A, (jrScrollReal)
+    LD (jrOldScrollReal), A
+    ; SCALE PAC-MAN'S POS TO 3/4 USING TABLE
+        ; POS -> INDEX
+    LD A, (pacman + X_WHOLE)
+    LD L, A
+    LD A, (pacman + X_WHOLE + 1)
+    LD H, A
+    ADD HL, HL
+        ; ADD HIGH BYTES
+    LD A, H
+    ADD A, hibyte(jrScaleTable)
+    LD H, A
+        ; GET VALUE
+    LD A, (HL)
+    INC HL
+    LD H, (HL)
+    LD L, A
+    ; SCROLL CALCULATION (ATTRACT CUTSCENE)
+        ; SKIP IF AT MAX LEFT SCROLL
+    LD DE, $002C + $01
+    OR A
+    SBC HL, DE
+    ADD HL, DE
+    JP C, updateJRScroll@cutsceneJump
+
+    EX DE, HL
+    LD HL, $0154    ; FLIP X AXIS (MAX RIGHT POSITION)
+    OR A
+    SBC HL, DE
+    EX DE, HL
+    LD HL, $00D8    ; MAX RIGHT SCROLL
+    ADD HL, DE
+    LD A, L
+    RRC H
+        ; CAP TO $28 (MAX LEFT SCROLL)
+    JR NC, +
+    CP A, $28
+    JR C, +
+    LD A, $28
++:
+    LD (jrScrollReal), A
+;   CALCULATE LEFT MOST TILE
+    SRA A
+    SRA A
+    SRA A
+    NEG
+    ADD A, $04
+    LD (jrLeftMostTile), A
+;   UPDATE CAMERA POS, OFFSCREEN FLAGS, COLUMN, SCROLL FLAG
+    JP updateJRScroll@cutsceneJump

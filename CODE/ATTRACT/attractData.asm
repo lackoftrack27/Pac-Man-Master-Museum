@@ -221,7 +221,7 @@ introGencompText:
 
 /*
 ----------------------------------------------
-            ATTRACT MODE DATA [MS. PAC-MAN]
+        ATTRACT MODE DATA [MS. PAC-MAN]
 ----------------------------------------------
 */
 ;   INITIAL PALLETE FOR MARQUEE
@@ -317,3 +317,22 @@ msIntroMarquee:
     .DB $7E $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $7F
     .DB $80 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $81
     .DB $82 $83 $84 $85 $86 $87 $88 $89 $8A $8B $83 $84 $85 $8C
+
+
+/*
+----------------------------------------------
+        ATTRACT MODE DATA [JR. PAC-MAN]
+----------------------------------------------
+*/
+
+jrIntroBlinkyTxt:   ; 21, 13        9
+    .DB $C0 $C1 $C2 $C3 $C4 $C5 $C6 $C7 $C8
+
+jrIntroPinkyTxt:    ; 24, 13        5
+    .DB $CA $CB $CC $CD $CE
+
+jrIntroInkyTxt:     ; 25, 13        3
+    .DB $CF $D0 $D1
+
+jrIntroTimTxt:      ; 25, 13        2
+    .DB $D2 $D3

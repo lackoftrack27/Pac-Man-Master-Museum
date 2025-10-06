@@ -557,6 +557,7 @@ jrSNTileTbl:
     .DW jrTileS0B jrTileS20 jrTileS0A jrTileS19 ; HALF
     .DW jrTileS04 jrTileS1A jrTileS03 jrTileS1B ; OPEN
 ;   RIGHT
+@right:
 @titlePtr:
     .DW jrTileS05 jrTileS1C jrTileS06 jrTileS1D ; OPEN
 @hudPtr:
@@ -584,6 +585,7 @@ jrANTileTbl:
     .DW jrTileA04 jrTileA1D jrTileA0A jrTileA16 ; HALF
     .DW jrTileA04 jrTileA17 jrTileA03 jrTileA18 ; OPEN
 ;   RIGHT
+@right:
 @titlePtr:
     .DW jrTileA05 jrTileA19 jrTileA06 jrTileA1A ; OPEN
 @hudPtr:

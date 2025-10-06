@@ -1327,3 +1327,78 @@ drawNewColumn:
     OUTI
     OUTI
     RET
+
+
+
+drawNewColumnCutscene:
+;   RESET FLAG
+    XOR A
+    LD (updateColFlag), A
+;   SET VDP ADDRESS
+    LD C, VDPCON_PORT
+    LD HL, NAMETABLE | VRAMWRITE
+    LD A, (jrColumnToUpdate)
+    ADD A, A
+        ; ADD COLUMN TO ADDRESS
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+    OUT (C), L
+    OUT (C), H
+    DEC C
+;   SET STARTING TILEMAP ADDRESS
+    EX DE, HL		; HL: N/A, DE: VDP ADDR
+    LD A, (jrOldScrollReal)
+    LD B, A
+    LD A, (jrScrollReal)
+    SUB A, B
+    OR A
+    LD B, 50    ; (12 * 2) * 2 + 2
+    LD A, (jrLeftMostTile) 
+    JP P, +
+    ADD A, $1F  ; POINT TO COLUMN ON OTHER SIDE OF VISIBLE SCREEN
++:
+    ADD A, A
+    LD HL, mazeGroup1
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+;   --------------
+;   DRAW COLUMN FROM TILEMAP
+;   --------------
+-:
+.REPEAT 12  ; LOOPS TWICE
+    ; WRITE TILEMAP DATA
+    OUTI
+    OUTI
+    ; UPDATE VDP ADDRESS FOR NEXT ROW
+    EX DE, HL		; HL: VDP ADDR, DE: TILEMAP ADDR
+    LD A, $40
+        ; ADD $40 TO ADDRESS
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+        ; WRITE TO VDP
+    LD A, L     
+    OUT (VDPCON_PORT), A    
+    LD A, H
+    OUT (VDPCON_PORT), A
+    ; UPDATE TILEMAP ADDRESS FOR NEXT ROW
+    EX DE, HL		; HL: TILEMAP ADDR, DE: VDP ADDR
+    LD A, $50
+        ; ADD $50 TO ADDRESS
+    ADD A, L
+    LD L, A
+    ADC A, H
+    SUB A, L
+    LD H, A
+.ENDR
+    DEC B
+    JP NZ, -
+    RET
