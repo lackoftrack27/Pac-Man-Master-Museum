@@ -21,10 +21,14 @@ commonCutsceneInit:
     LD (xUPCounter), A
     LD (pacPoweredUp), A
     LD (sprFlickerControl), A
+    LD HL, $0000
+    LD (mainTimer0), HL
+    LD (mainTimer1), HL
 ;   CLEAR SPRITE TABLE
+    LD B, L
+    LD C, VDPDATA_PORT
     LD HL, SPRITE_TABLE | VRAMWRITE
     RST setVDPAddress
-    LD C, VDPDATA_PORT
 -:
     OUT (C), L  ; L IS $00
     DJNZ -
@@ -152,6 +156,11 @@ pacCutsceneInit:
     ; RESET STATE
     LD A, GHOST_SCATTER
     LD (blinky.state), A
+;   SPRITE LIMIT AT $0E
+    LD HL, (SPRITE_TABLE | VRAMWRITE) + $0E
+    RST setVDPAddress
+    LD A, $D0
+    OUT (VDPDATA_PORT), A
 ;   TURN ON SCREEN
     CALL waitForVblank
     JP turnOnScreen
@@ -795,6 +804,7 @@ cutAniProcess:
 
 /*
     COMMAND - "CLEAR TEXT"
+    COMMAND - "REMOVE PRIORITY OF FENCE" FOR JR.PAC
     $F7
 */
 @cmdClrText:
@@ -872,6 +882,7 @@ cutAniProcess:
 
 /*
     COMMAND - "CLEAR NUM"
+    COMMAND - "NO OPERATION" FOR JR.PAC
     $F8
 */
 @cmdClrNum:
@@ -911,6 +922,20 @@ cutAniProcess:
     $F9
 */
 @cmdSetBGPal:
+    INC HL
+    BIT 7, (HL)
+    JP Z, jrCmdCleanUp
+;   SET BACKGROUND PALETTE
+    LD HL, $0000 | CRAMWRITE
+    RST setVDPAddress
+    LD HL, bgPalJrFD
+    LD C, $10
+-:
+    LD A, (HL)
+    OUT (VDPDATA_PORT), A
+    INC HL
+    DEC C
+    JP NZ, -
     JP jrCmdCleanUp
 
 
@@ -978,6 +1003,7 @@ cutAniProcess:
 
 /*
     COMMAND - "SET HIGH BYTE OF X POSITION"
+    COMMAND - "SET SPRITE INDEX OF CHAR ARRAY"
     $FE
     [NEW]
 */
@@ -985,8 +1011,14 @@ cutAniProcess:
 ;   GET BYTE FROM PROGRAM
     INC HL
     LD C, (HL)
-;   GET CORRECT ADDRESS
     LD HL, cutsceneControl.highXList - $01
+;   IF VALUE IS GREATER THAN 2, SET SPRITE INDEX
+    LD A, C
+    CP A, $02
+    JR C, +
+    LD HL, cutsceneControl.charOffsetList - $01
++:
+;   GET CORRECT ADDRESS
     LD A, B
     RST addToHL
 ;   STORE VALUE
@@ -1029,24 +1061,26 @@ cutAniProcess:
 ;   RESTORE BANK
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
-;   WAIT 30 FRAMES
-    LD A, 30
-    LD (mainTimer0), A
--:
-    CALL sndProcess
-    HALT
-    LD HL, mainTimer0
+;   30 FRAME WAIT AREA
+    ; CHECK IF TIMER HAS BEEN INITIALIZED
+    LD A, (mainTimer1 + 1)
+    OR A
+    JP NZ, +    ; IF SO, SKIP
+    ; INITIALIZE TIMER FOR 30 FRAMES
+    LD HL, $01 * $100 + 30
+    LD (mainTimer1), HL
++:
+    ; DECREMENT TIMER
+    LD HL, mainTimer1
     DEC (HL)
-    JR NZ, -
-
-    XOR A
-    LD (vblankFlag), A
-;   SWITCH TO GAMEPLAY (CUTSCENE MODE)
+    RET NZ
+    ; SWITCH TO NEW STATE WHEN TIMER EXPIRES
     LD A, (mainGameMode)
     OR A
     JP NZ, switchToGameplay
-;   SWITCH TO DEMO (ATTRACT MODE)
+    ; ATTRACT MODE
     JP demoPrep
+
 
 /*
     ADDITIONAL CLEAN UP FOR COMMANDS $F1, $F3
@@ -1151,10 +1185,18 @@ jrCutSetup:
     CALL cutsceneSubPrgSetup
 ;   COMMON CUTSCENE SETUP
     CALL commonCutsceneInit
+;   DISABLE H-INTS
+    CALL turnOffLineInts
+;   DISABLE SPRITES AT INDEX $15
+    LD HL, SPRITE_TABLE + $1C | VRAMWRITE
+    RST setVDPAddress
+    LD A, $D0
+    OUT (VDPDATA_PORT), A
+;   INITIALIZE A BUNCH OF VARS
     XOR A
     LD L, A
     LD H, A
-    ;   RESET ALL SCROLL VARS
+    ; ALL SCROLL VARS
     LD (jrScrollReal), HL
     LD (jrOldScrollReal), HL
     LD (jrColumnToUpdate), A
@@ -1164,23 +1206,23 @@ jrCutSetup:
     OUT (VDPCON_PORT), A
     LD A, $88
     OUT (VDPCON_PORT), A
-    ;   SPECIAL CUTSCENE VAR
+    ; SPECIAL CUTSCENE VAR
     XOR A
     LD (jrCutsceneVarFB), A
-    ;   OFFSCREEN FLAGS
+    ; OFFSCREEN FLAGS
     LD (blinky + OFFSCREEN_FLAG), A
     LD (pinky + OFFSCREEN_FLAG), A
     LD (inky + OFFSCREEN_FLAG), A
     LD (clyde + OFFSCREEN_FLAG), A
     LD (pacman + OFFSCREEN_FLAG), A
     LD (fruit + OFFSCREEN_FLAG), A
-    ;   INIT. OVERRIDE FLAGS 
+    ; INIT. OVERRIDE FLAGS 
     LD HL, jrCut_OverrideFlags
     LD DE, jrCut_OverrideFlags + $01
     LD BC, $05
     LD (HL), $01
     LDIR
-    ;   INIT. OFFSCREEN FLAGS FOR CUTSCENES (COPY OF ACTOR FLAGS)
+    ; INIT. OFFSCREEN FLAGS FOR CUTSCENES (COPY OF ACTOR FLAGS)
     LD HL, jrCutScreenFlagList
     LD DE, jrCutScreenFlagList + $01
     LD BC, $07
@@ -1557,20 +1599,25 @@ jrSceneCommonDrawUpdate:
     INC HL
     LD H, (HL)
     LD L, A
-    ; SCROLL CALCULATION (ATTRACT CUTSCENE)
+    ; SCROLL CALCULATION
         ; SKIP IF AT MAX LEFT SCROLL
     LD DE, $002C + $01
     OR A
     SBC HL, DE
     ADD HL, DE
     JP C, updateJRScroll@cutsceneJump
-
     EX DE, HL
     LD HL, $0154    ; FLIP X AXIS (MAX RIGHT POSITION)
     OR A
     SBC HL, DE
     EX DE, HL
-    LD HL, $00D8    ; MAX RIGHT SCROLL
+        ; MAX SCROLL DETERMINATION
+    LD HL, $00D8    ; ATTRACT, CUTSCENE 1,2
+    LD A, (subGameMode)
+    CP A, CUTSCENE_JRP02
+    JP NZ, +
+    LD HL, $0080    ; CUTSCENE 3
++:
     ADD HL, DE
     LD A, L
     RRC H
@@ -1587,6 +1634,13 @@ jrSceneCommonDrawUpdate:
     SRA A
     NEG
     ADD A, $04
+    LD (jrLeftMostTile), A
+    ; OVERBOUNDS CHECK FOR CUTSCENE 3
+    INC A
+    CP A, $0B   ; SCROLL MORE THAN $D8
+    JP C, updateJRScroll@cutsceneJump
+    ;LD A, 0   ; SCROLL IN EMPTY COLUMN
+    XOR A       ; WILL BE ADDED TO $1F, SINCE SCROLLING RIGHT
     LD (jrLeftMostTile), A
 ;   UPDATE CAMERA POS, OFFSCREEN FLAGS, COLUMN, SCROLL FLAG
     JP updateJRScroll@cutsceneJump

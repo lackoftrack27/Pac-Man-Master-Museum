@@ -551,7 +551,7 @@ pacStateTable@update@deadMode:
     OR A
     JR Z, @@@update     ; IF NOT, SKIP TRANSITION
 @@@enter:
-    ; STATE IS NO LONGER NEW
+;   STATE IS NO LONGER NEW
     XOR A
     LD (pacman.newStateFlag), A
 ;   SET TIME FOR FIRST ANIMATION
@@ -570,6 +570,9 @@ pacStateTable@update@deadMode:
 ;   SET TIME VALUE
     LD A, (HL)
     LD (pacDeathTimer), A
+;   INCREMENT FRAME POSITION
+    LD HL, mainTimer1
+    INC (HL)
 ;   UPDATE ACTOR'S DATA IN SPRITE TABLE
     RET
 
@@ -605,10 +608,23 @@ displayPacMan:
     ; RIGHT:-1,-1 : 3 (FEFF) 68
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP Z, ++
+    JP Z, @displaySpr
+    ; SUBTRACT 2 IF GOING UP/DOWN AND DYING
+    LD A, (pacman.currDir)
+    CPL         ; 11, 10, 01, 00
+    LD B, A
+    LD A, (pacman.state)
+    RRA         ; 01 - DEATH
+    AND A, B    ; 01, 00, 01, 00    
+    JP Z, +
+    DEC D
+    DEC D
++:
     ; MODIFY X
     INC D
-    LD A, (pacman.currDir)
+    LD A, B
+    CPL
+    ;LD A, (pacman.currDir)
     CP A, $03
     JP C, +
     DEC D
@@ -617,10 +633,10 @@ displayPacMan:
     ; MODIFY Y
     INC E
     OR A
-    JP Z, ++
+    JP Z, @displaySpr
     DEC E
     DEC E
-++:
+@displaySpr:
 ;   DISPLAY SPRITE
     LD A, $01               ; FIXED SPRITE ID
     LD HL, playerTileList   ; FIXED TILE LIST

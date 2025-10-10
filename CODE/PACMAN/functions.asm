@@ -56,6 +56,11 @@ pacmanReset:
     LD (pacman + STATE), A
 ;   SET POINTER FOR DEATH TIMES
     LD HL, pacmanDeathTimes
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +
+    LD HL, jrDeathTimes
++:
     LD (pacDeathTimePtr), HL
 ;   SET PAC-MAN'S X AND Y POSITION
     LD HL, $0080
@@ -117,24 +122,16 @@ pacTileStreaming:
     RRCA
     ; ADD ALL TO TABLE PTR
     ADD A, D
-    LD E, A
-    LD D, $00
     LD HL, (playerTileTblPtr)
-    ADD HL, DE
+    addToHL_M
     JP @writeToVRAM
 @deathStream:
-    LD HL, (pacDeathTimePtr)
-    LD DE, pacmanDeathTimes
-    OR A    ; CLEAR CARRY
-    SBC HL, DE
-    LD A, L
+    LD A, (mainTimer1)
     ADD A, A
     ADD A, A
     ADD A, A
-    LD E, A
-    LD D, $00
     LD HL, (deathTileTblPtr)
-    ADD HL, DE
+    addToHL_M
 @writeToVRAM:
     ; SET BANK
     LD A, UNCOMP_BANK

@@ -180,7 +180,7 @@ sStateGameplayTable@comp01Mode:
     ; SET SUBSTATE
     LD A, (plusBitFlags)    ; ADD 0/4/8 DEPENDING ON GAME
     AND A, ($01 << MS_PAC) | ($01 << JR_PAC)
-    RLCA
+    ADD A, A
     ADD A, B
     LD (subGameMode), A
     ; SWITCH TO CUTSCENE MODE

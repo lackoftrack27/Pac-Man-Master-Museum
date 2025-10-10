@@ -132,12 +132,7 @@ drawMaze:
     ; SET VRAM ADDRESS
     LD HL, (tileBufferAddress)
     LD A, (DE)      ; GET OFFSET
-    ;RST addToHL     ; ADD TO VRAM ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     SET $06, H      ; VRAM WRITE OP
     OUT (C), L
     OUT (C), H
@@ -167,12 +162,7 @@ drawMazeFruitJr:
     ; SET VRAM ADDRESS
     LD HL, (fruitTileBufAddr)
     LD A, (DE)      ; GET OFFSET
-    ;RST addToHL     ; ADD TO VRAM ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     SET $06, H      ; VRAM WRITE OP
     OUT (C), L
     OUT (C), H
@@ -227,11 +217,7 @@ drawInMazeFruit:
     RRCA
     RRCA
     LD HL, fruitState6@explosionSprDefs
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     JP @execDraw
     
 
@@ -248,11 +234,7 @@ drawGhostPoints:
     ADD A, A
 ;   ADD OFFSET TO BASE TILE DEF. TABLE
     LD HL, ghostPointTileDefs
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 ;   DRAW POINTS
     LD IX, ghostPointXpos - 1
     CALL convPosToScreen
@@ -1258,11 +1240,7 @@ drawNewColumn:
     LD A, (jrColumnToUpdate)
     ADD A, A
         ; ADD COLUMN TO ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     OUT (C), L
     OUT (C), H
     DEC C
@@ -1280,11 +1258,7 @@ drawNewColumn:
 +:
     ADD A, A
     LD HL, mazeGroup1.tileMap
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 ;   --------------
 ;   DRAW COLUMN FROM TILEMAP
 ;   --------------
@@ -1297,32 +1271,20 @@ drawNewColumn:
     EX DE, HL		; HL: VDP ADDR, DE: TILEMAP ADDR
     LD A, $40
         ; ADD $40 TO ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
         ; WRITE TO VDP
     LD A, L     
     OUT (VDPCON_PORT), A    
     LD A, H
     OUT (VDPCON_PORT), A
-    ;RST addToHL
-    ;RST setVDPAddress
     ; UPDATE TILEMAP ADDRESS FOR NEXT ROW
     EX DE, HL		; HL: TILEMAP ADDR, DE: VDP ADDR
     LD A, $50
         ; ADD $50 TO ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    ;RST addToHL
+    addToHL_M
 .ENDR
     DEC B
     JP NZ, -
-    ;DJNZ -
     ; WRITE TILEMAP DATA
     OUTI
     OUTI
@@ -1340,11 +1302,7 @@ drawNewColumnCutscene:
     LD A, (jrColumnToUpdate)
     ADD A, A
         ; ADD COLUMN TO ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     OUT (C), L
     OUT (C), H
     DEC C
@@ -1362,11 +1320,7 @@ drawNewColumnCutscene:
 +:
     ADD A, A
     LD HL, mazeGroup1
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 ;   --------------
 ;   DRAW COLUMN FROM TILEMAP
 ;   --------------
@@ -1379,11 +1333,7 @@ drawNewColumnCutscene:
     EX DE, HL		; HL: VDP ADDR, DE: TILEMAP ADDR
     LD A, $40
         ; ADD $40 TO ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
         ; WRITE TO VDP
     LD A, L     
     OUT (VDPCON_PORT), A    
@@ -1393,11 +1343,7 @@ drawNewColumnCutscene:
     EX DE, HL		; HL: TILEMAP ADDR, DE: VDP ADDR
     LD A, $50
         ; ADD $50 TO ADDRESS
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 .ENDR
     DEC B
     JP NZ, -

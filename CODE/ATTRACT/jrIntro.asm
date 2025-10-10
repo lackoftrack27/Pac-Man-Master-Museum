@@ -11,15 +11,11 @@ sStateAttractTable@jrIntroMode:
 @@enter:
 ;   GENERAL INTRO MODE SETUP
     CALL generalIntroSetup00
-;   DISABLE H-INTS
-    CALL turnOffLineInts
 ;   CUTSCENE SETUP
     LD HL, jrAttractProgTable
     CALL jrCutSetup
-;   RESET TEXT TIMER
-    LD HL, $0000
-    LD (mainTimer0), HL
 ;   LOAD BACKGROUND PALETTE
+    CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
     LD HL, $0000 | CRAMWRITE
     RST setVDPAddress
     LD HL, bgPalJrFD
@@ -31,12 +27,6 @@ sStateAttractTable@jrIntroMode:
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, jrAttractTiles
     CALL zx7_decompressVRAM
-;   LOAD TEXT TILES
-    LD A, bank(jrIntroTxtTiles)
-    LD (MAPPER_SLOT2), A
-    LD DE, $3800 | VRAMWRITE
-    LD HL, jrIntroTxtTiles
-    CALL zx7_decompressVRAM
 ;   LOAD BACKGROUND TILEMAP
     LD A, bank(jrAttractTilemap)
     LD (MAPPER_SLOT2), A
@@ -46,6 +36,9 @@ sStateAttractTable@jrIntroMode:
 ;   RESTORE BANK
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
+;   RESET TEXT TIMER
+    LD HL, $0000
+    LD (mainTimer0), HL
 ;   SET INITIAL SCROLL POSITION
     XOR A   ; DISABLE NORMAL SCROLL STUFF
     LD (enableScroll), A
@@ -75,11 +68,6 @@ sStateAttractTable@jrIntroMode:
         ; DO FOR WHOLE SCREEN
     DEC D
     JR NZ, -
-;   DISABLE SPRITES AT INDEX $15
-    LD HL, SPRITE_TABLE + $1C | VRAMWRITE
-    RST setVDPAddress
-    LD A, $D0
-    OUT (VDPDATA_PORT), A
 ;   GENERAL INTRO MODE SETUP 2
     CALL generalIntroSetup01
 @@draw:
@@ -101,8 +89,10 @@ sStateAttractTable@jrIntroMode:
     JP NZ, sStateAttractTable@introMode@@exit ; IF SO, EXIT BACK TO TITLE
 ;   TEXT UPDATE
     LD HL, (mainTimer0)
+    ; CHECK IF TEXT UPDATE IS COMPLETE
     BIT 7, H
-    JP NZ, jrSceneCommonDrawUpdate
+    JP NZ, jrSceneCommonDrawUpdate  ; IF SO, SKIP
+    ; INCREMENT COUNTER
     INC HL
     LD (mainTimer0), HL
     LD C, VDPDATA_PORT

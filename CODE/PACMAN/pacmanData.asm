@@ -73,7 +73,7 @@ deathTileTblList:
     ; ARCADE
     .DW pacANDeathTileTbl
     .DW msANDeathTileTbl
-    .DW pacANDeathTileTbl;jrANDeathTileTbl
+    .DW jrANDeathTileTbl
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW ottoANDeathTileTbl
@@ -266,6 +266,9 @@ pacANDeathTileTbl:
 ;   FRAMES TIMES
 pacmanDeathTimes:
     .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $0F $55
+
+jrDeathTimes:
+    .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $07 $5D
 
 
 /*
@@ -595,4 +598,19 @@ jrANTileTbl:
 
 jrSNDeathTileTbl:
 
+
 jrANDeathTileTbl:
+    .DW jrDTileA00 jrDTileA11 jrDTileA01 jrDTileA12
+    .DW jrDTileA02 jrDTileA13 jrDTileA03 jrDTileA14
+    .DW jrDTileA04 jrDTileA15 jrDTileA05 jrDTileA16
+    .DW jrDTileA06 jrDTileA17 jrDTileA07 jrDTileA18
+
+    .DW jrDTileA08 jrDTileA19 jrDTileA09 jrDTileA1A
+    .DW jrDTileA06 jrDTileA1B jrDTileA07 jrDTileA07
+    .DW jrDTileA0A jrDTileA1C jrDTileA07 jrDTileA07
+    .DW jrDTileA0B jrDTileA1D jrDTileA07 jrDTileA1E
+
+    .DW jrDTileA0C jrDTileA1F jrDTileA0D jrDTileA20
+    .DW jrDTileA0E jrDTileA21 jrDTileA07 jrDTileA22
+    .DW jrDTileA0F jrDTileA23 jrDTileA07 jrDTileA07
+    .DW jrDTileA10 jrDTileA24 jrDTileA07 jrDTileA25

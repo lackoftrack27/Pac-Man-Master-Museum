@@ -82,6 +82,9 @@ sStateGameplayTable@dead01Mode:
 ;   SET TIMER
     LD A, DEAD01_TIMER_LEN
     LD (mainTimer0), A
+;   RESET DEATH FRAME POSITION
+    XOR A
+    LD (mainTimer1), A
 ;   NOTIFY PAC-MAN
     CALL pacGameTrans_dead
 @@draw:

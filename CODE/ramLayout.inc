@@ -25,7 +25,7 @@
     isNewState: db
 ;   GAME TIMERS
     mainTimer0: dw  ; GENERIC TIMER
-    mainTimer1: dw  ; POWER DOT / ENERGIZER
+    mainTimer1: dw  ; POWER DOT / ENERGIZER / DEATH FRAME POSITION
     mainTimer2: dw  ; SCATTER/CHASE
     mainTimer3: dw  ; FRUIT
     mainTimer4: dw  ; DOT EXPIRE
@@ -73,6 +73,7 @@
     fruitPathBounce: db
     fruitPathPtr: dw
 
+    fruitTileMapCol: db
     fruitTileXCenter: db
     fruitTileYCenter: db
     fruitTileMapPointer: dw ; POINTER FOR USE WITH TILEMAP IN VRAM

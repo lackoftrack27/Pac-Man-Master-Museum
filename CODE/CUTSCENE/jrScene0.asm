@@ -9,13 +9,14 @@ sStateCutsceneTable@jrScene0:
     OR A
     JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
 @@enter:
+;   CLEAR STATE FLAG
+    XOR A
+    LD (isNewState), A
 ;   CUTSCENE 1 SETUP FOR JR. PAC
     LD HL, jrScene0ProgTable
     CALL jrCutSetup
-;   RESET TEXT TIMER
-    LD HL, $0000
-    LD (mainTimer0), HL
-;   LOAD ATTRACT PALETTE
+;   LOAD BACKGROUND PALETTE
+    CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
     ; CRAM
     LD HL, $0000 | CRAMWRITE
     RST setVDPAddress
@@ -27,7 +28,7 @@ sStateCutsceneTable@jrScene0:
     LD DE, mazePalette
     LD BC, $10
     LDIR
-;   LOAD ATTRACT TILES
+;   LOAD BACKGROUND TILES
     LD A, bank(jrCut0Tiles)
     LD (MAPPER_SLOT2), A
     LD DE, BACKGROUND_ADDR | VRAMWRITE
@@ -49,6 +50,11 @@ sStateCutsceneTable@jrScene0:
     CALL waitForVblank
     JP turnOnScreen
 @@draw:
+;   SET ORANGE COLOR FOR ROOF
+    LD HL, $0007 | CRAMWRITE
+    RST setVDPAddress
+    LD A, $0B
+    OUT (VDPDATA_PORT), A
 ;   TEXT REMOVAL
     LD HL, mainTimer0
     ; CHECK IF TEXT HAS ALREADY BEEN REMOVED
@@ -77,6 +83,25 @@ sStateCutsceneTable@jrScene0:
 ;   UPDATE POWER DOT PALETTE CYCLE
     CALL powDotCyclingUpdate
 ;   DO COMMON DRAW AND UPDATE
-    JP jrSceneCommonDrawUpdate
+    CALL jrSceneCommonDrawUpdate
+;   EXIT IF STATE CHANGE OCCURED
+    LD A, (isNewState)
+    OR A
+    RET NZ
+;   COLOR CHANGE
+    ; WAIT UNTIL SCANLINE IS HIGH ENOUGH
+-:
+    IN A, ($7E)
+    CP A, 144
+    JP NZ, -
+    ; BUSY LOOP TO HIDE CRAM DOTS
+    LD B, $07
+-:  DJNZ -
+    ; SET ORANGE COLOR FOR 'GHOST CAVE'
+    LD HL, $0007 | CRAMWRITE
+    RST setVDPAddress
+    LD A, $06
+    OUT (VDPDATA_PORT), A
+    RET
 @@update:
 ;   END

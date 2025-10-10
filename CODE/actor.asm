@@ -80,8 +80,8 @@ actorReset:
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JR Z, +
-    RLCA
-    NEG
+    ADD A, A    ; 4 -> 8
+    NEG         ; 8 ->-8
     ADD A, (IX + Y_WHOLE)
     LD (IX + Y_WHOLE), A
     ; ADD $68 TO X POS

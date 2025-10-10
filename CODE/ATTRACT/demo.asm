@@ -50,4 +50,10 @@ sStateAttractTable@demoInputCheck:
     LD (prevInput), A   ; INPUT IS NOW PREVIOUS INPUT
     POP HL  ; REMOVE FSM CALLER   
     DI      ; DISABLE INTS (REALLY JUST VDP FRAME INTS)
-    JP resetFromDemo    ; GENERAL RESET
+    ; TURN OFF DISPLAY, BUT KEEP FRAME INTS
+    LD A, $A0
+    OUT (VDPCON_PORT), A
+    LD A, $81
+    OUT (VDPCON_PORT), A
+    ; GENERAL RESET
+    JP resetFromDemo

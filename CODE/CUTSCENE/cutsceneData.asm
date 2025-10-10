@@ -385,52 +385,53 @@ jrSceneJrTileTbl:
 
 
 .MACRO jrSceneDefs ARGS, VAL
+    ;   JR. UNIQUE
+    .DB VAL+$0D, VAL+$1B, VAL+$0E, VAL+$1C              ; HEART 0       [31]
     ;   GFX FROM MS.PAC
-    .DB VAL+$00, VAL+$09, VAL+$01, VAL+$0A              ; HEART 0       [31]
     .DB VAL+$02, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; STORK HEAD    [32]
     .DB VAL+$03, BLANK_TILE, VAL+$04, BLANK_TILE        ; STORK FLAP 0  [33]
     .DB VAL+$05, VAL+$0B, VAL+$06, VAL+$0C              ; STORK FLAP 1  [34]
     .DB VAL+$07, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; STORK SACK    [35]
     .DB VAL+$08, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BABY PAC      [36]
     ;   JR. UNIQUE
-    .DB VAL+$0D, VAL+$1B, VAL+$0E, BLANK_TILE           ; HEART 1       [37]
-    .DB VAL+$0F, VAL+$1C, VAL+$10, BLANK_TILE           ; HEART 2       [38]
-    .DB VAL+$11, VAL+$1D, BLANK_TILE, BLANK_TILE        ; HEART 3       [39]
-    .DB VAL+$19, VAL+$22, VAL+$1A, VAL+$23              ; GROWING JR 0  [3A]
-    .DB VAL+$17, VAL+$21, VAL+$18, BLANK_TILE           ; GROWING JR 1  [3B]
-    .DB VAL+$15, VAL+$20, VAL+$16, VAL+$1F              ; GROWING JR 2  [3C]
-    .DB VAL+$13, VAL+$1E, VAL+$14, VAL+$1F              ; GROWING JR 3  [3D]
+    .DB VAL+$0F, VAL+$1D, VAL+$10, BLANK_TILE           ; HEART 1       [37]
+    .DB VAL+$11, VAL+$1E, VAL+$12, BLANK_TILE           ; HEART 2       [38]
+    .DB VAL+$13, VAL+$1F, BLANK_TILE, BLANK_TILE        ; HEART 3       [39]
+    .DB VAL+$15, VAL+$20, VAL+$16, VAL+$21              ; GROWING JR 0  [3A]
+    .DB VAL+$17, VAL+$22, VAL+$18, VAL+$21              ; GROWING JR 1  [3B]
+    .DB VAL+$19, VAL+$23, VAL+$1A, VAL+$14              ; GROWING JR 2  [3C]
+    .DB VAL+$24, VAL+$32, VAL+$25, VAL+$33              ; GROWING JR 3  [3D]
 
-    .DB VAL+$24, VAL+$31, VAL+$25, VAL+$32              ; YUM-YUM RIGHT 0   [3E]
-    .DB VAL+$26, VAL+$33, VAL+$27, VAL+$34              ; YUM-YUM RIGHT 1   [3F]
-    .DB VAL+$28, VAL+$31, VAL+$29, VAL+$32              ; YUM-YUM LEFT 0    [40]
-    .DB VAL+$2A, VAL+$33, VAL+$2B, VAL+$34              ; YUM-YUM LEFT 1    [41]
-    .DB VAL+$2C, VAL+$31, VAL+$2D, VAL+$32              ; YUM-YUM UP 0      [42]
-    .DB VAL+$2E, VAL+$33, VAL+$2F, VAL+$34              ; YUM-YUM UP 1      [43]
+    .DB VAL+$26, VAL+$34, VAL+$27, VAL+$35              ; YUM-YUM RIGHT 0   [3E]
+    .DB VAL+$28, VAL+$36, VAL+$29, VAL+$37              ; YUM-YUM RIGHT 1   [3F]
+    .DB VAL+$2A, VAL+$34, VAL+$2B, VAL+$35              ; YUM-YUM LEFT 0    [40]
+    .DB VAL+$2C, VAL+$36, VAL+$2D, VAL+$37              ; YUM-YUM LEFT 1    [41]
+    .DB VAL+$2E, VAL+$34, VAL+$2F, VAL+$35              ; YUM-YUM UP 0      [42]
+    .DB VAL+$30, VAL+$36, VAL+$31, VAL+$37              ; YUM-YUM UP 1      [43]
 
-    .DB VAL+$30, VAL+$35, BLANK_TILE, BLANK_TILE        ; BALLOON TOP 0     [44]
-    .DB VAL+$36, VAL+$41, BLANK_TILE, BLANK_TILE        ; BALLOON TOP 1     [45]
-    .DB VAL+$37, VAL+$42, VAL+$38, BLANK_TILE           ; BALLOON TOP 2     [46]
-    .DB VAL+$39, BLANK_TILE, VAL+$3A, BLANK_TILE        ; BALLOON BTM 0     [47]
-    .DB VAL+$3B, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 1     [48]
-    .DB VAL+$3C, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 2     [49]
+    .DB VAL+$38, VAL+$43, BLANK_TILE, BLANK_TILE        ; BALLOON TOP 0     [44]
+    .DB VAL+$39, VAL+$44, BLANK_TILE, VAL+$45           ; BALLOON TOP 1     [45]
+    .DB VAL+$3A, VAL+$46, VAL+$3B, BLANK_TILE           ; BALLOON TOP 2     [46]
+    .DB VAL+$3C, BLANK_TILE, VAL+$3D, BLANK_TILE        ; BALLOON BTM 0     [47]
+    .DB VAL+$3E, BLANK_TILE, VAL+$3F, BLANK_TILE        ; BALLOON BTM 1     [48]
+    .DB VAL+$40, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 2     [49]
 
-    .DB VAL+$3D, VAL+$43, VAL+$3E, VAL+$44              ; BALLOON TOP 0  H  [4A]
-    .DB VAL+$3F, VAL+$45, VAL+$40, BLANK_TILE           ; BALLOON TOP 1  H  [4B]
-    .DB VAL+$46, VAL+$4F, VAL+$47, BLANK_TILE           ; BALLOON TOP 2  H  [4C]
-    .DB VAL+$48, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 0  H  [4D]
-    .DB VAL+$49, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 1  H  [4E]
-    .DB VAL+$4A, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 2  H  [4F]
+    .DB VAL+$41, VAL+$47, VAL+$42, VAL+$48              ; BALLOON TOP 0  H  [4A]
+    .DB VAL+$49, VAL+$52, VAL+$4A, BLANK_TILE           ; BALLOON TOP 1  H  [4B]
+    .DB VAL+$4B, VAL+$53, VAL+$4C, BLANK_TILE           ; BALLOON TOP 2  H  [4C]
+    .DB VAL+$4D, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 0  H  [4D]
+    .DB VAL+$4E, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 1  H  [4E]
+    .DB VAL+$4F, BLANK_TILE, BLANK_TILE, BLANK_TILE     ; BALLOON BTM 2  H  [4F]
 
-    .DB VAL+$4B, VAL+$50, VAL+$4C, VAL+$51              ; BLINKY SCARED  0  [50]
-    .DB VAL+$4B, VAL+$52, VAL+$4C, VAL+$53              ; BLINKY SCARED  1  [51]
-    .DB VAL+$4D, VAL+$54, VAL+$4E, VAL+$55              ; YUM-YUM SCARED 0  [52]
-    .DB VAL+$56, VAL+$60, VAL+$57, VAL+$61              ; YUM-YUM SCARED 1  [53]
+    .DB VAL+$50, VAL+$54, VAL+$51, VAL+$55              ; BLINKY SCARED  0  [50]
+    .DB VAL+$50, VAL+$56, VAL+$51, VAL+$57              ; BLINKY SCARED  1  [51]
+    .DB VAL+$58, VAL+$64, VAL+$59, VAL+$65              ; YUM-YUM SCARED 0  [52]
+    .DB VAL+$5A, VAL+$66, VAL+$5B, VAL+$67              ; YUM-YUM SCARED 1  [53]
 
-    .DB VAL+$58, VAL+$62, VAL+$59, VAL+$63              ; BLINKY SCARED [PLUS]  0   [54]
-    .DB VAL+$5A, VAL+$64, VAL+$5B, VAL+$65              ; BLINKY SCARED [PLUS]  1   [55]
-    .DB VAL+$5C, VAL+$66, VAL+$5D, VAL+$67              ; YUM-YUM SCARED [PLUS] 0   [56]
-    .DB VAL+$5E, VAL+$68, VAL+$5F, VAL+$69              ; YUM-YUM SCARED [PLUS] 1   [57]
+    .DB VAL+$5C, VAL+$68, VAL+$5D, VAL+$69              ; BLINKY SCARED [PLUS]  0   [54]
+    .DB VAL+$5E, VAL+$6A, VAL+$5F, VAL+$6B              ; BLINKY SCARED [PLUS]  1   [55]
+    .DB VAL+$60, VAL+$6C, VAL+$61, VAL+$6D              ; YUM-YUM SCARED [PLUS] 0   [56]
+    .DB VAL+$62, VAL+$6E, VAL+$63, VAL+$6F              ; YUM-YUM SCARED [PLUS] 1   [57]
 .ENDM
 
 ;   --------------
@@ -551,6 +552,9 @@ jrSceneCharacters:
 ----------------------------------------------
 */
 ;   CUTSCENE DATA MACROS
+.MACRO MOVE ARGS xSpd ySpd  ; TOP NIBBLE: SIGNED PIXEL, LOW NIBBLE: SUB-PIXEL
+    .DB $F0, xSpd, ySpd
+.ENDM
 .MACRO LOOP ARGS xPos yPos
     .DB $F0, xPos, yPos
 .ENDM
@@ -601,6 +605,9 @@ jrSceneCharacters:
     .DB $FD, val
 .ENDM
 .MACRO SETHIGHX ARGS, val
+    .DB $FE, val
+.ENDM
+.MACRO SETIDX ARGS, val
     .DB $FE, val
 .ENDM
 .MACRO CUTEND
@@ -687,4 +694,16 @@ jrScene1ProgTable:
     .DW jrScene1Prog4
     .DW jrScene1Prog5
     .DW cutsceneEnd
+    .DW cutsceneEnd
+
+
+;   JR PAC-MAN SCENE 2 POINTERS
+jrScene2ProgTable:
+    .DW jrScene2Prog0
+    .DW jrScene2Prog1
+    .DW jrScene2Prog2
+    .DW jrScene2Prog3
+    .DW jrScene2Prog4
+    .DW jrScene2Prog5
+    .DW jrScene2Prog6
     .DW cutsceneEnd

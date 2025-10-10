@@ -66,6 +66,6 @@ sStateGameplayTable@normalMode:
 ;   PROCESS CHANNEL 2 SFX (JR)
     LD A, (ch2SndControlJR)
     OR A
-    CALL NZ, processChan2SFXJR
+    JP NZ, processChan2SFXJR
     RET
 ;   END OF UPDATE...

@@ -28,9 +28,11 @@ generalGameplayUpdate:
     LD A, (ghostPointSprNum)
     OR A
     JR NZ, eatModeUpdate
+.IF INVINCIBLE == $00
 ;   COLLISION CHECK BETWEEN PAC-MAN AND GHOSTS
     CALL globalCollCheckTile
     CALL globalCollCheckPixel  ; SECOND CHECK WHICH ONLY APPLIES DURING SUPER MODE
+.ENDIF
     ; EXIT IF COLLISION OCCURED
     LD A, (ghostPointSprNum)
     OR A
@@ -262,11 +264,16 @@ addToScore:
     RET
 
 
-
+/*
+    INFO: INITIALIZES SCORE TILEMAP BUFFER
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, HL
+*/
 scoreTilemapRstBuffer:
-;   CLEAR BUFFER
+;   SET FIRST FOUR DIGITS TO BLANK
     LD HL, scoreTileMapBuffer
-    XOR A
+    LD A, MASK_TILE
     LD (HL), A
     INC HL
     LD (HL), A
@@ -275,15 +282,20 @@ scoreTilemapRstBuffer:
     INC HL
     LD (HL), A
     INC HL
-    LD (HL), A
-    INC HL
-    LD (HL), A
 ;   SET LAST TWO DIGITS TO 0
     LD A, HUDZERO_INDEX
-    LD (scoreTileMapBuffer + $04), A    ; DIGIT 4
-    LD (scoreTileMapBuffer + $05), A    ; DIGIT 5
+    LD (HL), A
+    INC HL
+    LD (HL), A
     RET
 
+
+/*
+    INFO: CONVERTS SCORE (BCD) TO TILEMAP
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 scoreTileMapUpdate:
 ;   SCORE TILEMAP UPDATE ROUTINE
     LD BC, $000F   ; LEADING ZERO FLAG / NIBBLE BITMASK
@@ -886,6 +898,12 @@ superTimerUpdate:
     USES: AF, HL
 */
 allDotsEatenCheck:
+.IF RACK_ADV == $01
+    POP HL      ; REMOVE FUNCTION CALLER FROM STACK
+    LD HL, $01 * $100 + GAMEPLAY_COMP00
+    LD (subGameMode), HL
+    RET
+.ELSE
     LD L, $F4   ; DOT AMOUNT FOR PAC-MAN (ASSUME GAME IS PAC-MAN)
 ;   CHECK IF GAME IS MS. PAC
     LD A, (plusBitFlags)
@@ -920,16 +938,50 @@ allDotsEatenCheck:
     SBC HL, DE
     RET NZ
     JP @lvlDone
+.ENDIF
+
+
+
+/*
+    INFO: UPDATE PLAYER'S DOT COUNTER
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, HL
+*/
+updatePlayerDotCount:
+;   CHECK IF GAME IS JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, @incNormalDot ; IF NOT, JUST INCREMENT NORMAL DOT COUNT
+;   INCREMENT JR DOT COUNT
+    LD HL, (currPlayerInfo.jrDotCount)
+    INC HL
+    LD (currPlayerInfo.jrDotCount), HL
+;   CHECK IF JR DOT COUNT IS ODD
+    RRC L
+    RET NC  ; IF NOT, END
+;   CHECK IF NORMAL DOT COUNT == $F4
+    LD A, (currPlayerInfo.dotCount)
+    CP A, $F4
+    RET Z   ; IF SO, END
+;   ELSE, ALSO INCREMENT NORMAL DOT COUNT
+@incNormalDot:
+    LD HL, currPlayerInfo.dotCount
+    INC (HL)
+    RET
 
 
 
 
+/*
+    INFO: UPDATES SCROLL RELATED VARS SUCH AS...
+        SCROLL, LEFT-MOST TILE, OFFSCREEN FLAGS, ETC
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 ;   $28 <-> $00 <-> $D8
 updateJRScroll:
-    ; DON'T RUN IN ATTRACT INTRO, CUTSCENE MODE
-    LD A, (subGameMode)
-    CP A, ATTRACT_JRINTRO
-    RET Z
     ; CHANGE BANK FOR TABLES
     LD A, JR_TABLES_BANK
     LD (MAPPER_SLOT2), A
@@ -1014,32 +1066,13 @@ updateJRScroll:
     RET
 
 
-;   USES:   AF, HL
-updatePlayerDotCount:
-;   CHECK IF GAME IS JR.PAC
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JR Z, @incNormalDot ; IF NOT, JUST INCREMENT NORMAL DOT COUNT
-;   INCREMENT JR DOT COUNT
-    LD HL, (currPlayerInfo.jrDotCount)
-    INC HL
-    LD (currPlayerInfo.jrDotCount), HL
-;   CHECK IF JR DOT COUNT IS ODD
-    RRC L
-    RET NC  ; IF NOT, END
-;   CHECK IF NORMAL DOT COUNT == $F4
-    LD A, (currPlayerInfo.dotCount)
-    CP A, $F4
-    RET Z   ; IF SO, END
-;   ELSE, ALSO INCREMENT NORMAL DOT COUNT
-@incNormalDot:
-    LD HL, currPlayerInfo.dotCount
-    INC (HL)
-    RET
 
-
-
-
+/*
+    INFO: REMOVES ALL MUTATED DOTS FROM COLLISION MAP & TILE MAP
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IX
+*/
 removeMDots:
 ;   REMOVE MUTATED DOTS FROM COLLISION MAP
     LD HL, mazeGroup1.collMap

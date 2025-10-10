@@ -12,12 +12,16 @@
     USES: AF, BC, DE, HL
 */
 checkEatenFruit:
-;   CHECK IF GAME IS MS. PAC
+;   EACH GAME CHECKS DIFFERENTLY
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JP NZ, @msCheck
-    BIT JR_PAC, A
-    JP NZ, @jrCheck
+    RRCA    ; PLUS
+    RRCA    ; MS.PAC
+    JP C, @msCheck
+    RRCA    ; JR.PAC
+    JP C, @jrCheck
+;   ----------------------------------
+;   PAC-MAN FRUIT X-ING PLAYER CODE
+;   ----------------------------------
 ;   CHECK IF PAC-MAN HAS EATEN FRUIT (PAC-MAN)
     ; X
     LD HL, (pacman.xPos)
@@ -54,6 +58,9 @@ checkEatenFruit:
     ; ADD TO SCORE
     LD HL, (fruitScoreVal)
     JP addToScore
+;   ----------------------------------
+;   MS.PAC-MAN FRUIT X-ING PLAYER CODE
+;   ----------------------------------
 @msCheck:
 ;   COMPARE PAC-MAN'S POSITION TO MOVING FRUIT'S
     ; CHECK X
@@ -77,6 +84,9 @@ checkEatenFruit:
     LD (fruit + Y_WHOLE), A
 ;   FINISH UP (SCORE, TIMER, ETC)
     JP checkEatenFruit@ateFruit
+;   ----------------------------------
+;   JR.PAC-MAN FRUIT X-ING PLAYER CODE
+;   ----------------------------------
 @jrCheck:
 ;   COMPARE PAC-MAN'S POSITION TO MOVING FRUIT'S
     ; CHECK X
@@ -169,12 +179,16 @@ fruitUpdate:
     LD A, (ghostPointSprNum)
     OR A
     RET NZ
-;   CHECK IF GAME IS MS. PAC
+;   DIFFERENT MAIN UPDATES DEPENDING ON GAME
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JP NZ, msFruitUpdate    ; IF SO, SKIP
-    BIT JR_PAC, A
-    JP NZ, jrFruitUpdate
+    RRCA    ; PLUS
+    RRCA    ; MS.PAC
+    JP C, msFruitUpdate
+    RRCA    ; JR.PAC
+    JP C, jrFruitUpdate
+;   ----------------------------------
+;           PAC-MAN FRUIT CODE
+;   ----------------------------------
 ;   CHECK IF FRUIT AND FRUIT POINTS AREN'T ACTIVE (ON SCREEN)
     LD A, $0F
     AND A, (HL) ; CHECK IF LOW NIBBLE IS 0 (NO FRUIT OR SCORE POINTS)
@@ -419,7 +433,11 @@ jrFruitUpdate:
     LD BC, (currPlayerInfo.jrDotCount)
     LD A, (DE)
 ;   1ST FLAG
+.IF FREE_FRUIT_JR == $00
     LD HL, $60
+.ELSE
+    LD HL, $00
+.ENDIF
     OR A
     SBC HL, BC
     JP NZ, +
@@ -482,12 +500,13 @@ prepareFruit:
     XOR A
     LD (fruit + OFFSCREEN_FLAG), A
 ;   SET FRUIT TILE DEF POINTER 
-    ; CHECK IF GAME IS MS. PAC
+    ; DIFFERENT POINTER SETUP FOR EACH GAME
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JP NZ, @msSetFruit  ; IF SO, SETUP FRUIT DIFFERENTLY
-    BIT JR_PAC, A
-    JP NZ, @jrSetFruit
+    RRCA    ; PLUS
+    RRCA    ; MS.PAC
+    JP C, @msSetFruit
+    RRCA    ; JR.PAC
+    JP C, @jrSetFruit
 ;   ---------------
 ;   PAC-MAN FRUIT SETUP
 ;   ---------------
@@ -743,6 +762,8 @@ fruitState3:
     SRL H
     RR L
     LD B, L     ; STORE IN B (RAM_COL)
+    LD A, B
+    LD (fruitTileMapCol), A
     PUSH BC     ; SAVE RAM_COL FOR LATER
     ; GET Y TILE (DIVIDE BY 8)
     LD A, (fruitTileYCenter)
@@ -755,7 +776,6 @@ fruitState3:
     LD H, $00
     PUSH HL     ; SAVE RAM_ROW FOR LATER
     ; MULTIPLY BY 41 (TILES PER ROW)
-    ;CALL multBy41
     multBy41
     ; ADD X AND Y
     LD C, B
@@ -1229,6 +1249,9 @@ fruitPFTargetHelper1:
     JP NZ, +
     INC A
 +:
+.IF FREE_FRUIT_JR != $00
+    XOR A
+.ENDIF
 ;   SET TARGET TYPE
     LD (fruitPathPtr), A    ; 0 - NOT AT (POWER DOT) TARGET, 1 - AT (POWER DOT) TARGET, 2 - TARGET IS PLAYER
     RET
@@ -1355,10 +1378,17 @@ updateTileMapFruitMDot:
 ;   STORE NEW TILE ID
     DEC HL
     LD (HL), C
-;   EXIT IF FRUIT IS OFFSCREEN
-    LD A, (fruit + OFFSCREEN_FLAG)
-    OR A
-    RET NZ
+;   CHECK IF TILE IS IN VRAM TILEMAP
+    LD A, (jrLeftMostTile)
+    INC A   ; REMOVE $FF (-1)
+    LD B, A
+    LD A, (fruitTileMapCol)
+    INC A
+    CP A, B
+    RET C   ; EXIT IF FRUIT'S COLUMN < LEFT MOST [VISIBLE] TILE (COLUMN)
+    SET 5, B    ; ADD 32, (VRAM TILEMAP WIDTH)
+    CP A, B
+    RET NC  ; EXIT IF FRUIT'S COLUMN >= 1ST NON VISIBLE COLUMN ON RIGHT SIDE
 ;   UPDATE VRAM TILEMAP
     LD A, (HL)
     INC HL

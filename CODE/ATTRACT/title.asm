@@ -29,6 +29,8 @@ sStateAttractTable@titleMode:
     LD A, $88
     OUT (VDPCON_PORT), A
 ;   LOAD HUD TEXT TILES
+    LD A, bank(hudTextTiles)
+    LD (MAPPER_SLOT2), A
     LD HL, hudTextTiles
     LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE
     CALL zx7_decompressVRAM

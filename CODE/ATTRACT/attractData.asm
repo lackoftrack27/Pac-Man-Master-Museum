@@ -326,13 +326,13 @@ msIntroMarquee:
 */
 
 jrIntroBlinkyTxt:   ; 21, 13        9
-    .DB $C0 $C1 $C2 $C3 $C4 $C5 $C6 $C7 $C8
+    .DB $9F $A0 $A1 $A2 $A3 $A4 $A5 $A6 $A7
 
 jrIntroPinkyTxt:    ; 24, 13        5
-    .DB $CA $CB $CC $CD $CE
+    .DB $A8 $A9 $AA $AB $AC
 
 jrIntroInkyTxt:     ; 25, 13        3
-    .DB $CF $D0 $D1
+    .DB $AD $AE $AF
 
 jrIntroTimTxt:      ; 25, 13        2
-    .DB $D2 $D3
+    .DB $B0 $B1

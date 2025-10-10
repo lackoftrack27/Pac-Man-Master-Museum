@@ -323,9 +323,11 @@ generalIntroSetup00:
 ;   RESET GLOBAL GHOST VARS
     LD (frameCounter), A
     LD (flashCounter), A
-;   SET TIMER
+;   SET TIMERS
     LD A, ATT00_TIMER_LEN
     LD (mainTimer0), A
+    LD HL, $0000
+    LD (mainTimer1), HL
 ;   SETUP PLAYER TILE POINTERS
     CALL setupTilePtrs
 ;   TURN OFF SCREEN (AND VBLANK INTS)

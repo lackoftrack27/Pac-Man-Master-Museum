@@ -18,7 +18,7 @@ sStateCutsceneTable:
     .DW switchToGameplay; 07
     .DW @jrScene0       ; 08
     .DW @jrScene1       ; 09
-    ;.DW @jrScene2       ; 0A
+    .DW @jrScene2       ; 0A
 
 
 /*
@@ -36,6 +36,9 @@ sStateCutsceneTable:
 
 .INCLUDE "jrScene0.asm"
 .INCLUDE "jrScene1.asm"
+.INCLUDE "jrScene2.asm"
+
+//.INCLUDE "waitTrans.asm"
 
 .INCLUDE "functions.asm"
 

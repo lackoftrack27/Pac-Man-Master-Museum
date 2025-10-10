@@ -34,16 +34,20 @@
     LD (HL), C
 .ENDM
 
-.MACRO addToHLSigned
-    OR A
-    JP P, +
-    DEC H
-+:
+.MACRO addToHL_M
     ADD A, L
     LD L, A
     ADC A, H
     SUB A, L
     LD H, A
+.ENDM
+
+.MACRO addToHLSigned
+    OR A
+    JP P, +
+    DEC H
++:
+    addToHL_M
 .ENDM
 
 .MACRO multBy29
@@ -85,14 +89,6 @@
     ADD HL, DE
     POP DE
     ADD HL, DE
-.ENDM
-
-.MACRO addToHL_M
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
 .ENDM
 /*
 ----------------------------------------------------------
@@ -217,11 +213,7 @@ setVDPAddress:
 .SECTION "Jump Table Execution" FORCE
 jumpTableExec:
     ADD A, A
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
@@ -516,11 +508,7 @@ mainGameLoop:
     LD A, (mainGameMode)
     ADD A, A
         ; USE MODE AS INDEX
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
         ; GET SUB STATE TABLE
     LD A, (HL)
     INC HL
@@ -530,14 +518,8 @@ mainGameLoop:
     LD A, (subGameMode)
     RST jumpTableExec
 ;   UPDATE JR PAC SCROLL
-    LD A, (mainGameMode)
-    CP A, M_STATE_CUTSCENE
-    SBC A, A
-    LD HL, enableScroll
-    AND A, (HL)
-
-    ;LD A, (enableScroll)    ; MUST BE 1 (FLAG SET)
-    ;OR A
+    LD A, (enableScroll)
+    OR A
     CALL NZ, updateJRScroll
 ;   TASK PROCESSING (RETURN FROM INT IN OG)
     ; CHECK IF TASK LIST IS EMPTY
@@ -1053,7 +1035,7 @@ bgPalJr04:
 bgPalJrFD:
     .DB $00 $04 $05 $15 $02 $0C $0A $0B $30 $2A $0F $3F $3F $3F $3F $00
 bgPalJrFE:
-    .DB $00 $04 $05 $15 $02 $0C $0A $0B $0F $0F $2A $3F $3F $3F $3F $00
+    .DB $00 $04 $05 $15 $02 $0C $0A $0B $01 $0F $2A $3F $3F $3F $3F $00
 
 ; SPRITE PALETTE ("SMOOTH")
 sprPalData:
@@ -1260,6 +1242,9 @@ powDotPalTable: ; $80
     .DB $02 $01 $00 $00
 
 
+/*
+    MULT TABLE FOR X * 29 (FOR JR.PAC)
+*/
 mult29Table:
     .DW $0000 $001D $003A $0057 $0074 $0091 $00AE $00CB $00E8 $0105 $0122 $013F $015C $0179 $0196 $01B3 
     .DW $01D0 $01ED $020A $0227 $0244 $0261 $027E $029B $02B8 $02D5 $02F2 $030F $032C $0349 ;$0366 $0383 
@@ -1272,13 +1257,6 @@ mult29Table:
 */
 
 .SECTION "COMMON TABLES" FREE
-/*
-    PLAYER ANIMATION TABLES
-*/
-normAniTbl: ; $A4
-    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
-slowAniTbl: ; $B4
-    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
 /*
     GHOST POINTS TILE INDEXES
 */
@@ -1621,6 +1599,15 @@ dotExpireTable:
     .DB 240     ; 4 SECONDS
     .DB 240     ; 4 SECONDS
     .DB 180     ; 3.5 SECONDS
+
+
+/*
+    PLAYER ANIMATION TABLES
+*/
+normAniTbl: ; $A4
+    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
+slowAniTbl: ; $B4
+    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
 .ENDS
 
 
@@ -2160,31 +2147,20 @@ jrMazePDotTargets:
 */
 .SECTION "JR.PAC SCROLL TABLES" BANK JR_TABLES_BANK SLOT 2 FORCE ORG $3900
     /*
-    $00 - $07: 04
-    $08 - $0F: 03
-    $10 - $17: 02
-    $18 - $1F: 01
-    $20 - $27: 00
-    $28 - $2F: FF
-    $30 - $37: FE
-    $38 - $3F: FD
-    $40 - $47: FC
-    $48 - $4F: FB
+    SCROLL VALUE -> LEFT MOST TILE: y = -(x >> 3) + 4
+    $00 - $07: $04
+    $08 - $0F: $03
+    $10 - $17: $02
+    $18 - $1F: $01
+    $20 - $27: $00
+    $28 - $2F: $FF
 
-
-    $B0 - $B7: 0E
-    $B8 - $BF: 0D
-    $C0 - $C7: 0C
-    $C8 - $CF: 0B
-    $D0 - $D7: 0A
-    $D8 - $DF: 09
-    $E0 - $E7: 08
-    $E8 - $EF: 07
-    $F0 - $F7: 06
-    $F8 - $FF: 05
+    $FF - $F8: $05
+    $F7 - $F0: $06
+    $EF - $E8: $07
+    $E7 - $E0: $08
+    $DF - $D8: $09
     */
-
-
 jrLeftTileTable:
 ;   H: $39, $100
     .DB $04, $04, $04, $04, $04, $04, $04, $04, $03, $03, $03, $03, $03, $03, $03, $03
@@ -2282,13 +2258,15 @@ jrRealScrollTable:
 ----------------------------------------------------------
 */
 .INCDIR "ASSETS"
-.SECTION "HUD GFX DATA" FREE
+.SECTION "HUD GFX DATA" BANK ACTOR2_GFX_BANK SLOT 2 FREE
     hudTextTiles:
         .INCBIN "TILE_HUD.ZX7"
     jrHudTextTiles:
         .INCBIN "TILE_HUD_JR.ZX7"
-    jrHudIconTiles:
-        .INCBIN "TILE_ICONS_JR.ZX7"
+    jrHudIconTilesSmo:
+        .INCBIN "TILE_ICONS_JR_SMO.ZX7"
+    jrHudIconTilesArc:
+        .INCBIN "TILE_ICONS_JR_ARC.ZX7"
     jrMazeTxtCommTiles:
         .INCBIN "TILE_MAZETXT_JR.ZX7"
 .ENDS
@@ -2592,7 +2570,7 @@ jrRealScrollTable:
                     ACTOR TILE DATA
 ----------------------------------------------------------
 */
-.SECTION "ACTOR GFX DATA" BANK ACTOR_GFX_BANK SLOT 2 FREE
+.SECTION "ACTOR GFX DATA [PART 1]" BANK ACTOR_GFX_BANK SLOT 2 FREE
 ;   SMOOTH
 .INCDIR "ASSETS/GAMEPLAY/SMOOTH"
     ghostTiles:
@@ -2659,6 +2637,13 @@ arcadeGFXData:
     @cutsceneJr:
 .ENDS
 
+
+.SECTION "ACTOR GFX DATA [PART 2]" BANK MAZE_OTHER_BANK SLOT 2 FREE
+.INCDIR "ASSETS/GAMEPLAY/SMOOTH"
+    jrFruitTiles:
+        .INCBIN "TILE_JRFRUIT.ZX7"
+.ENDS
+
 /*
 ----------------------------------------------------------
                     CUTSCENE TILE DATA
@@ -2688,9 +2673,7 @@ arcadeGFXData:
 .SECTION "JR CUTSCENE BG TILE DATA [PART 1]" BANK MAZE_GFX_BANK SLOT 2 FREE
     .INCDIR "ASSETS/CUTSCENE"
     jrAttractTiles:
-        .INCBIN "TILE_JRATTRACT.ZX7"
-    jrIntroTxtTiles:
-        .INCBIN "TILE_JRINTROTXT.ZX7"
+        .INCBIN "TILE_JRINTRO.ZX7"
     jrCut0Tiles:
         .INCBIN "TILE_JRCUT0.ZX7"
 .ENDS
@@ -2699,6 +2682,8 @@ arcadeGFXData:
     .INCDIR "ASSETS/CUTSCENE"
     jrCut1Tiles:
         .INCBIN "TILE_JRCUT1.ZX7"
+    jrCut2Tiles:
+        .INCBIN "TILE_JRCUT2.ZX7"
 .ENDS
 
 
@@ -2710,16 +2695,18 @@ arcadeGFXData:
 .SECTION "JR CUTSCENE BG TILEMAP DATA" BANK MAZE_TILEMAP_BANK SLOT 2 FREE
     .INCDIR "ASSETS/CUTSCENE"
     jrAttractTilemap:
-        .INCBIN "MAP_JRATTRACT.ZX7"
+        .INCBIN "MAP_JRINTRO.ZX7"
     jrCut0Tilemap:
         .INCBIN "MAP_JRCUT0.ZX7"
     jrCut1Tilemap:
         .INCBIN "MAP_JRCUT1.ZX7"
+    jrCut2Tilemap:
+        .INCBIN "MAP_JRCUT2.ZX7"
 .ENDS
 
 /*
 ----------------------------------------------------------
-        8KB OF ORIGINAL GAME DATA FOR RNG FUNCTION
+            ORIGINAL GAME DATA FOR RNG FUNCTION
 ----------------------------------------------------------
 */
 .SECTION "ORIGINAL GAME DATA FOR RNG [PAC/MS.PAC]" BANK RNG_PAC_BANK SLOT 2 FREE
@@ -2736,6 +2723,12 @@ arcadeGFXData:
 .ENDS
 
 
+
+/*
+----------------------------------------------------------
+        UNCOMPRESSED TILE DATA FOR PLAYER ACTORS
+----------------------------------------------------------
+*/
 .BANK UNCOMP_BANK SLOT 2
 .ORG $0000
 
@@ -2748,6 +2741,7 @@ pacTileA07:
 pacDTileA0F:
 annaTileA14:
 ottoTileA24:
+jrDTileA07:
     .DSB $20, $00
 
 
@@ -2765,11 +2759,11 @@ ottoTileA24:
 .INCLUDE "TILE_DEATH.INC"
 .INCLUDE "TILE_MSPAC.INC"
 .INCLUDE "TILE_JR.INC"
-;   JR DEATH
+.INCLUDE "TILE_JRDEATH.INC"
 .INCLUDE "TILE_OTTO.INC"
 .INCLUDE "TILE_ANNA.INC"
 
-
+;   MAZE TEXT?
 .INCDIR "ASSETS"
 .INCLUDE "TILE_MAZETXT.INC"
 

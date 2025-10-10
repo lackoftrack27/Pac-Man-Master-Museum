@@ -289,13 +289,31 @@ msScene1Prog0:
     SETCHAR msSceneCharacters@msPacLeft
     SETN    $20
     LOOP    $70 $00
-;   DO PAC-MAN
+    ; $41A
+
+    ; $42A - MOVE PAC
+;   DO MS. PAC-MAN
     SETPOS  $FF $B4
-    SETCHAR msSceneCharacters@pacRight
-    SETN    $10
+    SETN    $10 + $18
     PAUSE
+    SETCHAR msSceneCharacters@msPacRight
+    ;SETN    $10
+    ;PAUSE
     SETN    $24
     LOOP    $90 $00
+
+
+    /*
+;   DO PAC-MAN
+    SETPOS  $FF $B4
+    SETN    $0A
+    PAUSE
+    SETCHAR msSceneCharacters@pacRight
+    ;SETN    $10
+    ;PAUSE
+    SETN    $24
+    LOOP    $90 $00
+    */
     CUTEND
 
 
@@ -336,18 +354,36 @@ msScene1Prog1:
     PAUSE
     SETN    $20
     PAUSE
-;   PAC-MAN
+;   DO PAC-MAN
     SETPOS  $00 $54
     SETCHAR msSceneCharacters@pacLeft
     SETN    $20
     LOOP    $70 $00
-;   MS. PAC-MAN
+    ; $42E
+
+
+    ; $43E - MOVE MS.PAC
+;   DO PAC-MAN
     SETPOS  $FF $B4
-    SETCHAR msSceneCharacters@msPacRight
-    SETN    $10
-    PAUSE
+    ;SETN    $10
+    ;PAUSE
+    SETCHAR msSceneCharacters@pacRight
+    ;SETN    $10
+    ;PAUSE
     SETN    $24
     LOOP    $90 $00
+
+    /*
+;   MS. PAC-MAN
+    SETPOS  $FF $B4
+    SETN    $0A
+    PAUSE
+    SETCHAR msSceneCharacters@msPacRight
+    ;SETN    $10
+    ;PAUSE
+    SETN    $24
+    LOOP    $90 $00
+    */
     SETN    $7F
     PAUSE
     CUTEND
@@ -568,15 +604,10 @@ jrAttractProg0:
     LOOP    $F0 $10
     ;   JR GROWING OUT OF SACK
     SETPOS  $4A $D2 ; $48 $DB
-    SETCHAR jrSceneCharacters@growingJr0
+    SETCHAR jrSceneCharacters@growingJr3
     SETN    $01
     LOOP    $00 $00
     SETBGPRI    $01
-    SETN    $0B
-    PAUSE
-    SETCHAR jrSceneCharacters@growingJr1
-    SETN    $01
-    LOOP    $00 $00
     SETN    $0B
     PAUSE
     SETCHAR jrSceneCharacters@growingJr2
@@ -584,7 +615,12 @@ jrAttractProg0:
     LOOP    $00 $00
     SETN    $0B
     PAUSE
-    SETCHAR jrSceneCharacters@growingJr3
+    SETCHAR jrSceneCharacters@growingJr1
+    SETN    $01
+    LOOP    $00 $00
+    SETN    $0B
+    PAUSE
+    SETCHAR jrSceneCharacters@growingJr0
     SETN    $01
     LOOP    $00 $00
     SETN    $FF
@@ -1435,3 +1471,488 @@ jrScene1Prog5:
     CUTEND
 
 
+
+/*
+--------------
+    JR PAC-MAN SCENE 2 DATA
+--------------
+*/
+
+;   JR.PAC-MAN CONTROL
+jrScene2Prog0:
+    SETJRVAR        $00
+    ;SETCHAR jrSceneCharacters@jrPacRight
+    SETCHAR jrSceneCharacters@emptySpr
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    ;SETPOS  $7F $E1
+    ;SETPOS  $FD $E1
+    SETPOS  $F1 $E1
+    SETN    $1C
+    MOVE    $40 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $01
+    ; --------
+    SETCHAR jrSceneCharacters@jrPacRight
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $02
+    ; --------
+    SETN    $06
+    MOVE    $00 $F0
+    SETN    $06
+    MOVE    $00 $10
+    SETN    $06
+    MOVE    $00 $F0
+    SETN    $06
+    MOVE    $00 $10
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $03
+    ; --------
+    SETCHAR jrSceneCharacters@jrPacLeft
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $04
+    ; --------
+    SETCHAR jrSceneCharacters@jrPacRight
+    SETN    $20
+    MOVE    $F0 $00
+    SETN    $14
+    MOVE    $F0 $06
+    ; --------
+;   LEAVING FRAME
+    CUT_NOP
+    SETN    $01
+    ;MOVE    $F0 $00 ; $82
+    MOVE    $ED $00 ; $61
+    DECPTR  $05
+    ; --------
+    SETN    $01
+    PAUSE
+    ; --------
+;   GOING UP
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $F0
+    DECPTR  $06
+    ; --------
+    SETN    $01
+    PAUSE
+    SETN    $01
+    PAUSE
+    DECPTR  $07
+    ; --------
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $FF
+    ; --------
+    ;SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@emptySpr
+    CUTEND
+
+
+;   YUM-YUM CONTROL
+jrScene2Prog1:
+    SETCHAR jrSceneCharacters@emptySpr
+    ;SETCHAR jrSceneCharacters@yumyumLeft
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    ;SETPOS  $7F $E1
+    ;SETPOS  $FF $E1
+    SETPOS  $F3 $E1
+    SETN    $17
+    MOVE    $40 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $01
+    ; --------
+    SETCHAR jrSceneCharacters@yumyumLeft
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $02
+    ; --------
+    SETCHAR jrSceneCharacters@yumyumUp
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $03
+    ; --------
+    SETCHAR jrSceneCharacters@yumyumLeft
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $04
+    ; --------
+    SETCHAR jrSceneCharacters@yumyumRight
+    SETN    $10
+    MOVE    $F0 $00
+    SETN    $14
+    MOVE    $F0 $06
+    ; --------
+;   LEAVING FRAME
+    CUT_NOP
+    SETN    $01
+    ;MOVE    $F0 $00
+    MOVE    $ED $00
+    DECPTR  $05
+    ; --------
+;   GOING UP
+    SETCHAR jrSceneCharacters@yumyumUp
+    SETN    $70
+    MOVE    $00 $F0
+    SETJRVAR        $06
+    SETCHAR jrSceneCharacters@yumyumLeft
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $FF
+    ; --------
+    ;SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@emptySpr
+    CUTEND
+
+
+;   TOP BALLOON CONTROL / HEART CONTROL
+jrScene2Prog2:
+    SETCHAR jrSceneCharacters@emptySpr
+    ;SETCHAR jrSceneCharacters@balloonTopFast
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    ;SETPOS  $7F $D1
+    ;SETPOS  $FF $D1
+    SETPOS  $F3 $D1
+    SETN    $17
+    MOVE    $40 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $01
+    ; --------
+    SETCHAR jrSceneCharacters@balloonTopFast
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $02
+    ; --------
+    SETN    $90
+    MOVE    $00 $F0
+    ;SETCHAR jrSceneCharacters@heart
+    SETCHAR jrSceneCharacters@emptySpr
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    SETN    $30
+    MOVE    $90 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $06
+    ; --------
+    SETCHAR jrSceneCharacters@heart
+    ;SETPOS  $60 $60
+    ;SETPOS  $54 $60
+    SETPOS  $33 $60 ; TOP RIGHT
+
+    SETN    $09
+    PAUSE
+
+    SETN    $40
+    MOVE    $10 $00
+    SETN    $40
+    MOVE    $00 $10
+    SETN    $40
+    MOVE    $F0 $00
+    SETN    $40
+    MOVE    $00 $F0
+    SETJRVAR        $07
+    SETN    $FF
+    MOVE    $00 $00
+    SETN    $40
+    MOVE    $00 $00
+    ;SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@emptySpr
+    SETJRVAR        $FF
+    CUTEND
+
+
+;   GHOST CONTROL / HEART CONTROL
+jrScene2Prog3:
+    SETCHAR jrSceneCharacters@emptySpr
+    ;SETCHAR jrSceneCharacters@blinkyLeft
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    ;SETPOS  $7F $C1
+    ;SETPOS  $FF $C1
+    SETPOS  $F3 $C1
+    SETN    $10
+    MOVE    $40 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $01
+    ; --------
+    SETCHAR jrSceneCharacters@blinkyLeft
+    SETN    $40
+    MOVE    $00 $00
+    SETN    $25
+    MOVE    $20 $00
+    SETJRVAR        $02
+    SETCHAR jrSceneCharacters@blinkyDown
+    SETN    $10
+    MOVE    $00 $08
+    SETCHAR jrSceneCharacters@blinkyLeft
+    SETN    $0F
+    MOVE    $10 $00
+    SETN    $30
+    MOVE    $00 $00
+    SETN    $10
+    MOVE    $10 $00
+    SETJRVAR        $03
+    SETCHAR jrSceneCharacters@blinkyDown
+    SETN    $20
+    MOVE    $00 $10
+    SETCHAR jrSceneCharacters@blinkyRight
+    SETN    $06
+    MOVE    $F0 $00
+    SETN    $06
+    MOVE    $10 $00
+    SETJRVAR        $04
+    SETN    $20
+    PAUSE
+    SETN    $10
+    MOVE    $F0 $00
+    SETCHAR jrSceneCharacters@blinkyLeft
+    SETN    $01
+    MOVE    $00 $00
+    ;SETN    $30
+    SETN    $38
+    MOVE    $10 $00
+    ;SETCHAR jrSceneCharacters@heart
+    SETCHAR jrSceneCharacters@emptySpr
+    ;SETN    $30
+    SETN    $28
+    MOVE    $90 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $06
+    ; --------
+    SETCHAR jrSceneCharacters@heart
+    ;SETPOS  $60 $A0
+    ;SETPOS  $54 $A0
+    SETPOS  $33 $A0 ; BOTTOM RIGHT
+
+
+    SETN    $10
+    PAUSE
+
+
+    SETN    $40
+    MOVE    $00 $F0
+    SETN    $40
+    MOVE    $10 $00
+    SETN    $40
+    MOVE    $00 $10
+    SETN    $40
+    MOVE    $F0 $00
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $FF
+    ; --------
+    ;SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@emptySpr
+    CUTEND
+
+
+;   CAMERA CONTROL / HEART CONTROL
+jrScene2Prog4:
+    SETBGPRI        $01
+    SETHIGHX    $01
+    SETPOS  $54 $00
+    ;SETCHAR jrSceneCharacters@jrPacLeft
+    SETCHAR jrSceneCharacters@emptySpr
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    ;SETPOS  $80 $00
+    ;SETPOS  $FF $00
+    SETN    $20
+    PAUSE
+    SETN    $68
+    ;MOVE    $20 $00 ; BLANK
+    PAUSE
+    ;SETBGPAL        $00 ; SHOW BACKGROUND
+    SETBGPAL        $FF
+    SETJRVAR        $01
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $04
+    ; --------
+    SETN    $E0
+    MOVE    $E8 $00 ; BLANK
+    SETJRVAR        $05
+    ;SETCHAR jrSceneCharacters@heart
+    /*
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $06
+    ; --------
+    SETCHAR jrSceneCharacters@heart
+    SETPOS  $A0 $A0
+    SETN    $40
+    MOVE    $F0 $00
+    SETN    $40
+    MOVE    $00 $F0
+    SETN    $40
+    MOVE    $10 $00
+    SETN    $40
+    MOVE    $00 $10
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $FF
+    ; --------
+    SETPOS  $00 $00
+    */
+    CUTEND
+
+
+;   BTM BALLOON / MS.PAC-MAN / HEART
+jrScene2Prog5:
+    SETCHAR jrSceneCharacters@emptySpr
+    ;SETCHAR jrSceneCharacters@balloonBtmFast
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    ;SETPOS  $7F $E0
+    ;SETPOS  $FF $E0
+    SETPOS  $F3 $E0
+    SETN    $17
+    MOVE    $40 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $01
+    ; --------
+    SETCHAR jrSceneCharacters@balloonBtmFast
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $02
+    ; --------
+    SETN    $A0
+    MOVE    $00 $F0
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    ;SETPOS  $FF $E9
+    SETHIGHX    $01
+    SETPOS  $C3 $E9
+    SETCHAR jrSceneCharacters@msPacRight
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $04
+    ; --------
+    SETN    $20
+    MOVE    $F0 $00
+    SETCHAR jrSceneCharacters@msPacLeft
+    SETN    $20
+    MOVE    $10 $00
+    ;SETCHAR jrSceneCharacters@heart
+    SETCHAR jrSceneCharacters@emptySpr
+    SETN    $30
+    MOVE    $90 $00 ; BLANK
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $06
+    ; --------
+    SETCHAR jrSceneCharacters@heart
+    SETHIGHX    $00
+    ;SETPOS  $A0 $60
+    ;SETPOS  $94 $60
+    SETPOS  $73 $60 ; TOP LEFT
+
+
+    SETN    $04
+    PAUSE
+
+    SETN    $40
+    MOVE    $00 $10
+    SETN    $40
+    MOVE    $F0 $00
+    SETN    $40
+    MOVE    $00 $F0
+    SETN    $40
+    MOVE    $10 $00
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $FF
+    ; --------
+    ;SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@emptySpr
+    CUTEND
+
+
+;   HEART CONTROL
+jrScene2Prog6:
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00 ; BLANK
+    DECPTR  $06
+    ; --------
+    SETCHAR jrSceneCharacters@heart
+    ;SETPOS  $A0 $A0
+    SETPOS  $73 $A0 ; BOTTOM LEFT
+    SETN    $40
+    MOVE    $F0 $00
+    SETN    $40
+    MOVE    $00 $F0
+    SETN    $40
+    MOVE    $10 $00
+    SETN    $40
+    MOVE    $00 $10
+    ; --------
+    CUT_NOP
+    SETN    $01
+    MOVE    $00 $00
+    DECPTR  $FF
+    ; --------
+    ;SETPOS  $00 $00
+    SETCHAR jrSceneCharacters@emptySpr
+    CUTEND

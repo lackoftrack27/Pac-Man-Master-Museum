@@ -285,7 +285,7 @@ ghostStateTable@update@gotoRest:
 ;   SET DIRECTION
     LD A, (IX + ID) ; END RESULT: INKY - LEFT, CLYDE - RIGHT
     AND A, $01
-    RLCA
+    ADD A, A
     XOR A, DIR_LEFT
     LD (IX + CURR_DIR), A
     LD (IX + NEXT_DIR), A

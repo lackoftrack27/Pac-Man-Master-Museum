@@ -136,9 +136,13 @@ loadTileAssets:
     CALL zx7_decompressVRAM
     ; -----------------------------
     ; HUD ICONS
-    LD HL, jrHudIconTiles
+    LD A, bank(jrHudIconTilesSmo)
+    LD (MAPPER_SLOT2), A
+    LD HL, jrHudIconTilesSmo
     LD DE, $3C00 | VRAMWRITE
     CALL zx7_decompressVRAM
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; FRUIT POINTS
     LD HL, msFruitPointTiles
@@ -151,9 +155,13 @@ loadTileAssets:
     JR NZ, +    ; IF PLUS, SKIP
     ; -----------------------------
     ; FRUIT
-    LD HL, msFruitTiles
+    LD A, bank(jrFruitTiles)
+    LD (MAPPER_SLOT2), A
+    LD HL, jrFruitTiles
     LD DE, SPRITE_ADDR + FRUIT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; GHOSTS
     LD HL, ghostTiles
@@ -302,9 +310,13 @@ loadTileAssets:
     CALL zx7_decompressVRAM
     ; -----------------------------
     ; HUD ICONS
-    LD HL, jrHudIconTiles
+    LD A, bank(jrHudIconTilesArc)
+    LD (MAPPER_SLOT2), A
+    LD HL, jrHudIconTilesArc
     LD DE, $3C00 | VRAMWRITE
     CALL zx7_decompressVRAM
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
     ; -----------------------------
     ; FRUIT POINTS
     LD HL, arcadeGFXData@msFruitPoints

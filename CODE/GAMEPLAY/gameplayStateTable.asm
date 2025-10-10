@@ -47,7 +47,11 @@ gamePlayInit:
 ;   TURN OFF DISPLAY
     CALL turnOffScreen
 ;   LOAD HUD TEXT TILES....
+    LD A, bank(hudTextTiles)
+    LD (MAPPER_SLOT2), A
     CALL loadHudTiles
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
 ;   CLEAR TILE BUFFER FLAG
     XOR A
     LD (tileBufferFlag), A      ; WHY IS THIS CLEARED HERE?
@@ -159,9 +163,13 @@ generalResetFunc:
     LD (MAPPER_SLOT2), A
     JP @loadSprites
 +:
+    LD A, bank(jrMazeTxtCommTiles)
+    LD (MAPPER_SLOT2), A
     LD HL, jrMazeTxtCommTiles
     LD DE, SPRITE_ADDR + MAZETXT_VRAM + ($0B * TILE_SIZE) | VRAMWRITE
     CALL zx7_decompressVRAM
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
 @loadSprites:
 ;   LOAD SPRITE TILES
     CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
