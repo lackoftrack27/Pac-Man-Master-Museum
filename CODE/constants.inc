@@ -4,6 +4,7 @@
 .DEFINE RACK_ADV        $00
 .DEFINE INVINCIBLE      $00
 .DEFINE FREE_FRUIT_JR   $00
+.DEFINE LOAD_TEST       $00
 
 /*
                         SMS CONSTANTS

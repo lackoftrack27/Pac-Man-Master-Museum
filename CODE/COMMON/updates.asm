@@ -72,7 +72,7 @@ eatModeUpdate:
     LD A, (ghostPointIndex) ; CONVERT INDEX TO OFFSET
     ADD A, A
     LD HL, ghostScoreTable  ; ADD TO SCORE TABLE
-    RST addToHL
+    addToHL_M
     RST getDataAtHL         ; GET SCORE VALUE FROM TABLE
     CALL addToScore         ; ADD TO SCORE
 ;   PLAY GHOST ATE SOUND
@@ -654,7 +654,8 @@ mazeUpdate:
     ; ADD OFFSET TO BASE RAM PTR
     PUSH IX
     POP HL      ; HL = BASE RAM PTR
-    RST addToHL
+    addToHL_M
+    LD A, (HL)
     PUSH HL
     POP IY      ; IY = (BASE + OFFSET ADDRESS) IN RAM TILEMAP
     INC HL
@@ -780,9 +781,7 @@ mazeUpdate:
     SUB A, $1E
     LD E, A ; EVEN/ODD FLAG
     RRA     ; DIVIDE BY 2 (NIBBLE FORMAT)
-    LD C, A
-    LD B, $00
-    ADD HL, BC
+    addToHL_M
     ; ADD INITIAL MAZE COLLISION ADDRESS
     LD BC, mazeGroup1.collMap
     ADD HL, BC
@@ -898,7 +897,7 @@ superTimerUpdate:
     USES: AF, HL
 */
 allDotsEatenCheck:
-.IF RACK_ADV == $01
+.IF RACK_ADV != $00
     POP HL      ; REMOVE FUNCTION CALLER FROM STACK
     LD HL, $01 * $100 + GAMEPLAY_COMP00
     LD (subGameMode), HL

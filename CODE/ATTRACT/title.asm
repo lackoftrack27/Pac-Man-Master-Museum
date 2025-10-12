@@ -123,9 +123,9 @@ sStateAttractTable@titleMode:
     LD HL, $01 * $100 + ATTRACT_INTRO
     LD A, (plusBitFlags)
     AND A, ($01 << MS_PAC | $01 << JR_PAC | $01 << OTTO)
-    BIT OTTO, A
+    BIT OTTO, A ; DON'T TOUCH A!
     JR Z, +
-    LD A, $03
+    LD A, ATTRACT_OTTOINTRO - ATTRACT_INTRO ; MANUALLY SET OFFSET FOR OTTO
 +:
     RST addToHL
     LD (subGameMode), HL
@@ -153,8 +153,9 @@ sStateAttractTable@titleMode:
     LD A, $01 << PLUS
     XOR A, (HL)
     LD (HL), A
-    BIT PLUS, A
-    JP Z, plus_clrNametableArea
+    ; SHOW OR REMOVE PLUS LOGO DEPENDING ON NEW FLAG
+    RRCA    ; PLUS
+    JP NC, plus_clrNametableArea
     JP plus_setNametableArea
 +:
 ;   CHECK WHAT LINE IS SELECTED

@@ -184,7 +184,7 @@ playCreditSnd:
     LD A, SFX_CREDIT
     CALL sndPlaySFX
 -:
-    CALL sndProcess
+    CALL sndProcess ; PROCESS SOUND HERE DUE TO HALT
     HALT
 ;   CHECK IF CURRENTLY PLAYING SELECT SOUND
     LD A, (chan2 + SND_ID)
@@ -261,6 +261,13 @@ msIntroDisplayText:
     JR NZ, -
     RET
 
+
+/*
+    INFO: ERASE TEXT (REALLY JUST BLANK OUT TILEMAP)
+    INPUT: HL - ADDRESS OF TEXT TILEMAP DATA
+    OUTPUT: NONE
+    USES: AF
+*/
 introClearText:
     XOR A
     OUT (VDPDATA_PORT), A
@@ -378,15 +385,13 @@ generalIntroSetup00:
 generalIntroSetup01:
 ;   SET POWER PELLET COLOR BUFFER
     CALL powDotCyclingUpdate@refresh
-;   DRAW STATIC HUD ELEMENTS
-    ; 1UP
+;   DRAW STATIC HUD ELEMENTS (NOT IN JR.PAC)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    CALL Z, draw1UPDemo
-    ; "HIGH SCORE" AND "SCORE"
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    CALL Z, drawScoresText
+    JR NZ, +
+    CALL draw1UPDemo    ; 1UP
+    CALL drawScoresText ; "HIGH SCORE" AND "SCORE"
++:
 ;   TURN ON DISPLAY
     CALL waitForVblank
     JP turnOnScreen

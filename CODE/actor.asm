@@ -4,65 +4,6 @@
 ----------------------------------------------
 */
 
-
-
-/*
-    INFO: GIVEN A POINTER TO AN ACTOR'S SPEED PATTERN, UPDATES THE SPEED PATTERN (LEFT SHIFT BY 1)
-    INPUT: HL - SPEED PATTERN POINTER
-    OUTPUT - NONE
-    USES: HL, DE, AF
-*/
-    
-
-
-    
-
-
-    /*
-    ld      hl,(#4d4c)	; yes, load HL with speed bit patterns for pacman in power pill state (low bytes)
-    add     hl,hl		; double
-    ld      (#4d4c),hl	; store result
-    ld      hl,(#4d4a)	; load HL with speed bit patterns for pacman in power pill state (high bytes)
-    adc     hl,hl		; double, with the carry = we have doubled the speed
-    ld      (#4d4a),hl	; store result. have we reached the threshold ?
-    ret     nc		; no, return
-
-    ld      hl,#4d4c	; yes, load HL with speed bit patterns for pacman in power pill state (low bytes)
-    inc     (hl)		; increase
-    */
-
-    /*
-actorSpdPatternUpdate:
-;      0      1       2      3
-;   LOW_HW HIGH_HW LOW_LW HIGH_LW
-;   LOAD HIGH WORD INTO BC
-    LD C, (HL)
-    INC HL          ; -> HIGH WORD HIGH BYTE
-    LD B, (HL)
-    INC HL          ; -> LOW WORD LOW BYTE
-;   LOAD LOW WORD INTO DE
-    LD E, (HL)
-    INC HL          ; -> LOW WORD HIGH BYTE
-    LD D, (HL)
-;   LEFT SHIFT LOW WORD
-    SLA E
-    RL D
-;   STORE LOW WORD
-    LD (HL), D
-    DEC HL          ; -> LOW WORD LOW BYTE
-    LD (HL), E
-;   SHIFT HIGH WORD (CARRY)
-    RL C
-    RL B
-;   STORE HIGH WORD
-    DEC HL          ; -> HIGH WORD HIGH BYTE
-    LD (HL), B
-    DEC HL          ; -> HIGH WORD LOW BYTE
-    LD (HL), C
-    RET
-    */
-
-
 /*
     INFO: RESETS COMMON ACTOR VARS
     INPUT: IX: ACTOR BASE ADDRESS
@@ -117,11 +58,7 @@ setNextTile:
 ;   USE DIRECTION AS OFFSET INTO TABLE
     LD A, (IX + NEXT_DIR)
     ADD A, A    ; DOUBLE DIRECTION
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 ;   ADD Y
     LD A, (IX + NEXT_Y)
     ADD A, (HL)
@@ -153,14 +90,9 @@ rowColToRamPtr:
 ;   MULTIPLY ROW BY 41 (TILES PER ROW)
     LD L, H
     LD H, $00
-    ;CALL multBy41
     multBy41
 ;   ADD X AND Y (COLUMN + ROW * 41)
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 ;   MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
     ADD HL, HL
 ;   ADD BASE PTR
@@ -179,11 +111,7 @@ rowColToRamPtr:
     ADD HL, HL
     ADD HL, HL
 ;   ADD X AND Y (COLUMN + ROW * 32)
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 ;   MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
     ADD HL, HL
 ;   ADD BASE PTR
@@ -323,25 +251,6 @@ convPosToScreen:
     LD A, JR_TABLES_BANK
     LD (MAPPER_SLOT2), A
 ;   CONVERSION FROM 8px TILES TO 6px TILES (X)
-    /*
-    EX DE, HL
-        ; POS -> INDEX
-    LD L, (IX + X_WHOLE)
-    LD H, (IX + X_WHOLE + 1)
-    ADD HL, HL
-        ; ADD HIGH BYTES
-    LD A, H
-    ADD A, hibyte(jrScaleTable)
-    LD H, A
-        ; GET VALUE
-    LD L, (HL)
-    ; WORLD POS -> SCREEN POS
-    LD A, (jrCameraPos)
-    NEG
-    ADD A, L
-    LD H, A
-    EX DE, HL
-    */
     LD A, (jrCameraPos)
     LD C, A
         ; POS -> INDEX
@@ -355,7 +264,7 @@ convPosToScreen:
     LD D, A
         ; GET VALUE
     LD A, (DE)
-    ; WORLD POS -> SCREEN POS
+    ; WORLD POS -> SCREEN POS (lowbyte(actorXPos) - cameraPos)
     SUB A, C
     LD D, A
 ;   CONVERSION FROM 8px TILES TO 6px TILES (Y)
@@ -559,11 +468,7 @@ updateCollTiles:
     LD E, A ; EVEN OR ODD FLAG
     RRA     ; DIVIDE X BY 2. (NIBBLE FORMAT)
     ; ADD X OFFSET TO POINTER
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     ; ADD TO INITIAL MAZE COLLISION ADDRESS
     LD BC, mazeGroup1.collMap
     ADD HL, BC
@@ -695,11 +600,7 @@ getTileID:
     LD E, A ; EVEN OR ODD FLAG
     RRA     ; DIVIDE X BY 2. (NIBBLE FORMAT)
     ; ADD X OFFSET TO POINTER
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     ; ADD TO INITIAL MAZE COLLISION ADDRESS
     LD BC, mazeGroup1.collMap
     ADD HL, BC

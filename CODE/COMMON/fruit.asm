@@ -717,9 +717,7 @@ fruitState3:
     LD HL, dirVectors
     LD A, (fruit.currDir)
     ADD A, A
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    addToHL_M
     EX DE, HL   ; DE: WANTED VECTOR
 ;   ADD Y PART OF VECTOR TO POSITION
     LD A, (DE)
@@ -893,9 +891,7 @@ fruitState3:
 ;   GET PIXEL OFFSET FROM TABLE
     LD HL, jrBounceTable
     ADD A, A
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    addToHL_M
     LD E, (HL)  ;   STORE IN DE
     INC HL
     LD D, (HL)
@@ -936,7 +932,7 @@ jrBounceTable:
 ;   1 2 3 0 = DOWN LEFT UP RIGHT
 
 
-;   STATE 5 - 
+;   STATE 5 - FRUIT IS AT POWER DOT TARGET
 fruitState5:
 ;   GET ID OF FRUIT'S CURRENT TILE
     LD DE, (fruit + CURR_X)
@@ -970,7 +966,7 @@ fruitState5:
 ;   REMOVE FRUIT (CLEAR POSITION AND MAKE INVISIBLE)
     RET
 
-;   STATE 6 - 
+;   STATE 6 - EXPLOSION!
 fruitState6:
 ;   INCREMENT AND CHECK IF FRAME COUNTER IS 5
     LD HL, fruitPathLen
@@ -999,26 +995,6 @@ fruitState6:
 
 
 
-@explosionSprDefs:
-    .DB $C0 $CC $C1 $CD ; 0
-    .DB $C2 $CE $C3 $CF ; 1
-    .DB $C4 $D0 $C5 $D1 ; 2
-    .DB $C6 $D2 $C7 $D3 ; 3
-    .DB $C0 $CC $C1 $CD ; 0
-    .DB $C8 $D4 $C9 $D5 ; 4
-    .DB $C4 $D0 $C5 $D1 ; 2
-    .DB $CA $D6 $CB $D7 ; 5
-    .DB $C0 $CC $C1 $CD ; 0
-    .DB $C2 $CE $C3 $CF ; 1
-    .DB $C4 $D0 $C5 $D1 ; 2
-    .DB $CA $D6 $CB $D7 ; 5
-    .DB $C0 $CC $C1 $CD ; 0
-    .DB $C2 $CE $C3 $CF ; 1
-    .DB $C4 $D0 $C5 $D1 ; 2
-    .DB $C6 $D2 $C7 $D3 ; 3
-
-
-
 
 
 fruitHelper00:
@@ -1032,7 +1008,6 @@ fruitHelper00:
     JP Z, @setState
 ;   JUMP IF FRUIT ISN'T ON POWER DOT TILE
     LD A, E     ; E = CURR_ID
-    ;AND A, $03
     CP A, $03
     JP NZ, @clrCarryEnd
 ;   JUMP IF FRUIT ISN'T AT POWER DOT TARGET
@@ -1057,9 +1032,7 @@ fruitSetTile:
     LD HL, dirVectors
 ;   USE DIRECTION AS OFFSET INTO TABLE
     ADD A, A    ; DOUBLE DIRECTION
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    addToHL_M
 ;   ADD Y
     LD A, (fruit + CURR_Y)
     ADD A, (HL)
@@ -1082,6 +1055,11 @@ fruitSetTile:
         JR.PAC-MAN'S FRUIT PATHFINDING
 ------------------------------------------------
 */
+    ; HELPER0 USES LOWER NIBBLE
+    ; HELPER1 USES UPPER NIBBLE
+    ; NIBBLE REPRESENTS POWER DOT INDEX
+fruitPowerDotTable:
+    .DB $04 $03 $51 $52 $42 $40 $13 $15
 
 fruitPathFindingAI:
 ;   EXIT IF PATHFIND FLAG IS 0
@@ -1113,7 +1091,10 @@ fruitPathFindingAI:
     JP ghostPathFindingAI@normalPathFinding
 
 
-fruitPFTargetHelper0:
+/*
+    TARGET INITIALIZER (ONLY CALLED ON 1ST PATHFIND?)
+*/
+fruitPFTargetHelper0:   ; $AA5E
 ;   UPDATE POWER DOT TARGET STATE
     LD A, (fruitPathPtr + 1)
     INC A
@@ -1121,9 +1102,7 @@ fruitPFTargetHelper0:
     LD (fruitPathPtr + 1), A
 ;   USE LOWER 3 BITS AS OFFSET (POWER DOT SELECTOR)
     LD HL, fruitPowerDotTable
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    addToHL_M
     LD A, (HL)
     AND A, $0F  ; USE LOWER NIBBLE
 @skipLUT:
@@ -1132,39 +1111,44 @@ fruitPFTargetHelper0:
     LD HL, jrMazePDotTargets
     CALL jrGetMazeIndex
     POP AF  ; RESTORE INDEX
+    ADD A, A
     addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
     LD L, A
-    ;LD HL, jrMaze0PowDotTable
-    ;ADD A, A
-    ;LD E, A
-    ;LD D, $00
-    ;ADD HL, DE
-    ;LD A, (HL)
-    ;INC HL
-    ;LD H, (HL)
-    ;LD L, A
-;   SET TARGET, TARGET TYPE IS "NOT AT TARGET"
+;   SET TARGET
     LD (fruit + TARGET_X), HL
+;   TARGET TYPE IS "NOT AT TARGET"
     XOR A
     LD (fruitPathPtr), A
     RET
 
-fruitPFTargetHelper1:
+
+/*
+    STANDARD TARGET FINDER/HELPER
+*/
+fruitPFTargetHelper1:   ; $AA87
 ;   EXECUTE ROUTINE BASED ON UPPER NIBBLE OF POWER DOT TARGET STATE
-    LD HL, @subRoutineTable
     LD A, (fruitPathPtr + 1)
     AND A, $F0
     RRCA
     RRCA
     RRCA
     RRCA
-    JP jumpTableExec
+    ADD A, A
+    LD HL, @subRoutineTable
+    addToHL_M
+    JP (HL)
+
+;   JUMP TABLE FOR TARGET HELPER 1
+@subRoutineTable:
+    JR @subRoutine00
+    JR @subRoutine01
+    JR @subRoutine02
 
 
-;   SUB ROUTINE 1
+;   SUB ROUTINE 1   $AA97
 @subRoutine00:
 ;   CHECK IF FRUIT IS WITHIN CERTAIN RANGE OF TARGET
     LD HL, (fruit + TARGET_X)
@@ -1175,6 +1159,7 @@ fruitPFTargetHelper1:
     LD A, C ; SWAP
     LD C, B
     LD B, A
+    ; RANGE CHECK
     LD A, H
     SUB A, B
     ADD A, $0E
@@ -1199,7 +1184,7 @@ fruitPFTargetHelper1:
 ;   GET TARGET, ETC
     JP fruitPFTargetHelper0@skipLUT
 
-;   SUB ROUTINE 2
+;   SUB ROUTINE 2   $AAC9
 @subRoutine01:
 ;   CHECK IF FRUIT IS WITHIN CERTAIN RANGE OF TARGET
     LD HL, (fruit + TARGET_X)
@@ -1210,6 +1195,7 @@ fruitPFTargetHelper1:
     LD A, C ; SWAP
     LD C, B
     LD B, A
+    ; RANGE CHECK
     LD A, H
     SUB A, B
     ADD A, $07
@@ -1222,7 +1208,7 @@ fruitPFTargetHelper1:
     LD (fruitPathPtr + 1), A
     RET
 
-;   SUB ROUTINE 3
+;   SUB ROUTINE 3   $AAE1
 @subRoutine02:
 ;   JUMP IF TARGET TYPE IS PLAYER
     LD A, (fruitPathPtr)
@@ -1231,8 +1217,7 @@ fruitPFTargetHelper1:
 ;   CHECK IF TARGET TILE IS STILL A POWER DOT
     LD DE, (fruit + TARGET_X)
     CALL getTileID
-    ;AND A, $03
-    CP A, $03
+    CP A, $03   ; 0 - EMPTY, 1 - WALL, 2 - DOT, 3 - POWER DOT
     JP Z, +
 ;   IF NOT, TRY TO FIND ANOTHER POWER DOT TO TARGET
     CALL findNewTarget
@@ -1257,17 +1242,13 @@ fruitPFTargetHelper1:
     RET
 
 
-;   FUNCTION TABLE FOR TARGET HELPER 1
-@subRoutineTable:
-    .DW fruitPFTargetHelper1@subRoutine00
-    .DW fruitPFTargetHelper1@subRoutine01
-    .DW fruitPFTargetHelper1@subRoutine02
+/*
+    HELPER FUNCTIONS FOR THE TARGET FINDERS/HELPERS
+*/
 
-
-
+;   TRYS TO FIND A NEW POWER DOT TARGET IF THE CURRENT TARGET ISN'T A POWER DOT ANYMORE
 findNewTarget:
     LD IYH, $06
-    ;LD HL, jrMaze0PowDotTable
     LD HL, jrMazePDotTargets
     CALL jrGetMazeIndex
 -:
@@ -1280,11 +1261,13 @@ findNewTarget:
     CALL getTileID
     POP DE  ; RESTORE TARGET
     POP HL  ; RESTORE PTR
-    AND A, $03
+    RRCA    ; TILE ID WILL NEVER BE 1 OR 2. CHECKING FOR EITHER 0 OR 3
     RET NZ  ; NEW TARGET FOUND (IYH != 0, ID != 0)
     DEC IYH
     JP NZ, -
     RET     ; COULDN'T FIND NEW TARGET (IYH = 0, ID = 0)
+
+
 
 
 setTargetToJR:
@@ -1298,13 +1281,11 @@ setTargetToJR:
 
 
 
-
 updateCollMapFruitMDot:
 ;   OFFSET = X_TILE + (Y_TILE * 32)
     LD A, (fruit + CURR_Y)
     SUB A, $21
     LD L, A
-    ;LD H, $00
     multBy29
 ;   ADD X TILE TO OFFSET
     LD A, (fruit + CURR_X)
@@ -1341,6 +1322,7 @@ updateCollMapFruitMDot:
     LD (fruit + CURR_ID), A
     */
 ;   FALL THROUGH
+
 
 
 updateTileMapFruitMDot:
@@ -1415,7 +1397,6 @@ updateCollMapFruitPDot:
     LD A, (fruit + CURR_Y)
     SUB A, $21
     LD L, A
-    ;LD H, $00
     multBy29
 ;   ADD X TILE TO OFFSET
     LD A, (fruit + CURR_X)
@@ -1496,7 +1477,8 @@ updateTileMapFruitPDot:
     ; ADD OFFSET TO BASE RAM PTR
     PUSH IX
     POP HL      ; HL = BASE RAM PTR
-    RST addToHL
+    addToHL_M
+    LD A, (HL)
     PUSH HL
     POP IY      ; IY = (BASE + OFFSET ADDRESS) IN RAM TILEMAP
     INC HL
@@ -1571,10 +1553,3 @@ updateTileMapFruitPDot:
     LD A, $01
     LD (fruitTileBufFlag), A
     RET
-
-
-    ; HELPER0 USES LOWER NIBBLE
-    ; HELPER1 USES UPPER NIBBLE
-    ; NIBBLE REPRESENTS POWER DOT INDEX
-fruitPowerDotTable:
-    .DB $04 $03 $51 $52 $42 $40 $13 $15

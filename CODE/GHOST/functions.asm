@@ -130,28 +130,22 @@ displayGhostNormal:
     AND A, $08
     RRCA
     ADD A, E
-    LD E, A
+    LD E, A     ; SAVE FOR LATER ADD
 ;   ADD (ID * 32) TO GET CORRECT OFFSET FOR GHOST
     LD A, (IX + ID)
     RRCA
     RRCA
     RRCA
     ADD A, E
-    LD B, A
 ;   ADD NEXT DIRECTION TO BASE TABLE ADDRESS OF TILE DEFS
-    LD HL, ghostNormalTileDefs
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
+    LD DE, ghostNormalTileDefs  ; PAC/MS.PAC/JR.PAC GHOSTS
+    LD HL, plusBitFlags
+    BIT OTTO, (HL)
     JP Z, +
-    LD HL, ottoGhostSNTileDefs
+    LD DE, ottoGhostSNTileDefs  ; OTTO GHOSTS
 +:
-    LD A, B
-    ;
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    EX DE, HL
+    addToHL_M
 @skipCalc:
 ;   GET X AND Y POSITION
     CALL convPosToScreen
@@ -173,21 +167,15 @@ displayGhostScared:
     AND A, $10
     RRCA
     ADD A, E
-    LD B, A
 ;   ADD NEXT DIRECTION TO BASE TABLE ADDRESS OF TILE DEFS
-    LD HL, ghostScaredTileDefs
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
+    LD DE, ghostScaredTileDefs          ; PAC/MS.PAC/JR.PAC GHOSTS
+    LD HL, plusBitFlags
+    BIT OTTO, (HL)
     JP Z, +
-    LD HL, ottoGhostScaredSNTileDefs
+    LD DE, ottoGhostScaredSNTileDefs    ; OTTO GHOSTS
 +:
-    LD A, B
-    ;
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    EX DE, HL
+    addToHL_M
 ;   GET X AND Y POSITION
     CALL convPosToScreen
 ;   GET SPRITE NUMBER
@@ -202,12 +190,7 @@ displayGhostEyes:
 ;   USE NEXT DIR AS OFFSET
     LD A, (IX + NEXT_DIR)
     ADD A, A    ; MULT BY 2
-    ;
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 ;   GET X AND Y POSITION
     CALL convPosToScreen
 ;   GET SPRITE NUMBER
@@ -217,56 +200,51 @@ displayGhostEyes:
 
 
 
-
-ghostSpriteFlicker:
-@emptySprite:
-;   MOVE SPRITE AREA TO OFFSCREEN
-    ; SET VDP ADDRESS
-    LD A, (IX + SPR_NUM)
-    OUT (VDPCON_PORT), A   ; LOW BYTE
-    LD A, hibyte(SPRITE_TABLE) | hibyte(VRAMWRITE)
-    OUT (VDPCON_PORT), A   ; HIGH BYTE
-    ; SET Y POSITION TO $F8
-    LD A, $F7
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    RET
+/*
+------------------------------------------------
+                OTHER FUNCTIONS
+------------------------------------------------
+*/
 
 
-
-;   FOR BLINKY
+/*
+    INFO: DIFFICULTY FLAG HANDLER ("CRUISE ELROY")
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, HL
+*/
 updateDiffFlags:
 ;   CHECK IF CLYDE IS OUT OF HOME
     LD A, (clyde.state)
     CP A, GHOST_REST
     RET Z               ; IF NOT, EXIT
     LD HL, currPlayerInfo.dotCount
-;   CHECK IF DIFF FLAG IS 1
+;   CHECK IF 1ST FLAG IS SET (BIT 1)
     LD A, (difficultyState)
-    BIT 0, A
-    JR NZ, +     ; IF SO, SKIP
-;   CHECK IF DOTS EATEN IS GREATER OR EQUAL TO FIRST DOT COUNT
+    RRCA
+    RRCA
+    JP C, +     ; IF SO, SKIP
+;   CHECK IF DOTS EATEN IS GREATER OR EQUAL TO 1ST DOT COUNT
     LD A, $F4
     SUB A, (HL)
     LD B, A
     LD A, (speedUpDotCount)
     CP A, B
     RET C           ; IF NOT, EXIT
-    ; IF SO, SET STATE TO 1
-    LD A, $01
+    ; IF SO, SET 1ST FLAG (BIT 1)
+    LD A, (difficultyState)
+    OR A, $02
     LD (difficultyState), A
 +:
-;   STOP HERE IF GAME IS JR.PAC (JR.PAC DOESN'T USE SECOND DIFF FLAG)
+;   STOP HERE IF GAME IS JR.PAC (JR.PAC DOESN'T USE 2ND DIFF FLAG)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     RET NZ
-;   CHECK IF DIFF FLAG IS 2
+;   CHECK IF 2ND FLAG IS SET (BIT 0)
     LD A, (difficultyState)
-    BIT 1, A
-    RET NZ      ; IF SO, END
-;   CHECK IF DOTS EATEN IS GREATER OR EQUAL TO SECOND DOT COUNT
+    RRCA
+    RET C      ; IF SO, END
+;   CHECK IF DOTS EATEN IS GREATER OR EQUAL TO 2ND DOT COUNT
     LD A, $F4
     SUB A, (HL)
     LD B, A
@@ -274,8 +252,9 @@ updateDiffFlags:
     RRCA    ; !!!
     CP A, B
     RET C           ; IF NOT, EXIT
-    ; IF SO, SET STATE TO 2
-    LD A, $02
+    ; IF SO, SET 2ND FLAG (BIT 0)
+    LD A, (difficultyState)
+    OR A, $01
     LD (difficultyState), A
     RET
 

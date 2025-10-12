@@ -98,7 +98,7 @@ scene2Update2:
 scene2Update3:
 ;   REMOVE BLINKY FROM SCREEN (DONE TO AVOID PEAKING THROUGH FRUIT SPRITES)
     LD IX, blinky
-    CALL ghostSpriteFlicker@emptySprite
+    CALL displayEmptySprite
 ;   CHECK IF BLINKY IS AT WANTED TILE
     LD A, (blinky + CURR_X)
     CP A, $3C

@@ -27,14 +27,8 @@ scatterChaseCheck:
 ;   USE INDEX AS OFFSET INTO DURATION TABLE
     ADD A, A
     LD HL, (scatterChasePtr)
-    ;RST addToHL
 ;   GET DURATION VALUE
-    ;RST getDataAtHL
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)

@@ -5,32 +5,41 @@
 .INCLUDE "constants.inc"
 .INCLUDE "banking.inc"
 .INCLUDE "ramLayout.inc"
+
+
+/*
+    INFO: GIVEN A POINTER TO AN ACTOR'S SPEED PATTERN, UPDATES THE SPEED PATTERN (LEFT SHIFT BY 1)
+    INPUT: HL - SPEED PATTERN POINTER
+    OUTPUT - NONE
+    USES: HL, DE, AF
+*/
 .MACRO actorSpdPatternUpdate
 ;      0      1       2      3
 ;   LOW_HW HIGH_HW LOW_LW HIGH_LW
+;   SPEED PATTERN MUST NOT CROSS $100 BOUNDARY DUE TO 8 BIT INC/DEC!!!
 ;   LOAD HIGH WORD INTO BC
     LD C, (HL)
-    INC HL          ; -> HIGH WORD HIGH BYTE
+    INC L           ; -> HIGH WORD HIGH BYTE
     LD B, (HL)
-    INC HL          ; -> LOW WORD LOW BYTE
+    INC L           ; -> LOW WORD LOW BYTE
 ;   LOAD LOW WORD INTO DE
     LD E, (HL)
-    INC HL          ; -> LOW WORD HIGH BYTE
+    INC L           ; -> LOW WORD HIGH BYTE
     LD D, (HL)
 ;   LEFT SHIFT LOW WORD
     SLA E
     RL D
 ;   STORE LOW WORD
     LD (HL), D
-    DEC HL          ; -> LOW WORD LOW BYTE
+    DEC L           ; -> LOW WORD LOW BYTE
     LD (HL), E
 ;   SHIFT HIGH WORD (CARRY)
     RL C
     RL B
 ;   STORE HIGH WORD
-    DEC HL          ; -> HIGH WORD HIGH BYTE
+    DEC L           ; -> HIGH WORD HIGH BYTE
     LD (HL), B
-    DEC HL          ; -> HIGH WORD LOW BYTE
+    DEC L           ; -> HIGH WORD LOW BYTE
     LD (HL), C
 .ENDM
 
@@ -119,20 +128,8 @@ boot:
 .ENDS
 
 
-
-/*
 .ORG $0008
-.SECTION "Jump Table Execution" FORCE
-;jumpTableExec:
-    ADD A, A
-    RST addToHL
-    INC HL
-    LD H, (HL)
-    LD L, A
-    JP (HL)
-    .DSB $02, $00   ; FILL
-.ENDS
-*/
+    .DSB $08, $00   ; FILL
 
 
 /*
@@ -219,6 +216,7 @@ jumpTableExec:
     LD H, (HL)
     LD L, A
     JP (HL)
+    .DSB $05, $00   ; FILL
 .ENDS
 
 
@@ -1379,6 +1377,28 @@ fruitPointTileDefs:
 .ENDM
 msFruitPointTileDefs:
     msFruitPointsDefs   (SPRITE_ADDR + FSCORE_VRAM) / TILE_SIZE
+
+
+/*
+    EXPLOSION SPRITE TILE DEFINITION
+*/
+explosionSprDefs:
+    .DB $C0 $CC $C1 $CD ; 0
+    .DB $C2 $CE $C3 $CF ; 1
+    .DB $C4 $D0 $C5 $D1 ; 2
+    .DB $C6 $D2 $C7 $D3 ; 3
+    .DB $C0 $CC $C1 $CD ; 0
+    .DB $C8 $D4 $C9 $D5 ; 4
+    .DB $C4 $D0 $C5 $D1 ; 2
+    .DB $CA $D6 $CB $D7 ; 5
+    .DB $C0 $CC $C1 $CD ; 0
+    .DB $C2 $CE $C3 $CF ; 1
+    .DB $C4 $D0 $C5 $D1 ; 2
+    .DB $CA $D6 $CB $D7 ; 5
+    .DB $C0 $CC $C1 $CD ; 0
+    .DB $C2 $CE $C3 $CF ; 1
+    .DB $C4 $D0 $C5 $D1 ; 2
+    .DB $C6 $D2 $C7 $D3 ; 3
 
 
 

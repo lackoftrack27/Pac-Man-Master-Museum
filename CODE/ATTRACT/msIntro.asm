@@ -40,9 +40,10 @@ sStateAttractTable@msIntroMode:
     RST setVDPAddress
     LD HL, msIntroPacTextOrg
     LD B, $0A
+        ; DISPLAY "MS. PAC PLUS" IF IN PLUS MODE
     LD A, (plusBitFlags)
-    BIT PLUS, A
-    JR Z, +
+    RRCA    ; PLUS
+    JR NC, +
     LD HL, msIntroPacTextOrgPlus
     INC B
 +:

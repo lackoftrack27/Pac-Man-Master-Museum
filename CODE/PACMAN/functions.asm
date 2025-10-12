@@ -80,7 +80,12 @@ pacmanReset:
 
 
 
-
+/*
+    INFO: STREAM IN UNCOMPRESSED TILES FOR PLAYER SPRITE
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 pacTileStreaming:
 ;   [182]
 ;   -----
@@ -95,8 +100,8 @@ pacTileStreaming:
     CP A, PAC_DEAD
     JP Z, @deathStream
 ;   -----
-    ; GET POSITION
-    LD HL, normAniTbl
+    ; GET POSITION...
+    LD HL, normAniTbl   ; 1 FRAME EVERY 2 PIXELS
     LD A, (pacman.currDir)
     LD B, A
     LD DE, pacman.xPos
@@ -104,6 +109,7 @@ pacTileStreaming:
     JP C, +
     INC DE
     INC DE
+        ; IF OTTO, USE slowAniTbl (1 FRAME EVEY 4 PIXELS GOING UP/DOWN)
     LD A, (plusBitFlags)
     AND A, $01 << OTTO
     ADD A, A
@@ -126,6 +132,7 @@ pacTileStreaming:
     addToHL_M
     JP @writeToVRAM
 @deathStream:
+    ; CONVERT DEATH FRAME POSITION TO OFFSET
     LD A, (mainTimer1)
     ADD A, A
     ADD A, A

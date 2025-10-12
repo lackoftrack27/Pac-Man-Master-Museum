@@ -193,7 +193,7 @@ drawInMazeFruit:
 ;   DON'T DISPLAY IF OFFSCREEN FLAG IS SET
     LD A, (fruit + OFFSCREEN_FLAG)
     OR A
-    JP NZ, ghostSpriteFlicker@emptySprite
+    JP NZ, displayEmptySprite
 ;   CONVERT FRUIT POSITION
     CALL convPosToScreen
 ;   DISPLAY EXPLOSION IF FRUIT IS EXPLODING (JR)
@@ -216,7 +216,7 @@ drawInMazeFruit:
     AND A, $F0
     RRCA
     RRCA
-    LD HL, fruitState6@explosionSprDefs
+    LD HL, explosionSprDefs
     addToHL_M
     JP @execDraw
     

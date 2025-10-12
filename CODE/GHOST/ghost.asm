@@ -16,14 +16,14 @@ ghostStateTable:
         .dw @@gotoCenter   ; 02 - ghostToHomeUpdate
         .dw @@gotoRest     ; 03 --^
         .dw @@rest         ; 04 - ghostHomeUpdate
-        .DW @@gotoExit     ; 05 --^
+        .dw @@gotoExit     ; 05 --^
     @draw:
         .dw @@scatter      ; 00
         .dw @@gotoHome     ; 01
         .dw @@gotoCenter   ; 02
         .dw @@gotoRest     ; 03
         .dw @@rest         ; 04
-        .DW @@gotoExit     ; 05
+        .dw @@gotoExit     ; 05
 
 
 

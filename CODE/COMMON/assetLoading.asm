@@ -376,13 +376,13 @@ loadMaze:
 ;   MAKE MUTATED DOT TILE OFFSET IMPOSSIBLE (FOR PAC & MS.PAC)
     LD A, $FF
     LD (mazeMutatedTbl), A
-;   CHECK IF GAME IS MS.PAC
+;   LOAD THE CORRECT MAZE DATA FOR THE CURRENT GAME
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JP NZ, @msMazes     ; IF SO, SKIP
-;   CHECK IF GAME IS JR.PAC
-    BIT JR_PAC, A
-    JP NZ, @jrMazes     ; IF SO, SKIP
+    RRCA    ; PLUS
+    RRCA    ; MS_PAC
+    JP C, @msMazes
+    RRCA    ; JR_PAC
+    JP C, @jrMazes
 ;   LOAD PAC-MAN MAZE DATA
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, maze0EatenTable
@@ -458,7 +458,7 @@ loadMaze:
     CALL getMazeIndex
     LD DE, mazeGroup1.collMap
     CALL zx7_decompress
-    JP @revertBank
+    JR @revertBank
 @jrMazes:
     ; LOAD MAZE DOT TABLE (LOAD EVERY TIME!)
     LD HL, jrMazeDotTable
@@ -496,7 +496,7 @@ loadMaze:
     ; CHECK IF PLAYER HAS DIED
     LD A, (currPlayerInfo.diedFlag)
     OR A
-    JP NZ, @revertBank    ; IF SO, END
+    JR NZ, @revertBank    ; IF SO, END
     ; SET BANK FOR MAZE TILEMAP DATA
     LD A, MAZE_TILEMAP_BANK
     LD (MAPPER_SLOT2), A

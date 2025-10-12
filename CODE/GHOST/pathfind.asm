@@ -300,11 +300,7 @@ pinkyTarget:
     LD A, (pacman.currDir)
     ADD A, A
     LD HL, dirVectors
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     ; GET DIRECTION VECTOR AT CALCULATED OFFSET
     LD A, (HL)
     INC HL
@@ -340,7 +336,7 @@ inkyTarget:
     LD HL, $4020
     ; CHECK IF GAME IS PAC-MAN OR MS.PAC-MAN
     LD A, (plusBitFlags)
-    AND A, $0F      ; REMOVE STYLE BIT
+    AND A, $0F          ; REMOVE STYLE BIT
     CP A, $01 << JR_PAC
     JP C, @@setScatter  ; IF SO, SKIP
     ; DO APPROPRIATE FUNCTION
@@ -361,11 +357,7 @@ inkyTarget:
     LD A, (pacman.currDir)
     ADD A, A
     LD HL, dirVectors
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     ; GET DIRECTION VECTOR AT CALCULATED OFFSET
     LD A, (HL)
     INC HL

@@ -15,7 +15,7 @@ pacStateTable@update@normalMode:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
     OR A
-    JR Z, @@@update      ; IF NOT, SKIP TRANSITION 
+    JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
 @@@enter:
     ; SET SPEED POINTER TO NORMAL
     LD HL, spdPatternNormal
@@ -123,7 +123,7 @@ pacStateTable@update@normalMode:
 ;   SKIP IF GAME IS JR.PAC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR NZ, @@@@getCollision
+    JP NZ, @@@@getCollision
 ;   CHECK IF IN TUNNEL
     LD A, (pacman + CURR_X)
     CP A, $21
@@ -158,12 +158,7 @@ pacStateTable@update@normalMode:
     ADD A, L
 ;   ADD OFFSET TO FIRST TILE ID ADDRESS
     LD HL, pacman + UP_ID
-    ;RST addToHL
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     LD A, (HL)
 ;   HL = TILE ID PTR FOR WANTED DIRECTION, A = TILE ID
     AND A, $03     ; KEEP LOWER 2 BITS (PAC-MAN DOESN'T USE UPPER TWO BITS)
@@ -189,12 +184,7 @@ pacStateTable@update@normalMode:
     ADD A, L
     ; ADD OFFSET TO FIRST TILE ID ADDRESS
     LD HL, pacman + UP_ID ; SET BC TO FIRST TILE ID (10)
-    ;RST addToHL
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     LD A, (HL)
 ;   HL = TILE ID PTR FOR WANTED DIRECTION, A = TILE ID
     AND A, $03     ; KEEP LOWER 2 BITS (PAC-MAN DOESN'T USE UPPER TWO BITS)
@@ -233,11 +223,7 @@ pacStateTable@update@normalMode:
     LD B, A     ; SAVE DIRECTION
     ADD A, A    ; CURRENT DIRECTION * 2
     LD HL, dirVectors
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
 /*
 ------------------------------------------------
     UPDATE - APPLY MAIN AXIS MOVEMENT TO PAC-MAN
@@ -275,29 +261,22 @@ pacStateTable@update@normalMode:
     AND A, $07
     CP A, $04
     JR Z, @@@@updateCenters  ; IF SO, SKIP...
-    ;
-    LD DE, $0001
-    LD C, L
-    LD B, H
-    LD A, (HL)
+;   APPLY CORNERING TO POSITION
+    ; BC = POSITION
+    LD C, (HL)
     INC HL
-    LD H, (HL)
-    LD L, A
-    ;
-    JR C, +     ; IF LESS THAN 3, SKIP...
-;   IF AFTER CENTER, DECREMENT POSITION
-    ;DEC (HL)
-    ;JR @@@@updateCenters
-    LD DE, $FFFF
-+:
-;   IF BEFORE CENTER, INCREMENT POSITION
-    ;INC (HL)
-    ADD HL, DE
-    LD A, L
-    LD (BC), A
+    LD B, (HL)
+    ; ASSUME BEFORE CENTER, SO INCREMENT POSITION
     INC BC
-    LD A, H
-    LD (BC), A
+    JP C, +    ; IF ASSUMPTION WAS CORRECT, SKIP
+    ; ELSE, DECREMENT POSITION
+    DEC BC
+    DEC BC
++:
+    ; STORE NEW POSITION
+    LD (HL), B
+    DEC HL
+    LD (HL), C
 /*
 ------------------------------------------------
     UPDATE - UPDATE TILES IF PAC-MAN VISIBLY MOVED
@@ -306,11 +285,10 @@ pacStateTable@update@normalMode:
 @@@@updateCenters:
 ;   UPDATE ACTOR'S COLLISION TILES, CENTERS, ETC...
     CALL actorUpdate
-;   UPDATE ACTOR'S DATA IN SPRITE TABLE
-
+;   UPDATE CENTERS, TILEMAP PTRS, QUADRANT, ETC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR NZ, @@@@jrPtrUpdate
+    JP NZ, @@@@jrPtrUpdate
 ;   --------------
 ;   CONVERT COLLISION-SPACE TILE COORDS TO SCREEN-SPACE PIXEL COORDS (NON SCROLLING)
 ;   --------------
@@ -415,15 +393,10 @@ pacStateTable@update@normalMode:
     LD H, $00
     PUSH HL     ; SAVE RAM_ROW FOR LATER
     ; MULTIPLY BY 41 (TILES PER ROW)
-    ;CALL multBy41
     multBy41
     ; ADD X AND Y
     LD A, B ; RAM_COL INTO A
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     ; MULTIPLY BY 2 (TILES ARE 2 BYTES EACH)
     ADD HL, HL
     ; STORE
@@ -549,7 +522,7 @@ pacStateTable@update@deadMode:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
     OR A
-    JR Z, @@@update     ; IF NOT, SKIP TRANSITION
+    JP Z, @@@update     ; IF NOT, SKIP TRANSITION
 @@@enter:
 ;   STATE IS NO LONGER NEW
     XOR A
@@ -601,7 +574,7 @@ displayPacMan:
 ;   CONVERT POSITION
     LD IX, pacman
     CALL convPosToScreen
-;   ADJUST JR'S POSITION (SPRITES ARE NOT 12x12 CELLS)
+;   ADJUST JR'S POSITION (SPRITES ARE NOT CENTERED IN A 12x12 CELL)
     ; UP:   +1,+1 : 0 (0101) 52
     ; LEFT: +1,-1 : 1 (00FF) 60
     ; DOWN: +1,-1 : 2 (00FF) 60
@@ -624,7 +597,6 @@ displayPacMan:
     INC D
     LD A, B
     CPL
-    ;LD A, (pacman.currDir)
     CP A, $03
     JP C, +
     DEC D

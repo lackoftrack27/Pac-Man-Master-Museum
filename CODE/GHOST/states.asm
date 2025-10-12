@@ -28,12 +28,13 @@ ghostStateTable@update@scatter:
     LD HL, SPD_PATT_SLOW_00
     BIT 2, (IX + CURR_ID)
     JP Z, +     ; IF NOT, SKIP...
-    ; CHECK IF GAME IS MS.PAC
+    ; IGNORE SLOWDOWN BIT IF GAME IS JR.PAC
     LD A, (plusBitFlags)
     BIT JR_PAC, A
-    JP NZ, +    ; INGORE IF GAME IS JR.PAC
+    JP NZ, +
+    ; SKIP NEXT CHECK IF GAME ISN'T MS.PAC
     AND A, $01 << MS_PAC
-    JP Z, @@@@execSpdPattern    ; IF NOT, SKIP NEXT CHECK
+    JP Z, @@@@execSpdPattern
     ; CHECK IF LEVEL IS 3 OR GREATER
     LD A, (currPlayerInfo.level)
     CP A, $03
@@ -48,15 +49,16 @@ ghostStateTable@update@scatter:
     LD A, (IX + ID)
     OR A
     JP NZ, @@@@execSpdPattern   ; IF NOT, USE NORMAL SPEED PATTERN
-;   CHECK IF DIFF FLAG IS 1
+;   CHECK IF 2ND DIFF FLAG IS SET (BIT 0)
+    LD HL, spdPatternDiff1
     LD A, (difficultyState)
+    RRCA
+    JP C, + ; IF SO, USE 2ND DIFF SPEED PATTERN
+;   CHECK IF 1ST DIFF FLAG IS SET (BIT 1)
     LD HL, spdPatternDiff0
     RRCA
-    JP C, + ; IF SO, USE FIRST DIFF SPEED PATTERN
-;   CHECK IF DIFF FLAG IS 2
-    LD HL, spdPatternDiff1
-    RRCA
-    JP C, + ; IF SO, USE SECOND DIFF SPEED PATTERN
+    JP C, + ; IF SO, USE 1ST DIFF SPEED PATTERN
+;   ELSE, USE REGULAR SPEED PATTERN
     LD HL, SPD_PATT_NORM_00
 ;   ADD SPEED PATTERN OFFSET TO GHOST'S ADDRESS
 @@@@execSpdPattern:
@@ -65,7 +67,9 @@ ghostStateTable@update@scatter:
     ADD HL, DE
 +:
     actorSpdPatternUpdate
+.IF LOAD_TEST == $00
     RET NC
+.ENDIF
     INC HL
     INC HL
     INC (HL)
@@ -128,11 +132,7 @@ ghostStateTable@update@scatter:
     ; CONVERT CURRENT DIRECTION INTO OFFSET
     LD A, (IX + CURR_DIR)
     ADD A, A
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A ; HL NOW POINTS TO CORRECT MOVEMENT FOR CURRENT DIRECTION
+    addToHL_M   ; HL NOW POINTS TO CORRECT MOVEMENT FOR CURRENT DIRECTION
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - APPLY MAIN AXIS MOVEMENT TO GHOST
@@ -473,12 +473,12 @@ ghostStateTable@draw@gotoExit:
 ;   CHECK IF GHOST SHOULD BE INVISIBLE (PLUS) OR IS OFFSCREEN
     LD A, (IX + INVISIBLE_FLAG)
     OR A, (IX + OFFSCREEN_FLAG)
-    JP NZ, ghostSpriteFlicker@emptySprite   ; IF SO, DISPLAY NOTHING
+    JP NZ, displayEmptySprite   ; IF SO, DISPLAY NOTHING
 ;   GHOST IS INVSIBLE WHEN BEING EATEN
     LD A, (ghostPointSprNum)
     DEC A
     CP A, (IX + ID)
-    JP Z, ghostSpriteFlicker@emptySprite
+    JP Z, displayEmptySprite
 ;   CHECK IF GHOST IS VISIBLY SCARED
     BIT 0, (IX + EDIBLE_FLAG)
     JP Z, displayGhostNormal    ; IF NOT, DISPLAY NORMAL SPRITES
@@ -495,6 +495,6 @@ ghostStateTable@draw@gotoRest:
     LD A, (plusBitFlags)
     AND A, $01 << OTTO
     OR A, (IX + OFFSCREEN_FLAG)
-    JP NZ, ghostSpriteFlicker@emptySprite   ; IF SO, DISPLAY NOTHING
+    JP NZ, displayEmptySprite   ; IF SO, DISPLAY NOTHING
 ;   DISPLAY SCARED SPRITES
     JP displayGhostEyes
