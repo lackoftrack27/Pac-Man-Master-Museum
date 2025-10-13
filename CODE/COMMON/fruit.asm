@@ -1135,8 +1135,8 @@ fruitPFTargetHelper1:   ; $AA87
     RRCA
     RRCA
     RRCA
-    RRCA
-    ADD A, A
+    ;RRCA
+    ;ADD A, A
     LD HL, @subRoutineTable
     addToHL_M
     JP (HL)
@@ -1247,6 +1247,7 @@ fruitPFTargetHelper1:   ; $AA87
 */
 
 ;   TRYS TO FIND A NEW POWER DOT TARGET IF THE CURRENT TARGET ISN'T A POWER DOT ANYMORE
+;   OUTPUT: NZ - FOUND NEW TARGET, Z - UNABLE TO FIND NEW TARGET
 findNewTarget:
     LD IYH, $06
     LD HL, jrMazePDotTargets
@@ -1261,7 +1262,7 @@ findNewTarget:
     CALL getTileID
     POP DE  ; RESTORE TARGET
     POP HL  ; RESTORE PTR
-    RRCA    ; TILE ID WILL NEVER BE 1 OR 2. CHECKING FOR EITHER 0 OR 3
+    OR A    ; TILE ID WILL NEVER BE 1 OR 2. CHECKING FOR EITHER 0 OR 3
     RET NZ  ; NEW TARGET FOUND (IYH != 0, ID != 0)
     DEC IYH
     JP NZ, -

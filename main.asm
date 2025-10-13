@@ -74,6 +74,7 @@
     POP DE
     SBC HL, DE
     */
+    ; INPUT RANGE IS RELATIVELY SMALL, SO USE A LUT
     LD H, hibyte(mult29Table)
     LD A, L
     ADD A, A
@@ -128,8 +129,20 @@ boot:
 .ENDS
 
 
+
+/*
+----------------------------------------------------------
+                    RESETS THE GAME
+----------------------------------------------------------
+    SELF-EXPLANATORY
+*/
 .ORG $0008
-    .DSB $08, $00   ; FILL
+.SECTION "Reset Game" FORCE
+resetGame:
+    CALL sndStopAll     ; STOP ALL SOUND
+    JP boot             ; GO TO BEGINNING OF ROM
+    .DSB $02, $00       ; FILL
+.ENDS
 
 
 /*
@@ -425,6 +438,9 @@ resetFromGameOver:
     LD HL, prevInput            ; ALL BUTTONS ARE "PRESSED" FOR PREVIOUS INPUT
     LD (HL), $01 << P1_DIR_UP | $01 << P1_DIR_DOWN | $01 << P1_DIR_LEFT | $01 << P1_DIR_RIGHT | $01 << P1_BTN_1 | $01 << P1_BTN_2
     LD (pressedButtons), A      ; BUTTONS THAT JUST WERE PRESSED
+    LD HL, prevInputMD            ; ALL BUTTONS ARE "PRESSED" FOR PREVIOUS INPUT
+    LD (HL), $01 << P1_DIR_UP | $01 << P1_DIR_DOWN | $01 << P1_DIR_LEFT | $01 << P1_DIR_RIGHT | $01 << P1_BTN_1 | $01 << P1_BTN_2
+    LD (pressedButtonsMD), A      ; BUTTONS THAT JUST WERE PRESSED
 ;   RESET PLAYER TYPE
     LD (playerType), A          ; 1 PLAYER MODE, PLAYER 1 IS PLAYING
 ;   RESET SCORE
@@ -479,10 +495,7 @@ mainGameLoop:
     LD (controlPort2), A
 ;   CHECK FOR RESET
     AND A, $01 << RESET_BTN
-    JP Z, +             ; IF NOT PRESSED, SKIP...
-    CALL sndStopAll     ; STOP ALL SOUND
-    RST boot            ; GO BACK TO BEGINNING OF PROGRAM
-+:
+    JP NZ, resetGame    ; IF SO, RESET THE GAME
 ;   CHECK IF START WAS PRESSED (MD CONTROLLER)
     LD A, (mdControlFlag)
     OR A
@@ -671,27 +684,30 @@ checkMDPause:
 ;   SET TH TO LOW OUTPUT
     LD A, ~($01 << P1_TH_DIR | $01 << P2_TH_DIR) & $0F
     OUT (IO_CONTROL), A
-;   SAVE CONTROL 1 STATUS
-    LD A, (controlPort1)
-    PUSH AF
 ;   GET INPUTS (A, START)
     LD A, (IX + 0)  ; TIME WASTE
     IN A, CONTROLPORT1
     CPL
-    LD (controlPort1), A
-;   DEBOUNCE
-    CALL getPressedInputs
-;   RESTORE CONTROL 1 STATUS
-    POP AF
-    LD (controlPort1), A
+    LD (controlPort1MD), A
 ;   SET TH TO LOW INPUT
     LD A, $01 << P1_TR_DIR | $01 << P1_TH_DIR | $01 << P2_TR_DIR | $01 << P2_TH_DIR
     OUT (IO_CONTROL), A
-;   CHECK IF START IS PRESSED
-    LD A, (pressedButtons)
-    AND A, $01 << P1_BTN_2    
-    JP NZ, pauseVector   ; IF SO, GO TO PAUSE VECTOR
-    RET
+;   DEBOUNCE
+    CALL getPressedInputsMD
+;   CHECK IF 'START' IS PRESSED
+    LD A, (pressedButtonsMD)
+    BIT P1_BTN_2, A
+    RET Z   ; RETURN IF IT WASN'T
+    ; CHECK IF 'A' IS PRESSED
+    LD A, (controlPort1MD)
+    AND A, $01 << P1_BTN_1
+    JP Z, pauseVector   ; IF NOT, ONLY 'START' WAS PRESSED. PAUSE THE GAME
+    ; CHECK IF 'B' AND 'C' ARE PRESSED
+    LD A, (controlPort1)
+    CP A, ($01 << P1_BTN_1) | ($01 << P1_BTN_2)
+    RET NZ               ; IF NOT, EXIT
+    ; RESET GAME
+    JP resetGame
 .ENDS
 /*
 ----------------------------------------------------------
@@ -1029,7 +1045,7 @@ bgPalJr03:
 bgPalJr04:
     .DB $00 $3C $30 $28 $28 $00 $00 $3F $0A $05 $2A $3F $3F $3F $0F $00
 
-
+;   JR CUTSCENE PALETTES
 bgPalJrFD:
     .DB $00 $04 $05 $15 $02 $0C $0A $0B $30 $2A $0F $3F $3F $3F $3F $00
 bgPalJrFE:
@@ -1039,19 +1055,19 @@ bgPalJrFE:
 sprPalData:
     .db $00     ; BLACK (TRANSPARENT)
     .db $0F     ; YELLOW (PAC-MAN)
-    .db $0A     ; DARK YELLOW (PAC-MAN SHADING)
+    .db $0A     ; DARK YELLOW (SHADING)
     .db $03     ; RED (BLINKY)
-    .db $02     ; DARK RED (BLINKY SHADING)
+    .db $02     ; DARK RED (SHADING)
     .db $3B     ; PINK (PINKY)
-    .db $26     ; DARK PINK (PINKY SHADING)
+    .db $26     ; DARK PINK (SHADING)
     .db $3C     ; CYAN (INKY)
-    .db $28     ; DARK CYAN (INKY SHADING)
+    .db $28     ; DARK CYAN (SHADING)
     .db $0B     ; ORANGE (CLYDE)
-    .db $06     ; DARK ORANGE (CLYDE SHADING)
+    .db $06     ; DARK ORANGE (SHADING)
     .db $3F     ; WHITE (SCARED GHOST)
-    .db $2A     ; GREY (SCARED GHOST SHADING)
+    .db $2A     ; GREY (SHADING)
     .db $30     ; BLUE (SCARED GHOST)
-    .db $20     ; DARK BLUE (SCARED GHOST SHADING)
+    .db $20     ; DARK BLUE (SHADING)
     .db $0C     ; GREEN (FRUIT)
 
 ; SPRITE PALETTE ("ARCADE")
@@ -1255,6 +1271,15 @@ mult29Table:
 */
 
 .SECTION "COMMON TABLES" FREE
+/*
+    PLAYER ANIMATION TABLES
+*/
+normAniTbl: ; $A4
+    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
+slowAniTbl: ; $B4
+    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
+
+
 /*
     GHOST POINTS TILE INDEXES
 */
@@ -1619,15 +1644,6 @@ dotExpireTable:
     .DB 240     ; 4 SECONDS
     .DB 240     ; 4 SECONDS
     .DB 180     ; 3.5 SECONDS
-
-
-/*
-    PLAYER ANIMATION TABLES
-*/
-normAniTbl: ; $A4
-    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
-slowAniTbl: ; $B4
-    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
 .ENDS
 
 

@@ -19,6 +19,9 @@
     controlPort2: db
     prevInput: db   ; USED IN MENUS AND MD PAUSE
     pressedButtons: db
+    controlPort1MD: db
+    prevInputMD: db
+    pressedButtonsMD: db
 ;   MAIN GAME STATE MACHINE
     mainGameMode: db
     subGameMode: db

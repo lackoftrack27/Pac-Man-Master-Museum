@@ -116,7 +116,7 @@ sStateAttractTable@optionsMode:
     CALL getPressedInputs
 ;   PREP
     LD HL, pressedButtons
-;   CHECK IF A IS PRESSED
+;   CHECK IF BTN 1 IS PRESSED
     BIT P1_BTN_1, (HL)
     JR Z, +     ; IF NOT, SKIP
 @@exit:
