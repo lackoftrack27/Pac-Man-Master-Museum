@@ -98,66 +98,8 @@ processGhostSFX:
     JP sndPlaySFX
 
 
-
-processChan2SFXJR:
-;   FIND FIRST SET BIT (MSB TO LSB)
-    LD C, A
-    LD DE, $0780    ; BIT POSITION / BIT VALUE
--:
-    LD A, E 
-    AND A, C
-    JR NZ, +
-    SRL E
-    DEC D
-    JR -
-+:
-;   GET CORRESPONDING SOUND ID FROM BIT POSITION
-    LD B, $00
-    LD C, D
-    LD HL, @data
-    ADD HL, BC
-    LD A, (HL)
-;   CHECK IF SOUND IS ALREADY PLAYING
-    LD C, A
-    LD A, (chan2 + SND_ID)
-    CP A, C
-    RET Z
-;   PLAY SFX
-    LD A, C
-    LD B, $02   ; CHANNEL 2
-    JP sndPlaySFX
-@soundEnded:
-;   END IF CHANNEL ISN'T 2
-    LD A, C
-    CP A, CHAN2_BITS
-    RET NZ
-;   SAVE REGS
-    PUSH BC
-;   FIND FIRST SET BIT (MSB TO LSB)
-    LD A, (ch2SndControlJR)
-    LD B, A
-    LD C, $80   ; BIT VALUE
--:
-    LD A, C
-    AND A, B
-    JP NZ, +
-    SRL C
-    JP -
-+:
-;   CLEAR BIT
-    LD A, C
-    CPL
-    AND A, B
-    LD (ch2SndControlJR), A
-;   CLEAN UP
-    POP BC
-    RET
-@data:
-    .DB SFX_BOUNCE SFX_CREDIT SFX_BONUS
-
-
 /*
-    INFO: CONTROLS CHANNEL 2 SFX
+    INFO: CONTROLS CHANNEL 2 SFX (PAC/MS.PAC)
     INPUT: NONE
     OUTPUT: NONE
     USES: AF, BC, DE, HL, IX
@@ -251,3 +193,68 @@ processChan2SFX:
     RET
 @data:
     .DB SFX_DOT0 SFX_DOT1 SFX_FRUIT SFX_EATGHOST SFX_BOUNCE
+
+
+
+
+/*
+    INFO: CONTROLS CHANNEL 2 SFX (JR.PAC)
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IX
+*/
+processChan2SFXJR:
+;   FIND FIRST SET BIT (MSB TO LSB)
+    LD C, A
+    LD DE, $0780    ; BIT POSITION / BIT VALUE
+-:
+    LD A, E 
+    AND A, C
+    JR NZ, +
+    SRL E
+    DEC D
+    JR -
++:
+;   GET CORRESPONDING SOUND ID FROM BIT POSITION
+    LD B, $00
+    LD C, D
+    LD HL, @data
+    ADD HL, BC
+    LD A, (HL)
+;   CHECK IF SOUND IS ALREADY PLAYING
+    LD C, A
+    LD A, (chan2 + SND_ID)
+    CP A, C
+    RET Z
+;   PLAY SFX
+    LD A, C
+    LD B, $02   ; CHANNEL 2
+    JP sndPlaySFX
+@soundEnded:
+;   END IF CHANNEL ISN'T 2
+    LD A, C
+    CP A, CHAN2_BITS
+    RET NZ
+;   SAVE REGS
+    PUSH BC
+;   FIND FIRST SET BIT (MSB TO LSB)
+    LD A, (ch2SndControlJR)
+    LD B, A
+    LD C, $80   ; BIT VALUE
+-:
+    LD A, C
+    AND A, B
+    JP NZ, +
+    SRL C
+    JP -
++:
+;   CLEAR BIT
+    LD A, C
+    CPL
+    AND A, B
+    LD (ch2SndControlJR), A
+;   CLEAN UP
+    POP BC
+    RET
+@data:
+    .DB SFX_BOUNCE SFX_CREDIT SFX_BONUS

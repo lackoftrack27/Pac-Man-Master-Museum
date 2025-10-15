@@ -713,22 +713,31 @@ fruitState3:
     LD A, $05
     CALL addTask
 @updateFruitPos:
-;   SET WHICH AXIS TO APPLY MOVEMENT AND HOW
-    LD HL, dirVectors
+;   APPLY MOVEMENT BASED ON DIRECTION
     LD A, (fruit.currDir)
-    ADD A, A
-    addToHL_M
-    EX DE, HL   ; DE: WANTED VECTOR
-;   ADD Y PART OF VECTOR TO POSITION
-    LD A, (DE)
-    LD HL, (fruit + Y_WHOLE)
-    addToHLSigned
+    OR A
+    JP NZ, +
+    LD HL, (fruit + Y_WHOLE)   ; 62 (14 + 48) [UP]
+    DEC HL
     LD (fruit + Y_WHOLE), HL
-;   ADD X PART OF VECTOR TO POSITION
-    INC DE
-    LD A, (DE)
-    LD HL, (fruit + X_WHOLE)
-    addToHLSigned
+    JP @updatePtrs
++:
+    DEC A
+    JP NZ, +
+    LD HL, (fruit + X_WHOLE)   ; 76 [LEFT]
+    INC HL
+    LD (fruit + X_WHOLE), HL
+    JP @updatePtrs
++:
+    DEC A
+    JP NZ, +
+    LD HL, (fruit + Y_WHOLE)   ; 90 [DOWN]
+    INC HL
+    LD (fruit + Y_WHOLE), HL
+    JP @updatePtrs
++:
+    LD HL, (fruit + X_WHOLE)   ; 80 [RIGHT]
+    DEC HL
     LD (fruit + X_WHOLE), HL
 @updatePtrs:
     ; TILE Y CENTER POINT
@@ -753,16 +762,15 @@ fruitState3:
 ;   RAM NAMETABLE POINTER UPDATE (SCROLLING)
 ;   --------------
     ; GET X TILE (DIVIDE BY 8)
-    SRL H
-    RR L
-    SRL H
-    RR L
-    SRL H
-    RR L
-    LD B, L     ; STORE IN B (RAM_COL)
-    LD A, B
+    RR H    ; MSB WILL BE SET AFTER DUE TO 'ADD HL, DE'. IT'S REMOVED DUE TO LATER BIT SHIFTS
+    LD A, L
+    RRA
+    RRCA
+    RRCA
+    AND A, $3F
     LD (fruitTileMapCol), A
-    PUSH BC     ; SAVE RAM_COL FOR LATER
+    LD B, A     ; STORE IN B (RAM_COL)
+    PUSH AF     ; SAVE RAM_COL FOR LATER
     ; GET Y TILE (DIVIDE BY 8)
     LD A, (fruitTileYCenter)
     ; DIVIDE BY 8
@@ -770,8 +778,7 @@ fruitState3:
     RRCA
     RRCA
     AND A, $1F
-    LD L, A     ; STORE IN H (RAM_ROW)
-    LD H, $00
+    LD L, A     ; STORE IN L (RAM_ROW)
     PUSH HL     ; SAVE RAM_ROW FOR LATER
     ; MULTIPLY BY 41 (TILES PER ROW)
     multBy41
@@ -789,7 +796,7 @@ fruitState3:
 ;   VRAM NAMETABLE POINTER UPDATE (SCROLLING)
 ;   --------------
     ; RAM_ROW PROCESS
-    POP HL  ; GET RAM_ROW (H)
+    POP HL  ; GET RAM_ROW (L)
     INC L   ; APPLY 1 ROW OFFSET (TOP ROW ON SCREEN IS RESERVED FOR HUD)
     ; MULTIPLY BY YTILE 64 (EACH ROW IS 64 BYTES [32 TILES * 2])
     XOR A

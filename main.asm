@@ -51,29 +51,8 @@
     LD H, A
 .ENDM
 
-.MACRO addToHLSigned
-    OR A
-    JP P, +
-    DEC H
-+:
-    addToHL_M
-.ENDM
 
 .MACRO multBy29
-    /*
-;   HL * 29 (32 - 02 - 01)
-    LD E, L
-    LD D, H
-    ADD HL, HL
-    PUSH HL
-    ADD HL, HL 
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    SBC HL, DE
-    POP DE
-    SBC HL, DE
-    */
     ; INPUT RANGE IS RELATIVELY SMALL, SO USE A LUT
     LD H, hibyte(mult29Table)
     LD A, L
@@ -1272,15 +1251,6 @@ mult29Table:
 
 .SECTION "COMMON TABLES" FREE
 /*
-    PLAYER ANIMATION TABLES
-*/
-normAniTbl: ; $A4
-    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
-slowAniTbl: ; $B4
-    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
-
-
-/*
     GHOST POINTS TILE INDEXES
 */
 .MACRO ghostPointsDefs   ARGS VAL
@@ -1644,6 +1614,14 @@ dotExpireTable:
     .DB 240     ; 4 SECONDS
     .DB 240     ; 4 SECONDS
     .DB 180     ; 3.5 SECONDS
+
+/*
+    PLAYER ANIMATION TABLES
+*/
+normAniTbl: ; $A4
+    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
+slowAniTbl: ; $B4
+    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
 .ENDS
 
 

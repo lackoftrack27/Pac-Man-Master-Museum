@@ -218,8 +218,7 @@ playCreditSnd:
     LD HL, lineMode
     BIT 1, (HL)
     RET NZ      ; IF SO, SWITCH TO OPTIONS MODE
-;   ELSE, SWITCH TO GAME
-    JP attractExit
+;   ELSE, SWITCH TO GAME (FALL THROUGH)
 
 
 /*

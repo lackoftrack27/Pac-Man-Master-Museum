@@ -128,31 +128,42 @@ ghostStateTable@update@scatter:
 ------------------------------------------------
 */
 @@@@prepareAxis:
-    LD HL, dirVectors
-    ; CONVERT CURRENT DIRECTION INTO OFFSET
-    LD A, (IX + CURR_DIR)
-    ADD A, A
-    addToHL_M   ; HL NOW POINTS TO CORRECT MOVEMENT FOR CURRENT DIRECTION
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - APPLY MAIN AXIS MOVEMENT TO GHOST
 ------------------------------------------------
 */ 
-@@@@chooseAxis:
-    EX DE, HL   ; DE: WANTED VECTOR
-;   ADD Y PART OF VECTOR TO POSITION
-    LD A, (DE)
-    LD L, (IX + Y_WHOLE)
+    LD A, (IX + CURR_DIR)
+    OR A
+    JP NZ, +
+    LD L, (IX + Y_WHOLE)        ; 125 [UP]
     LD H, (IX + Y_WHOLE + 1)
-    addToHLSigned
+    DEC HL
     LD (IX + Y_WHOLE), L
     LD (IX + Y_WHOLE + 1), H
-;   ADD X PART OF VECTOR TO POSITION
-    INC DE
-    LD A, (DE)
-    LD L, (IX + X_WHOLE)
+    JP actorUpdate
++:
+    DEC A
+    JP NZ, +
+    LD L, (IX + X_WHOLE)        ; 139 [LEFT]
     LD H, (IX + X_WHOLE + 1)
-    addToHLSigned
+    INC HL
+    LD (IX + X_WHOLE), L
+    LD (IX + X_WHOLE + 1), H
+    JP actorUpdate
++:
+    DEC A
+    JP NZ, +
+    LD L, (IX + Y_WHOLE)        ; 152 [DOWN]
+    LD H, (IX + Y_WHOLE + 1)
+    INC HL
+    LD (IX + Y_WHOLE), L
+    LD (IX + Y_WHOLE + 1), H
+    JP actorUpdate
++:
+    LD L, (IX + X_WHOLE)        ; 152 [RIGHT]
+    LD H, (IX + X_WHOLE + 1)
+    DEC HL
     LD (IX + X_WHOLE), L
     LD (IX + X_WHOLE + 1), H
 /*

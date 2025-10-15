@@ -340,8 +340,7 @@ inkyTarget:
     CP A, $01 << JR_PAC
     JP C, @@setScatter  ; IF SO, SKIP
     ; DO APPROPRIATE FUNCTION
-    AND A, $01 << JR_PAC
-    JP NZ, getRandTargetJr  ; JR.PAC'S RANDOM ALG (DOESN'T NEED TO RETURN HERE)
+    JP Z, getRandTargetJr   ; JR.PAC'S RANDOM ALG (DOESN'T NEED TO RETURN HERE)
     CALL getRandCorner      ; CRAZY OTTO RANDOM ALG
 @@setScatter:
     LD (inky + TARGET_X), HL
@@ -490,7 +489,7 @@ getRandCorner:
 ;   GET MAZE INDEX
     LD HL, mazeTargetTable
     CALL getMazeIndex
-;   GET RANDOM NUMBER [0,2,4,6]
+;   GET 'RANDOM' NUMBER [0,2,4,6]
     LD A, R
     AND A, $06
 ;   GET CORNER FROM TABLE
@@ -505,10 +504,11 @@ getRandCorner:
     USES: AF, H, R
 */
 getRandTargetJr:
-;   GET RANDOM NUMBER
-;   & $3F, THEN % $07
+;   GET 'RANDOM' NUMBER
     LD A, R
+;   AND WITH $3F
     AND A, $3F
+;   MOD BY $07
     LD H, $07
 -:
     SUB A, H

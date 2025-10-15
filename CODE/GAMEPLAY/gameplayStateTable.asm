@@ -340,6 +340,7 @@ firstTimeEnd:
     LD (pacPoweredUp), A    ; SUPER FLAG
     LD (dotExpireCounter), A
     LD (globalDotCounter), A
+    LD (drawHScoreFlag), A
 ;   ENABLE SPRITE CYCLING
     INC A
     LD (sprFlickerControl), A
@@ -355,10 +356,10 @@ firstTimeEnd:
 ;   CALCULATE DIFFICULTY   
     ; CONVERT INDEX INTO OFFSET (MULTIPLY BY 6)
     LD HL, (currPlayerInfo.levelTablePtr)
-    LD E, (HL)
-    LD H, $06
-    CALL multiply8Bit
-    EX DE, HL
+    LD A, (HL)
+    CALL multiplyBy6
+    LD D, $00
+    LD E, A
     ; ADD OFFSET TO BASE TABLE
     LD HL, plusBitFlags
     LD IX, difficultyTable@plus

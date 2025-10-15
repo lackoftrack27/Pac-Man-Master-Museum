@@ -76,10 +76,12 @@ setNextTile:
     RET
 
 
-
-;   INPUT:  HL: ROW|COL [YX]
-;   OUTPUT: HL: RAM PTR
-;   USES:   AF, DE, HL
+/*
+    INFO: CONVERTS ROW AND COLUMN TILE TO A POINTER FOR THE RAM TILEMAP
+    INPUT:  HL: ROW|COL [YX]
+    OUTPUT: HL: RAM PTR
+    USES:   AF, DE, HL
+*/
 rowColToRamPtr:
 ;   MULTIPLY ROW BY DIFFERENT AMOUNT DEPENDING ON GAME
     LD A, (plusBitFlags)
@@ -121,10 +123,12 @@ rowColToRamPtr:
 
 
 
-
-;   INPUT:  HL: ROW|COL [YX]
-;   OUTPUT: HL: VRAM PTR
-;   USES:   AF, DE, HL
+/*
+    INFO: CONVERTS ROW AND COLUMN TILE TO A POINTER FOR THE VRAM TILEMAP 
+    INPUT:  HL: ROW|COL [YX]
+    OUTPUT: HL: VRAM PTR
+    USES:   AF, DE, HL
+*/
 rowColToVramPtr:
 ;   STORE COLUMN IN DE
     LD D, $00
@@ -134,11 +138,11 @@ rowColToVramPtr:
     AND A, $01 << JR_PAC
     JR Z, @nonScroll
 ;   RAM ROW PROCESS
-    INC H   ; APPLY 1 ROW OFFSET (TOP ROW ON SCREEN IS RESERVED FOR HUD)
-    LD L, H
-    LD H, $00
-    ; MULTIPLY BY YTILE 64 (EACH ROW IS 64 BYTES [32 TILES * 2])
     XOR A
+    LD L, H
+    INC L   ; APPLY 1 ROW OFFSET (TOP ROW ON SCREEN IS RESERVED FOR HUD)
+    LD H, A
+    ; MULTIPLY BY YTILE 64 (EACH ROW IS 64 BYTES [32 TILES * 2])
     SRL H
     RR L
     RRA
@@ -186,7 +190,12 @@ rowColToVramPtr:
 
 
 
-
+/*
+    INFO: CHECKS IF AN ACTOR IS OFFSCREEN (FOR JR.PAC)
+    INPUT: IX - ACTOR'S PTR, B - 'PROCESS REVERSE FLAG' FLAG
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 actorOffScreenCheck:
 ;   SAVE OFFSCREEN FLAG IN C, THEN CLEAR IT
     LD C, (IX + OFFSCREEN_FLAG)
@@ -205,18 +214,18 @@ actorOffScreenCheck:
 ;   STORE CAMERA POS IN DE
     LD D, $00
     LD A, (jrCameraPos)
-    DEC A
-    JP P, +
-    INC A
-+:
+    ;DEC A
+    ;JP P, +
+    ;INC A
+;+:
     LD E, A
 ;   CHECK IF ACTOR IS BEFORE LEFTSIDE OF SCREEN (LESS THAN CAMERA)
     SBC HL, DE
     ADD HL, DE
     JR C, +     ; OBJ_POS < CAM_POS
-;   CHECK IF ACTOR IS AFTER RIGHTSIDE OF SCREEN (GREATER THAN CAMERA + SCREEN WIDTH)
-    LD A, (jrCameraPos)
-    LD E, A
+;   CHECK IF ACTOR IS AFTER RIGHTSIDE OF SCREEN (GREATER THAN [CAMERA + SCREEN WIDTH])
+    ;LD A, (jrCameraPos)
+    ;LD E, A
     INC D       ; ADD SCREEN WIDTH
     INC HL      ; PREVENT ACTOR FROM BEING SEEN WRAPPING OVER TO LEFT SIDE
     INC HL
@@ -264,7 +273,7 @@ convPosToScreen:
     LD D, A
         ; GET VALUE
     LD A, (DE)
-    ; WORLD POS -> SCREEN POS (lowbyte(actorXPos) - cameraPos)
+    ; WORLD POS -> SCREEN POS (lobyte(actorXPos) - cameraPos)
     SUB A, C
     LD D, A
 ;   CONVERSION FROM 8px TILES TO 6px TILES (Y)
@@ -349,19 +358,17 @@ updateCurrTile:
     RRCA
     RRCA
     RRCA
-    AND A, $1F
+    AND A, $1F  ; REMOVE UNWANTED CARRIES
     ADD A, $20  ; 21
     LD (IX + CURR_Y), A
 ;   CURRENT X
-    LD L, (IX + X_WHOLE)
-    LD H, (IX + X_WHOLE + 1)
-    SRL H
-    RR L
-    SRL H
-    RR L
-    SRL H
-    RR L
-    LD A, L
+    LD A, (IX + X_WHOLE + 1)    ; HIGH BYTE CAN ONLY BE 0 OR 1
+    RRCA        ; PUT INTO CARRY
+    LD A, (IX + X_WHOLE)
+    RRA
+    RRCA
+    RRCA
+    AND A, $3F  ; REMOVE UNWANTED CARRIES
     ADD A, $1E
     LD (IX + CURR_X), A
     RET
@@ -392,18 +399,15 @@ actorUpdate:
     ADD A, $20  ; 21
     LD (IX + CURR_Y), A
     ; CURRENT X
-    LD L, (IX + X_WHOLE)
-    LD H, (IX + X_WHOLE + 1)
-    SRL H
-    RR L
-    SRL H
-    RR L
-    SRL H
-    RR L
-    LD A, L
+    LD A, (IX + X_WHOLE + 1)    ; HIGH BYTE CAN ONLY BE 0 OR 1
+    RRCA        ; PUT INTO CARRY
+    LD A, (IX + X_WHOLE)
+    RRA
+    RRCA
+    RRCA
+    AND A, $3F  ; REMOVE UNWANTED CARRIES
     ADD A, $1E
     LD (IX + CURR_X), A
-
 /*
 ---------------------------------------------
         COLLISION TILE UPDATE 
@@ -616,70 +620,3 @@ getTileID:
 @odd:
     AND A, $0F
     RET
-
-
-
-
-
-/*
-EVEN:
-    AND BYTE WITH $F0
-    ADD $0F TO ADDRESS
-    AND BYTE WITH $0F
-    INC ADDRESS
-    AND BYTE WITH $F0
-    AND BYTE WITH $0F
-    ADD $10 TO ADDRESS
-    AND BYTE WITH $F0
-
-                    *    *
-    AND  ADD  AND  INC  AND  AND  ADD  AND
-    $F0, $0F, $0F, $01, $F0, $0F, $10, $0F
-ODD:
-    AND BYTE WITH $0F
-    ADD $10 TO ADDRESS
-    AND BYTE WITH $F0
-    AND BYTE WITH $0F
-    INC ADDRESS
-    AND BYTE WITH $F0
-    ADD $0F TO ADDRESS
-    AND BYTE WITH $0F
-
-    AND  ADD  AND  AND  INC  AND  ADD  AND
-    $0F, $10, $F0, $0F, $01, $F0, $0F, $0F
-*/
-
-
-
-
-
-
-/*
-    ; UP
-    LD A, (HL)
-    LD (IX + UP_ID), A  ; 19
-    ; POINT TO LEFT
-    LD BC, $0031
-    ADD HL, BC
-    ; LEFT
-    LD A, (HL)
-    LD (IX + LEFT_ID), A
-    ; POINT TO CURRENT
-    INC HL
-    ; CURRENT
-    LD A, (HL)
-    LD (IX + CURR_ID), A
-    ; POINT TO RIGHT
-    INC HL
-    ; RIGHT
-    LD A, (HL)
-    LD (IX + RIGHT_ID), A
-    ; POINT TO DOWN
-    ADD HL, BC
-    ; DOWN
-    LD A, (HL)
-    LD (IX + DOWN_ID), A
-    RET
-*/
-
-

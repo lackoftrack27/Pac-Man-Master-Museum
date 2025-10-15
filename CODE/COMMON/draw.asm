@@ -115,7 +115,7 @@ drawPowDots:
 
 
 /*
-    INFO: UPDATES MAZE IF TILE BUFFER ISN'T EMPTY
+    INFO: UPDATES MAZE IF TILE BUFFER ISN'T EMPTY (FROM PAC-MAN)
     INPUT: NONE
     OUTPUT: NONE
     USES: AF, BC, DE, HL
@@ -150,6 +150,13 @@ drawMaze:
     DJNZ -
     RET
 
+
+/*
+    INFO: UPDATES MAZE IF TILE BUFFER ISN'T EMPTY (FROM FRUIT)
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 drawMazeFruitJr:    
 ;   LOOP PREP FOR FRUIT TILE BUFFER
     LD (HL), $00    ; CLEAR FLAG
@@ -310,26 +317,28 @@ ghostFlashUpdate:
     RET
 
 
-
+/*
+    INFO: DRAWS "1UP" FOR THE DEMO (NO FLASHING!)
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 draw1UPDemo:
     LD C, VDPCON_PORT
 ;   PREPARE VDP ADDRESS
     LD HL, NAMETABLE + XUP_TEXT | VRAMWRITE
+    LD DE, hudTileMaps@oneUP
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP Z, +
     LD HL, NAMETABLE + XUP_TEXT_JR | VRAMWRITE
+    LD DE, hudTileMaps@jroneUP
 +:
     OUT (C), L
     OUT (C), H
     DEC C
 ;   DRAW "1UP"
-    LD HL, hudTileMaps@oneUP
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JP Z, +
-    LD HL, hudTileMaps@jroneUP
-+:
+    EX DE, HL
     LD A, $01
     OUTI
     OUT (VDPDATA_PORT), A
@@ -343,7 +352,7 @@ draw1UPDemo:
     INFO: DRAWS "1UP" OR "2UP" DEPENDING ON CURRENT PLAYER
     INPUT: NONE
     OUTPUT: NONE
-    USES: AF, BC, HL
+    USES: AF, BC, DE, HL
 */
 draw1UP:
 ;   EXIT IF IN ATTRACT MODE
@@ -353,10 +362,12 @@ draw1UP:
 ;   PREPARE VDP ADDRESS
     LD C, VDPCON_PORT
     LD HL, NAMETABLE + XUP_TEXT | VRAMWRITE
+    LD DE, hudTileMaps@oneUP
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP Z, +
     LD HL, NAMETABLE + XUP_TEXT_JR | VRAMWRITE
+    LD DE, hudTileMaps@jroneUP
 +:
     OUT (C), L
     OUT (C), H
@@ -377,12 +388,7 @@ draw1UP:
     IN F, (C)
     RET
 @draw:
-    LD HL, hudTileMaps@oneUP
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JP Z, +
-    LD HL, hudTileMaps@jroneUP
-+:
+    EX DE, HL
 ;   CHECK IF PLAYER 2 IS PLAYING
     LD A, (playerType)
     AND A, $01 << CURR_PLAYER
@@ -408,13 +414,15 @@ draw1UP:
     USES: AF, BC, DE, HL
 */
 scoreTileMapDraw:
-;   SET VDP ADDRESS
+;   SET VDP ADDRESS FOR SCORE
     LD C, VDPCON_PORT
     LD HL, NAMETABLE + NUM_TEXT | VRAMWRITE
+    LD DE, NAMETABLE + HSNUM_TEXT | VRAMWRITE
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP Z, +
     LD HL, NAMETABLE + NUM_TEXT_JR | VRAMWRITE
+    LD DE, NAMETABLE + HSNUM_TEXT_JR | VRAMWRITE
 +:
     OUT (C), L
     OUT (C), H
@@ -433,25 +441,11 @@ scoreTileMapDraw:
     IN F, (C)
     OUTI
 ;   DRAW HIGH SCORE TILEMAP IF BOTH MATCH
-    ; COMPARE UPPER BYTES
-    LD A, (currPlayerInfo.score + 2)
-    LD B, A
-    LD A, (highScore + 2)
-    SUB A, B    
-    RET NZ
-    ; COMPARE LOWER WORDS
-    LD HL, (highScore)
-    LD DE, (currPlayerInfo.score)
+    LD A, (drawHScoreFlag)
     OR A
-    SBC HL, DE
-    RET NZ
-;   SET VDP ADDRESS
-    LD HL, NAMETABLE + HSNUM_TEXT | VRAMWRITE
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JP Z, +
-    LD HL, NAMETABLE + HSNUM_TEXT_JR | VRAMWRITE
-+:
+    RET Z
+;   SET VDP ADDRESS FOR HIGH SCORE
+    EX DE, HL
     INC C
     OUT (C), L
     OUT (C), H
@@ -637,13 +631,16 @@ drawFruitHUD:
     LD A, (mainGameMode)
     CP A, M_STATE_ATTRACT
     RET Z  ; IF SO, EXIT...
-;   CHECK IF GAME IS MS.PAC
+;   DRAW FRUIT DIFFERENTLY DEPENDING ON GAME
     LD A, (plusBitFlags)
-    BIT MS_PAC, A
-    JR NZ, @msFruitHud
-;   CHECK IF GAME IS JR.PAC
-    BIT JR_PAC, A
-    JR NZ, @jrFruitHud
+    RRCA    ; PLUS
+    RRCA    ; MS.PAC
+    JR C, @msFruitHud
+    RRCA    ; JR.PAC
+    JR C, @jrFruitHud
+;   --------------
+;   FRUIT HUD DRAW FOR PAC-MAN
+;   --------------
 ;   SET OFFSET INTO FRUIT TABLE ADDRESS
     LD A, (currPlayerInfo.level)
     CP A, 19   ; CHECK IF LEVEL IS 19 OR GREATER
@@ -677,6 +674,9 @@ drawFruitHUD:
     DEC BC
     RET Z       ; EXIT IF COUNTER IS 0
     JR @loop
+;   --------------
+;   FRUIT HUD DRAW FOR MS.PAC-MAN
+;   --------------
 @msFruitHud:
     LD A, (currPlayerInfo.level)
     CP A, 7   ; CHECK IF LEVEL IS 7 OR GREATER
@@ -702,6 +702,9 @@ drawFruitHUD:
     DEC IXL     ; DECREMENT FRUIT NUMBER
     LD A, IXL
     JR @msloop
+;   --------------
+;   FRUIT HUD DRAW FOR JR.PAC-MAN
+;   --------------
 @jrFruitHud:
     LD A, (currPlayerInfo.level)
     CP A, 7   ; CHECK IF LEVEL IS 7 OR GREATER
@@ -1227,16 +1230,18 @@ drawGameOverTilemap:
 
 
 /*
-    JR PAC
+    INFO: DRAWS A NEW COLUMN IN VRAM TILEMAP WHEN NEEDED (JR.PAC)
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
 */
-
 drawNewColumn:
 ;   RESET FLAG
     XOR A
     LD (updateColFlag), A
 ;   SET VDP ADDRESS
     LD C, VDPCON_PORT
-    LD HL, (NAMETABLE + $40) | VRAMWRITE
+    LD HL, (NAMETABLE + $40) | VRAMWRITE    ; SCROLL 23 ROWS
     LD A, (jrColumnToUpdate)
     ADD A, A
         ; ADD COLUMN TO ADDRESS
@@ -1291,14 +1296,19 @@ drawNewColumn:
     RET
 
 
-
+/*
+    INFO: SAME AS ABOVE, BUT FOR CUTSCENES
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 drawNewColumnCutscene:
 ;   RESET FLAG
     XOR A
     LD (updateColFlag), A
 ;   SET VDP ADDRESS
     LD C, VDPCON_PORT
-    LD HL, NAMETABLE | VRAMWRITE
+    LD HL, NAMETABLE | VRAMWRITE    ; SCROLL 24 ROWS
     LD A, (jrColumnToUpdate)
     ADD A, A
         ; ADD COLUMN TO ADDRESS

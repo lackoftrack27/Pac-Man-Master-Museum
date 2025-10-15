@@ -57,6 +57,7 @@
     ; INFO FOR PLAYER THAT IS CURRENTLY NOT PLAYING
     altPlayerInfo INSTANCEOF playerInfo
     ; COMMON/UNRELATED
+    drawHScoreFlag: db
     highScore: dsb 3
     mazeDoneCounter: db
     xUPCounter: db
@@ -157,6 +158,7 @@
     sndNoiseType: db
     ch2SoundControl: db
     ch2SndControlJR: db
+    jrSwingFlag: db
     chan0 INSTANCEOF sndChannel
     chan1 INSTANCEOF sndChannel
     chan2 INSTANCEOF sndChannel

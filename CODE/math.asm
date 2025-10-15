@@ -5,53 +5,6 @@
 */
 
 
-
-
-
-
-/*
-multBy29:
-;   HL * 29 (32 - 02 - 01)
-    LD E, L
-    LD D, H
-    ADD HL, HL
-    PUSH HL
-    ADD HL, HL 
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    SBC HL, DE
-    POP DE
-    SBC HL, DE
-    RET
-*/
-
-multBy6_16:
-;   HL * 06 (04 + 02)
-    ADD HL, HL
-    LD E, L
-    LD D, H
-    ADD HL, HL
-    ADD HL, DE
-    RET
-
-/*
-multBy41:
-;   HL * 41 (32 + 08 + 01)
-    LD E, L
-    LD D, H
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, HL
-    PUSH HL
-    ADD HL, HL
-    ADD HL, HL
-    ADD HL, DE
-    POP DE
-    ADD HL, DE
-    RET
-    */
-
 /*
     INFO: MULTIPLIES A UNSIGNED 8-BIT NUMBER BY 6
     INPUT: A - FACTOR
@@ -67,58 +20,32 @@ multiplyBy6:
 
 
 /*
-.MACRO addToHLSigned
-    OR A
-    JP P, +
-    DEC H
-+:
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    ;RET
-.ENDM
-*/
-
-
-/*
-    INFO: SQUARES AN 8-BIT NUMBER
-    INPUT: A - FACTOR
+    INFO: SAME THING AS ABOVE EXCEPT 16-BIT
+    INPUT: HL - FACTOR
     OUTPUT: HL - PRODUCT
-    USES: AF, HL, DE
+    USES: DE, HL
 */
-/*
-squareNumber:
-;   CHECK IF NUMBER IS NEGATIVE
-    OR A
-    JP P, +     ; IF NOT, SKIP
-    NEG         ; IF SO, TURN POSITIVE
-+:
-;   SET PRODUCTS TO THE SAME NUMBER
-    LD H, A
-    LD E, A
-;   FALLTHROUGH TO NEXT ROUTINE
-*/
+multBy6_16:
+;   HL * 06 (04 + 02)
+    ADD HL, HL
+    LD E, L
+    LD D, H
+    ADD HL, HL
+    ADD HL, DE
+    RET
+
+
 /*
     INFO: MULTIPLIES TWO 8-BIT NUMBERS
     INPUT: H - FACTOR, E - FACTOR
     OUTPUT: HL - PRODUCT
     USES: F, HL, DE
 */
+/*
 multiply8Bit:
 ;   INIT. LOOP
     LD D, $00   ; CLEAR D AND L
     LD L, D
-    /*
-.REPEAT 8       ; UNROLLED LOOP FOR SPEED (8 BITS)
-    ADD HL, HL  ; ADVANCE BIT
-    JR NC, +    ; IF 0, SKIP ADDITION
-    ADD HL, DE  ; ELSE, ADD TO PRODUCT
-+:
-.ENDR
-    RET
-    */
     SLA H
     JR NC, +
     LD L, E
@@ -151,6 +78,7 @@ multiply8Bit:
     RET NC
     ADD HL, DE
     RET
+*/
 
 
 /*

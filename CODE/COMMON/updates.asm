@@ -242,6 +242,8 @@ addToScore:
     LD B, $00       ; CHANNEL 0
     CALL sndPlaySFX
 @compareHS:
+    XOR A
+    LD (drawHScoreFlag), A
 ;   COMPARE SCORE TO HIGH SCORE
     ; COMPARE UPPER BYTES
     LD A, (currPlayerInfo.score + 2)
@@ -257,6 +259,8 @@ addToScore:
     RET NC      ; IF SCORE ISN'T GREATER THAN HIGHSCORE, RETURN
 +:
 ;   SET HIGH SCORE TO PLAYER'S SCORE
+    LD HL, drawHScoreFlag
+    INC (HL)
     LD HL, (currPlayerInfo.score)
     LD (highScore), HL
     LD A, (currPlayerInfo.score + 2)
