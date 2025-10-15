@@ -252,6 +252,7 @@ pacCutResSpritePal:
 
 .DEFINE jrCut_OverrideFlags     workArea + $09  ; $08
 .DEFINE jrCutScreenFlagList     workArea + $11  ; $08
+.DEFINE jrSwingCounter          workArea + $1A
 
 
 commandJumpTable:

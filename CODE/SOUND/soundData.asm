@@ -20,6 +20,9 @@
 .MACRO smpsChangeVol ARGS data
     .DB $EC, data
 .ENDM
+.MACRO smpsSetSwingFlag
+    .DB $ED
+.ENDM
 .MACRO smpsLiteralRead  ARGS data
     .DB $EE, data
 .ENDM
@@ -2620,8 +2623,6 @@ musJrStart:
     .DB nD3, nD3, nC3, nD3, nD3
     .DB nEb3, $20
     smpsStop
-
-    ;smpsStop
 @ch2:
     ; CHANNEL 2 DATA
     .DB nBb2, $08, nRst, nC3
@@ -2645,9 +2646,9 @@ musJrInter0:
     ; CHANNEL 0 HEADER
     smpsChanHeader  musJrInter0@ch0,   $00 $05 $00 $00
     ; CHANNEL 1 HEADER
-    smpsChanHeader  musJrInter0@ch1,   $00 $06 $00 $03
+    smpsChanHeader  musJrInter0@ch1,   $F4 $06 $00 $03
     ; CHANNEL 2 HEADER
-    smpsChanHeader  musJrInter0@ch2,   $F4 $09 $00 $03
+    smpsChanHeader  musJrInter0@ch2,   $0C $08 $00 $03
 @ch0:
     ; CHANNEL 0 DATA
     .DB nF3, $08, nE3, nF3, $04, nRst, nF3, $10, 
@@ -2672,7 +2673,6 @@ musJrInter0:
     smpsStop
 @ch1:
     ; CHANNEL 1 DATA
-    smpsDetune      $FF
     .DB nF2, $10, nRst, nF2, nRst, nBb2, $08, nRst, nF2
     .DB nRst, nG2, nRst, nA2, nRst, nBb2, nRst, nD3
     .DB nRst, nF2, nRst, nA2, nRst, nBb2, nRst, nD3
@@ -2699,6 +2699,7 @@ musJrInter0:
     smpsStop
 @ch2:
     ; CHANNEL 2 DATA
+    smpsDetune      $FF
     .DB nF2, $10, nRst, nF2, nRst, nBb2, $08, nRst, nF2
     .DB nRst, nG2, nRst, nA2, nRst, nBb2, nRst, nD3
     .DB nRst, nF2, nRst, nA2, nRst, nBb2, nRst, nD3
@@ -2712,10 +2713,9 @@ musJrInter0:
     .DB nD3, $10, nD3, $08, nE3, nF3
     smpsPSGVoice    $01
     .DB nRst, nD3, nRst
-    .DB nA2, nRst, nBb2, nRst, nB2, ;nRst, ;nCs3, nRst
-    ;.DB nD3, nRst, nF3, nRst, nA2, nRst, nD3, nRst
+    .DB nA2, nRst, nBb2, nRst, nB2
 
-
+    ; SCARED SFX
     smpsPSGVoice    $00
     smpsChangeVol   $FC
     smpsLiteralRead $01 ; LITERAL READ MODE ON
@@ -2954,14 +2954,10 @@ musJrInter0:
     literalWord     $003d
     literalWord     $0039
 
-
+    ; REST OF THE SONG
     smpsLiteralRead $00
     smpsPSGVoice    $01
     smpsChangeVol   $02
-    ;smpsChangeVol $FE
-    ;.DB nF2, nRst, nA2, nRst, nD2, nRst
-    ;.DB nF2, nRst, nE2, nRst, nCs3, nRst, nA2, nRst
-    ;.DB nRst, $08
     .DB nCs3, $08, nRst, nD2, nRst, nA2, nRst, nF2, nRst
     .DB nD3, nRst, nG2, nRst, nE3, nRst, nA2, nRst
     .DB nCs3, nRst, nD2, nRst, nA2, nRst, nF2, nRst
@@ -2974,11 +2970,11 @@ musJrInter1:
     ; MAIN HEADER
     smpsHeader      $00 $03 $01 $00
     ; CHANNEL 0 HEADER
-    smpsChanHeader  musJrInter1@ch0,   $00 $06 $00 $01
+    smpsChanHeader  musJrInter1@ch0,   $00 $05 $00 $01
     ; CHANNEL 1 HEADER
-    smpsChanHeader  musJrInter1@ch1,   $00 $06 $00 $00
+    smpsChanHeader  musJrInter1@ch1,   $0C $09 $00 $00
     ; CHANNEL 2 HEADER
-    smpsChanHeader  musJrInter1@ch2,   $F4 $09 $00 $00
+    smpsChanHeader  musJrInter1@ch2,   $F4 $07 $00 $00
 @ch0:
     .DB nRst, $20, nRst, nRst, $10, nD4, $08, nD4, nCs4, nD4
     smpsPSGVoice $00
@@ -3034,7 +3030,6 @@ musJrInter1:
     .DB nA2, $10, nA2, $08
     smpsPSGVoice $00
     .DB nB2, $10, nCs3, $08, nD3, $10, nD3, nRst, $08, nD3
-    //.DB nA2, $10, nA2, nRst, $08, nA2, nD3, $10, nA2, $08, nF2, $10, nA2, $08
     .DB nA2, $10, nA2, nA2, $08, nA2, nD3, $10, nA2, $08, nF2, $10, nA2, $08
     .DB nD2, $10
     smpsStop
@@ -3046,215 +3041,87 @@ musJrInter2:
     ; CHANNEL 0 HEADER
     smpsChanHeader  musJrInter2@ch0,   $00 $05 $00 $00
     ; CHANNEL 1 HEADER
-    smpsChanHeader  musJrInter2@ch1,   $00 $06 $00 $02
+    smpsChanHeader  musJrInter2@ch1,   $0C $08 $00 $02
     ; CHANNEL 2 HEADER
-    smpsChanHeader  musJrInter2@ch2,   $F4 $09 $00 $02
+    smpsChanHeader  musJrInter2@ch2,   $F4 $06 $00 $02
 @ch0:
-    /*
-    .DB nG4, $04, nFs4, $05, nG4, nRst, $04 ; 18
-    .DB nD4, $05, nCs4, nD4, $04, nRst, $05 ; 19
-    .DB nBb3, nA3, $04, nBb3, $05, nRst,    ; 19
-    .DB nG3, $04, nFs3, $05, nG3, nRst, $04 ; 18
-    .DB nD3, $05, nCs3, nD3, $02, nRst, nD3, $0A, nBb3, $04, nA3, $0A
-    .DB nG3, $0A, nG3, $13, nRst, $09
-
-
-    .DB nG4, $05, nFs4, $04, nG4, $05, nRst
-    .DB nG4, $04, nFs4, $05, nG4, nRst, $04
-    .DB nG4, $05, nFs4, nG4, $04, nD4, $0A, nRst, $04
-    .DB nD4, $0A, nEb4, $04, nD4, $05, nEb4, nRst, $04
-    .DB nG4, $05, nFs4, nG4, $04, nRst, $05
-    .DB nD4, $1C, nBb3, $09, nC4, $05, nB3, nC4, $04, nRst, $05
-
-    .DB nA3, $05, nGs3, $04, nA3, $05, nRst,
-
-    .DB nEb4, $04, nD4, $05, nEb4, nFs3, $0E
-    .DB nC4, $09, nBb3, $05, nA3, $04, nBb3, $05, nRst, 
-    .DB nE3, $04, nD3, $05, nE3, nRst, $04
-    .DB nFs3, $1C
-
-    .DB nD3, $0A
-
-    .DB nG4, $04, nFs4, $05, nG4, nRst, $04
-    .DB nG4, $05, nFs4, nG4, $04, nRst, $05
-    .DB nG4, nFs4, $04, nG4, $05,
-    .DB nD4, $0E, nF4, $09, 
-    .DB nEb4, $05, nD4, nEb4, $04, nRst, $05
-
-    .DB nBb3, $05, nA3, $04, nBb3, $05, nRst
-    .DB nEb4, $1C, nE4, $09, nF4,
-    */
-    /*
-    .DB nE4, nF4, $05, nE4
-    .DB nF4, nRst, nF3, nE3, nF3, nRst, nF4, nE4
-    .DB nF4, nRst, nBb4, nA4, nBb4, nRst, nF3, nE3
-    .DB nF3, $03, nRst, nF3, $09, nD4, $05, nC4, $09, nBb3, $11, nBb3, $09, nF3
-    .DB nD4, $05, nCs4, nD4, $09, nBb3, $05, nA3, nBb3, $09, nD4, $05, nCs4
-    .DB nD4, nF4, $09, nG4, $05, nF4, $09, nEb4, $05, nD4, nEb4, $09, nA3, $05
-    .DB nG3, nA3, $09, nEb4, $11, nEb4, $09, nRst, nF3, $05, nE3, nF3, $09
-    .DB nA3, $05, nGs3, nA3, $09, nG4, $05, nFs4, nG4, nA3, nA3, $09
-    .DB nF4, $05, nRst, nF4, nG4, nF4, nRst, nF4, nG4
-    .DB nF4, nRst, nF4, $09, nEb4, nD4, nC4, nD4, $05, nCs4
-    .DB nD4, $09, nBb3, $05, nA3, nBb3, $09, nF4, $05, nE4, nF4, nD4
-    .DB nD4, $09, nF4, nG4, $05, nFs4, nG4, nRst, nG4, nFs4
-    .DB nG4, nBb4, $03, nRst, nBb4, $11, nBb4, $09, nG4, nF4, $05, nG4
-    .DB nF4, $09, nD4, $05, nEb4, nD4, $09, nBb3, $05, nC4, nBb3, nF3
-    .DB nF3, $09, nF4, nF3, $05, nE3, nF3, $03, nRst, nF3, $09, nD4, $05
-    .DB nC4, $09, nBb3, $21, 
-    */
-
-    /*
-    .DB nG4, $04, nFs4, $04, nG4, $04, nRst, $04, nD4, $04, nCs4, $04, nD4, $04,
-    .DB nRst, $04, nBb3, $04, nA3, $04, nBb3, $04, nRst, $04, nG3, $04, nFs3, $04, nG3, $04,
-    .DB nRst, $04, nD3, $04, nCs3, $04, nD3, $02, nRst, $02, nD3, $08, nBb3, $04, nA3, $08,
-    .DB nG3, $10, nG3, $08, nRst, $08, nG4, $04, nFs4, $04, nG4, $04, nRst, $04, nG4, $04,
-    .DB nFs4, $04, nG4, $04, nRst, $04, nG4, $04, nFs4, $04, nG4, $04, nD4, $08, nRst, $04,
-    .DB nD4, $08, nEb4, $04, nD4, $04, nEb4, $04, nRst, $04, nG4, $04, nFs4, $04, nG4, $04,
-    .DB nRst, $04, nD4, $10, nD4, $08, nBb3, $08, nC4, $04, nB3, $04, nC4, $04, nRst, $04,
-    .DB nA3, $04, nGs3, $04, nA3, $04, nRst, $04, nEb4, $04, nD4, $04, nEb4, $04, nFs3, $08,
-    .DB nFs3, $04, nC4, $08, nBb3, $04, nA3, $04, nBb3, $04, nRst, $04, nE3, $04, nD3, $04,
-    .DB nE3, $04, nRst, $04, nFs3, $10, nFs3, $08, nD3, $08, nG4, $04, nFs4, $04, nG4, $04,
-    .DB nRst, $04, nG4, $04, nFs4, $04, nG4, $04, nRst, $04, nG4, $04, nFs4, $04, nG4, $04,
-    .DB nD4, $08, nD4, $04, nF4, $08, nEb4, $04, nD4, $04, nEb4, $04, nRst, $04, nBb3, $04,
-    .DB nA3, $04, nBb3, $04, nRst, $04, nEb4, $10, nEb4, $08, nE4, $08, nF4, $04, nE4, $04,
-    .DB nF4, $04, nRst, $04, nF3, $04, nE3, $04, nF3, $04, nRst, $04, nF4, $04, nE4, $04,
-    .DB nF4, $04, nRst, $04, nBb4, $04, nA4, $04, nBb4, $04, nRst, $04, nF3, $04, nE3, $04,
-    .DB nF3, $02, nRst, $02, nF3, $08, nD4, $04, nC4, $08, nBb3, $10, nBb3, $08, nF3, $08,
-    .DB nD4, $04, nCs4, $04, nD4, $08, nBb3, $04, nA3, $04, nBb3, $08, nD4, $04, nCs4, $04,
-    .DB nD4, $04, nF4, $08, nG4, $04, nF4, $08, nEb4, $04, nD4, $04, nEb4, $08, nA3, $04,
-    .DB nG3, $04, nA3, $08, nEb4, $10, nEb4, $08, nRst, $08, nF3, $04, nE3, $04, nF3, $08,
-    .DB nA3, $04, nGs3, $04, nA3, $08, nG4, $04, nFs4, $04, nG4, $04, nA3, $04, nA3, $08,
-    .DB nF4, $04, nRst, $04, nF4, $04, nG4, $04, nF4, $04, nRst, $04, nF4, $04, nG4, $04,
-    .DB nF4, $04, nRst, $04, nF4, $08, nEb4, $08, nD4, $08, nC4, $08, nD4, $04, nCs4, $04,
-    .DB nD4, $08, nBb3, $04, nA3, $04, nBb3, $08, nF4, $04, nE4, $04, nF4, $04, nD4, $04,
-    .DB nD4, $08, nF4, $08, nG4, $04, nFs4, $04, nG4, $04, nRst, $04, nG4, $04, nFs4, $04,
-    .DB nG4, $04, nBb4, $02, nRst, $02, nBb4, $10, nBb4, $08, nG4, $08, nF4, $04, nG4, $04,
-    .DB nF4, $08, nD4, $04, nEb4, $04, nD4, $08, nBb3, $04, nC4, $04, nBb3, $04, nF3, $04,
-    .DB nF3, $08, nF4, $08, nF3, $04, nE3, $04, nF3, $02, nRst, $02, nF3, $08, nD4, $04,
-    .DB nC4, $08, nBb3, $20,
-    */
-
-
-    .DB nG4, $04, nFs4, $05, nG4, $04, nRst, $05, 
-    .DB nD4, $04, nCs4, $05, nD4, $04, nRst, $05, 
-    .DB nBb3, $04, nA3, $05, nBb3, $04, nRst, $05, 
-    .DB nG3, $04, nFs3, $05, nG3, $04, nRst, $05, 
-    .DB nD3, $04, nCs3, $05, nD3, $02, nRst, $02, 
-    .DB nD3, $09, nBb3, $05, nA3, $09, nG3, $12, 
-    .DB nG3, $09, nRst, $09, nG4, $04, nFs4, $05, 
-    .DB nG4, $04, nRst, $05, nG4, $04, nFs4, $05, 
-    .DB nG4, $04, nRst, $05, nG4, $04, nFs4, $05, 
-    .DB nG4, $04, nD4, $09, nRst, $05, nD4, $09, 
-    .DB nEb4, $04, nD4, $05, nEb4, $04, nRst, $05, 
-    .DB nG4, $04, nFs4, $05, nG4, $04, nRst, $05, 
-    .DB nD4, $12, nD4, $09, nBb3, $09, nC4, $04, 
-    .DB nB3, $05, nC4, $04, nRst, $05, nA3, $04, 
-    .DB nGs3, $05, nA3, $04, nRst, $05, nEb4, $04, 
-    .DB nD4, $05, nEb4, $04, nFs3, $09, nFs3, $05, 
-    .DB nC4, $09, nBb3, $04, nA3, $05, nBb3, $04, 
-    .DB nRst, $05, nE3, $04, nD3, $05, nE3, $04, 
-    .DB nRst, $05, nFs3, $12, nFs3, $09, nD3, $09, 
-    .DB nG4, $04, nFs4, $05, nG4, $04, nRst, $05, 
-    .DB nG4, $04, nFs4, $05, nG4, $04, nRst, $05, 
-    .DB nG4, $04, nFs4, $05, nG4, $04, nD4, $09, 
-    .DB nD4, $05, nF4, $09, nEb4, $04, nD4, $05, 
-    .DB nEb4, $04, nRst, $05, nBb3, $04, nA3, $05, 
-    .DB nBb3, $04, nRst, $05, nEb4, $12, nEb4, $09, 
-    .DB nE4, $09, nF4, $04, nE4, $05, nF4, $04, 
-    .DB nRst, $05, nF3, $04, nE3, $05, nF3, $04, 
-    .DB nRst, $05, nF4, $04, nE4, $05, nF4, $04, 
-    .DB nRst, $05, nBb4, $04, nA4, $05, nBb4, $04, 
-    .DB nRst, $05, nF3, $04, nE3, $05, nF3, $02, 
-    .DB nRst, $02, nF3, $09, nD4, $05, nC4, $09, 
-    .DB nBb3, $12, nBb3, $09, nF3, $09, nD4, $04, 
-    .DB nCs4, $05, nD4, $09, nBb3, $04, nA3, $05, 
-    .DB nBb3, $09, nD4, $04, nCs4, $05, nD4, $04, 
-    .DB nF4, $09, nG4, $05, nF4, $09, nEb4, $04, 
-    .DB nD4, $05, nEb4, $09, nA3, $04, nG3, $05, 
-    .DB nA3, $09, nEb4, $12, nEb4, $09, nRst, $09, 
-    .DB nF3, $04, nE3, $05, nF3, $09, nA3, $04, 
-    .DB nGs3, $05, nA3, $09, nG4, $04, nFs4, $05, 
-    .DB nG4, $04, nA3, $05, nA3, $09, nF4, $04, 
-    .DB nRst, $05, nF4, $04, nG4, $05, nF4, $04, 
-    .DB nRst, $05, nF4, $04, nG4, $05, nF4, $04, 
-    .DB nRst, $05, nF4, $09, nEb4, $09, nD4, $09, 
-    .DB nC4, $09, nD4, $04, nCs4, $05, nD4, $09, 
-    .DB nBb3, $04, nA3, $05, nBb3, $09, nF4, $04, 
-    .DB nE4, $05, nF4, $04, nD4, $05, nD4, $09, 
-    .DB nF4, $09, nG4, $04, nFs4, $05, nG4, $04, 
-    .DB nRst, $05, nG4, $04, nFs4, $05, nG4, $04, 
-    .DB nBb4, $02, nRst, $03, nBb4, $12, nBb4, $09, 
-    .DB nG4, $09, nF4, $04, nG4, $05, nF4, $09, 
-    .DB nD4, $04, nEb4, $05, nD4, $09, nBb3, $04, 
-    .DB nC4, $05, nBb3, $04, nF3, $05, nF3, $09, 
-    .DB nF4, $09, nF3, $04, nE3, $05, nF3, $02, 
-    .DB nRst, $02, nF3, $09, nD4, $05, nC4, $09, 
-    .DB nBb3, $24
+    smpsSetSwingFlag
+    .DB nG4, $04, nFs4, nG4, nRst, nD4, nCs4, nD4, 
+    .DB nRst, nBb3, nA3, nBb3, nRst, nG3, nFs3, nG3, 
+    .DB nRst, nD3, nCs3, nD3, $02, nRst, nD3, $08, nBb3, $04, nA3, $08, 
+    .DB nG3, $10, nG3, $08, nRst, nG4, $04, nFs4, nG4, nRst, nG4, 
+    .DB nFs4, nG4, nRst, nG4, nFs4, nG4, nD4, $08, nRst, $04, 
+    .DB nD4, $08, nEb4, $04, nD4, nEb4, nRst, nG4, nFs4, nG4, 
+    .DB nRst, nD4, $10, nD4, $08, nBb3, nC4, $04, nB3, nC4, nRst, 
+    .DB nA3, nGs3, nA3, nRst, nEb4, nD4, nEb4, nFs3, $08, 
+    .DB nFs3, $04, nC4, $08, nBb3, $04, nA3, nBb3, nRst, nE3, nD3, 
+    .DB nE3, nRst, nFs3, $10, nFs3, $08, nD3, nG4, $04, nFs4, nG4, 
+    .DB nRst, nG4, nFs4, nG4, nRst, nG4, nFs4, nG4, 
+    .DB nD4, $08, nD4, $04, nF4, $08, nEb4, $04, nD4, nEb4, nRst, nBb3, 
+    .DB nA3, nBb3, nRst, nEb4, $10, nEb4, $08, nE4, nF4, $04, nE4, 
+    .DB nF4, nRst, nF3, nE3, nF3, nRst, nF4, nE4, 
+    .DB nF4, nRst, nBb4, nA4, nBb4, nRst, nF3, nE3, 
+    .DB nF3, $02, nRst, nF3, $08, nD4, $04, nC4, $08, nBb3, $10, nBb3, $08, nF3 
+    .DB nD4, $04, nCs4, nD4, $08, nBb3, $04, nA3, nBb3, $08, nD4, $04, nCs4, 
+    .DB nD4, nF4, $08, nG4, $04, nF4, $08, nEb4, $04, nD4, nEb4, $08, nA3, $04, 
+    .DB nG3, nA3, $08, nEb4, $10, nEb4, $08, nRst, nF3, $04, nE3, nF3, $08, 
+    .DB nA3, $04, nGs3, nA3, $08, nG4, $04, nFs4, nG4, nA3, nA3, $08, 
+    .DB nF4, $04, nRst, nF4, nG4, nF4, nRst, nF4, nG4, 
+    .DB nF4, nRst, nF4, $08, nEb4, nD4, nC4, nD4, $04, nCs4
+    .DB nD4, $08, nBb3, $04, nA3, nBb3, $08, nF4, $04, nE4, nF4, nD4, 
+    .DB nD4, $08, nF4, nG4, $04, nFs4, nG4, nRst, nG4, nFs4, 
+    .DB nG4, nBb4, $02, nRst, nBb4, $10, nBb4, $08, nG4, nF4, $04, nG4
+    .DB nF4, $08, nD4, $04, nEb4, nD4, $08, nBb3, $04, nC4, nBb3, nF3, 
+    .DB nF3, $08, nF4, nF3, $04, nE3, nF3, $02, nRst, nF3, $08, nD4, $04, 
+    .DB nC4, $08, nBb3, $20
     smpsStop
 @ch1:
     ; CHANNEL 1 DATA
     smpsDetune      $FF
+    .DB nG3, $08, nRst, nD3, nRst, nBb2, nRst, nG2,
+    .DB nRst, nD2, nRst, nD2, nRst, nG2, nBb2, nD2, 
+    .DB nBb2, nG2, nD3, nD2, nD3, nG2, nD3, nD2, 
+    .DB nD3, nA2, nC3, nD2, nC3, nG2, nBb2, nD2, 
+    .DB nD3, nA2, nD3, nD2, nD3, nFs2, nC3, nD2, 
+    .DB nA2, nG2, nD3, nC2, nBb2, nD2, nD3, nD2, 
+    .DB nD3, nG2, nD3, nD2, nD3, nG2, nD3, nD2, 
+    .DB nD3, nEb2, nBb2, nBb1, 
+    .DB nBb2, nEb2, nBb2, nBb1, 
+    .DB nBb2, nBb2, nD3, nF2, nBb2, nD2, 
+    .DB nF2, nF1, nBb2, nF2, nF3, nF2,
+    .DB nF3, nBb1, nBb2, nBb2, 
+    .DB nBb3, $04, nRst, nBb3, $08, nD4, nF3, nD4, 
+    .DB nBb3, nD4, nF3, nD4, nA3, nEb4, nF3, nEb4, 
+    .DB nA3, nEb4, nF3, nEb4, nA3, nEb4, nF3, nEb4, 
+    .DB nA3, nEb4, nF3, nA3, nBb3, nD4, nF3, nD4, 
+    .DB nA3, nF3, nG3, nA3, nBb3, nD4, nF3, nD4, 
+    .DB nBb3, nD4, nF3, nD4, nEb3, nBb3, 
+    .DB nBb2, nBb3, nEb3, nBb3, nG3, nE3, 
+    .DB nF3, nD4, nBb3, nD4, nF3, nD4, nBb3, nD4, 
+    .DB nF3, nRst, nF2, nRst, nBb2, $20
+    smpsStop
 @ch2:
-    /*
-    .DB nG3, $08, nRst, $08, nD3, $08, nRst, $08, nBb2, $08, nRst, $08, nG2, $08,
-    .DB nRst, $08, nD2, $08, nRst, $08, nD2, $08, nRst, $08, nG2, $08, nBb2, $08, nD2, $08,
-    .DB nBb2, $08, nG2, $08, nD3, $08, nD2, $08, nD3, $08, nG2, $08, nD3, $08, nD2, $08,
-    .DB nD3, $08, nA2, $08, nC3, $08, nD2, $08, nC3, $08, nG2, $08, nBb2, $08, nD2, $08,
-    .DB nD3, $08, nA2, $08, nD3, $08, nD2, $08, nD3, $08, nFs2, $08, nC3, $08, nD2, $08,
-    .DB nA2, $08, nG2, $08, nD3, $08, nC2, $08, nBb2, $08, nD2, $08, nD3, $08, nD2, $08,
-    .DB nD3, $08, nG2, $08, nD3, $08, nD2, $08, nD3, $08, nG2, $08, nD3, $08, nD2, $08,
-    .DB nD3, $08, nEb2, $08, nBb2, $08, nRst, $08, 
-    .DB nBb2, $08, nEb2, $08, nBb2, $08, nRst, $08, 
-    .DB nBb2, $08, nBb2, $08, nD3, $08, nF2, $08, nBb2, $08, nD2, $08, 
-    .DB nF2, $08, nRst, $08, nBb2, $08, nF2, $08, nF3, $08, nF2, $08,
-    .DB nF3, $08, nBb1, $08, nBb2, $08, nBb2, $08,
-    .DB nBb3, $04, nRst, $04, nBb3, $08, nD4, $08, nF3, $08, nD4, $08,
-    .DB nBb3, $08, nD4, $08, nF3, $08, nD4, $08, nA3, $08, nEb4, $08, nF3, $08, nEb4, $08,
-    .DB nA3, $08, nEb4, $08, nF3, $08, nEb4, $08, nA3, $08, nEb4, $08, nF3, $08, nEb4, $08,
-    .DB nA3, $08, nEb4, $08, nF3, $08, nA3, $08, nBb3, $08, nD4, $08, nF3, $08, nD4, $08,
-    .DB nA3, $08, nF3, $08, nG3, $08, nA3, $08, nBb3, $08, nD4, $08, nF3, $08, nD4, $08,
-    .DB nBb3, $08, nD4, $08, nF3, $08, nD4, $08, nEb3, $08, nBb3, $08, 
-    .DB nRst, $08, nBb3, $08, nEb3, $08, nBb3, $08, nG3, $08, nE3, $08,
-    .DB nF3, $08, nD4, $08, nBb3, $08, nD4, $08, nF3, $08, nD4, $08, nBb3, $08, nD4, $08,
-    .DB nF3, $08, nRst, $08, nF2, $08, nRst, $08, nBb2, $20
-    */
-
-    .DB nG3, $09, nRst, $09, nD3, $09, nRst, $09, 
-    .DB nBb2, $09, nRst, $09, nG2, $09, nRst, $09, 
-    .DB nD2, $09, nRst, $09, nD2, $09, nRst, $09, 
-    .DB nG2, $09, nBb2, $09, nD2, $09, nBb2, $09, 
-    .DB nG2, $09, nD3, $09, nD2, $09, nD3, $09, 
-    .DB nG2, $09, nD3, $09, nD2, $09, nD3, $09, 
-    .DB nA2, $09, nC3, $09, nD2, $09, nC3, $09, 
-    .DB nG2, $09, nBb2, $09, nD2, $09, nD3, $09, 
-    .DB nA2, $09, nD3, $09, nD2, $09, nD3, $09, 
-    .DB nFs2, $09, nC3, $09, nD2, $09, nA2, $09, 
-    .DB nG2, $09, nD3, $09, nC2, $09, nBb2, $09, 
-    .DB nD2, $09, nD3, $09, nD2, $09, nD3, $09, 
-    .DB nG2, $09, nD3, $09, nD2, $09, nD3, $09, 
-    .DB nG2, $09, nD3, $09, nD2, $09, nD3, $09, 
-    .DB nEb2, $09, nBb2, $09, nRst, $09, nBb2, $09, 
-    .DB nEb2, $09, nBb2, $09, nRst, $09, nBb2, $09, 
-    .DB nBb2, $09, nD3, $09, nF2, $09, nBb2, $09, 
-    .DB nD2, $09, nF2, $09, nRst, $09, nBb2, $09, 
-    .DB nF2, $09, nF3, $09, nF2, $09, nF3, $09, 
-    .DB nBb1, $09, nBb2, $09, nBb2, $09, nBb3, $04, 
-    .DB nRst, $05, nBb3, $09, nD4, $09, nF3, $09, 
-    .DB nD4, $09, nBb3, $09, nD4, $09, nF3, $09, 
-    .DB nD4, $09, nA3, $09, nEb4, $09, nF3, $09, 
-    .DB nEb4, $09, nA3, $09, nEb4, $09, nF3, $09, 
-    .DB nEb4, $09, nA3, $09, nEb4, $09, nF3, $09, 
-    .DB nEb4, $09, nA3, $09, nEb4, $09, nF3, $09, 
-    .DB nA3, $09, nBb3, $09, nD4, $09, nF3, $09, 
-    .DB nD4, $09, nA3, $09, nF3, $09, nG3, $09, 
-    .DB nA3, $09, nBb3, $09, nD4, $09, nF3, $09, 
-    .DB nD4, $09, nBb3, $09, nD4, $09, nF3, $09, 
-    .DB nD4, $09, nEb3, $09, nBb3, $09, nRst, $09, 
-    .DB nBb3, $09, nEb3, $09, nBb3, $09, nG3, $09, 
-    .DB nE3, $09, nF3, $09, nD4, $09, nBb3, $09, 
-    .DB nD4, $09, nF3, $09, nD4, $09, nBb3, $09, 
-    .DB nD4, $09, nF3, $09, nRst, $09, nF2, $09, 
-    .DB nRst, $09, nBb2, $24
+    .DB nG3, $08, nRst, nD3, nRst, nBb2, nRst, nG2,
+    .DB nRst, nD2, nRst, nD2, nRst, nG2, nBb2, nD2, 
+    .DB nBb2, nG2, nD3, nD2, nD3, nG2, nD3, nD2, 
+    .DB nD3, nA2, nC3, nD2, nC3, nG2, nBb2, nD2, 
+    .DB nD3, nA2, nD3, nD2, nD3, nFs2, nC3, nD2, 
+    .DB nA2, nG2, nD3, nC2, nBb2, nD2, nD3, nD2, 
+    .DB nD3, nG2, nD3, nD2, nD3, nG2, nD3, nD2, 
+    .DB nD3, nEb2, nBb2, nBb1, 
+    .DB nBb2, nEb2, nBb2, nBb1, 
+    .DB nBb2, nBb2, nD3, nF2, nBb2, nD2, 
+    .DB nF2, nF2, nBb2, nF2, nF3, nF2,    ; SECOND F2 SHOULD BE F1 BUT IS TOO LOW FOR CHAN 2
+    .DB nF3, nBb1, nBb2, nBb2, 
+    .DB nBb3, $04, nRst, nBb3, $08, nD4, nF3, nD4, 
+    .DB nBb3, nD4, nF3, nD4, nA3, nEb4, nF3, nEb4, 
+    .DB nA3, nEb4, nF3, nEb4, nA3, nEb4, nF3, nEb4, 
+    .DB nA3, nEb4, nF3, nA3, nBb3, nD4, nF3, nD4, 
+    .DB nA3, nF3, nG3, nA3, nBb3, nD4, nF3, nD4, 
+    .DB nBb3, nD4, nF3, nD4, nEb3, nBb3, 
+    .DB nBb2, nBb3, nEb3, nBb3, nG3, nE3, 
+    .DB nF3, nD4, nBb3, nD4, nF3, nD4, nBb3, nD4, 
+    .DB nF3, nRst, nF2, nRst, nBb2, $20
     smpsStop
 
 

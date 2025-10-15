@@ -65,13 +65,28 @@ sndProcess:
     LD HL, (mainGameMode)   ; L: MAIN, H: SUB
     LD A, L
     CP A, M_STATE_ATTRACT
-    JP NZ, +
+    JP NZ, @swingCheck
     LD A, H
     CP A, ATTRACT_TITLE
-    JP Z, +
+    JP Z, @swingCheck
     CP A, ATTRACT_OPTIONS
     JP NZ, sndStopAll@write
+@swingCheck:
+;   SWING FLAG CHECK (JR CUTSCENE 3 ONLY)
+    LD A, (jrSwingFlag)
+    OR A
+    JP Z, @setup ; SKIP IF NOT SET
+    ; DECREMENT AND KEEP WITHIN RANGE (1 - 7)
+    LD HL, jrSwingCounter
+    DEC (HL)
+    JP NZ, +
+    LD (HL), $07
 +:
+    ; DON'T DO SOUND PROCESSING IF COUNTER == 1
+    LD A, (HL)
+    DEC A
+    RET Z
+@setup:
 ;   SETUP
     LD A, SOUND_BANK              ; SOUND BANK
     LD (MAPPER_SLOT2), A
@@ -718,7 +733,7 @@ cfTable:
     .DW @return             ; $EA (SET TEMPO)
     .DW @return             ; $EB (SET TEMPO DIVIDER ALL)
     .DW @cfChangePSGVol     ; $EC (CHANGE PSG VOL)
-    .DW @return             ; $ED (CLEAR PUSH)
+    .DW @cfSetSwingFlag     ; $ED (CLEAR PUSH)
     .DW @cfReadLiteral      ; $EE (READ LITERAL MODE)
     .DW @return             ; $EF (SET FM VOICE)
     .DW @return             ; $F0 (MODULATION SETUP/ON)
@@ -750,6 +765,13 @@ cfTable:
     ; SET VOLUME
     ADD A, (IY + VOLUME)
     LD (IY + VOLUME), A    
+    RET
+;   ---------------------------------------------
+;   ED - SET JR'S SWING FLAG (USED FOR CUTSCENE 3 ONLY)
+@cfSetSwingFlag:
+    LD A, $01
+    LD (jrSwingFlag), A
+    LD (jrSwingCounter), A
     RET
 ;   ---------------------------------------------
 ;   EE - REAL LITERAL MODE

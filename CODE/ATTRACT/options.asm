@@ -189,7 +189,7 @@ sStateAttractTable@optionsMode:
     RET Z   ; IF NOT, EXIT
     ; PREPARE TO PLAY SND ID
     PUSH DE
-    CALL sndStopAll ; STOP ALL SOUND
+    CALL sndInit ; STOP ALL SOUND
     POP DE
     ; EXIT IF ID IS 0
     LD A, (DE)
