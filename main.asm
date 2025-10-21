@@ -995,6 +995,7 @@ bgPalPac:
     .DB $00 $30 $00 $20 $20 $00 $3B $2B $00 $00 $16 $2B $2B $2B $3F $00
 bgPalPlus:
     .DB $00 $29 $00 $14 $14 $00 $3B $2B $00 $00 $16 $2B $2B $2B $3F $00
+;   ----
 bgPalMs00:
     .DB $00 $03 $2B $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
 bgPalMs01:
@@ -1005,14 +1006,17 @@ bgPalMs03:
     .DB $00 $1B $30 $06 $06 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
 bgPalMs04:
     .DB $00 $0F $3B $0A $0A $00 $3B $3C $00 $00 $28 $3C $3C $3C $3F $00
-bgPalMs05:
+bgPalMs05:  ; PLUS
     .DB $00 $3C $30 $28 $28 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
-bgPalMs06:
-    .DB $00 $03 $3F $02 $02 $00 $3B $0C $00 $00 $08 $0C $0C $0C $3F $00
-bgPalMs07:
-    .DB $00 $1B $0C $06 $06 $00 $3B $1B $00 $00 $06 $1B $1B $1B $3F $00
-bgPalMs08:
-    .DB $00 $03 $30 $02 $02 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
+bgPalMs06:  ; PLUS
+    .DB $00 $2F $06 $1A $1A $00 $3B $0F $00 $00 $0A $0F $0F $0F $3F $00
+bgPalMs07:  ; PLUS
+    .DB $00 $3F $36 $2A $2A $00 $3B $0F $00 $00 $0A $0F $0F $0F $3F $00
+bgPalMs08:  ; PLUS
+    .DB $00 $06 $03 $01 $01 $00 $3B $3F $00 $00 $2A $3F $3F $3F $3F $00
+bgPalMs09:  ; PLUS
+    .DB $00 $06 $3F $01 $01 $00 $3B $36 $00 $00 $21 $36 $36 $36 $3F $00
+    ;   ----
 bgPalJr00:
     .DB $00 $0B $30 $06 $06 $00 $00 $2B $0A $05 $16 $2B $2B $2B $0F $00
 bgPalJr01:
@@ -1023,6 +1027,16 @@ bgPalJr03:
     .DB $00 $0F $04 $0A $0A $00 $00 $3F $0A $05 $2A $3F $3F $3F $0F $00
 bgPalJr04:
     .DB $00 $3C $30 $28 $28 $00 $00 $3F $0A $05 $2A $3F $3F $3F $0F $00
+bgPalJr05:  ; PLUS
+    .DB $00 $3B $06 $26 $26 $00 $00 $2B $0A $05 $16 $2B $2B $2B $0F $00
+bgPalJr06:  ; PLUS
+    .DB $00 $3C $0A $28 $28 $00 $00 $3F $0A $05 $2A $3F $3F $3F $0F $00
+bgPalJr07:  ; PLUS
+    .DB $00 $0F $05 $0A $0A $00 $00 $3B $0A $05 $26 $3B $3B $3B $0F $00
+bgPalJr08:  ; PLUS
+    .DB $00 $03 $30 $02 $02 $00 $00 $3F $0A $05 $2A $3F $3F $3F $0F $00
+bgPalJr09:  ; PLUS
+    .DB $00 $0B $03 $06 $06 $00 $00 $0F $0A $05 $0A $0F $0F $0F $0F $00
 
 ;   JR CUTSCENE PALETTES
 bgPalJrFD:
@@ -1250,6 +1264,14 @@ mult29Table:
 */
 
 .SECTION "COMMON TABLES" FREE
+/*
+    PLAYER ANIMATION TABLES
+*/
+normAniTbl: ; $A4
+    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
+slowAniTbl: ; $B4
+    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
+
 /*
     GHOST POINTS TILE INDEXES
 */
@@ -1614,14 +1636,6 @@ dotExpireTable:
     .DB 240     ; 4 SECONDS
     .DB 240     ; 4 SECONDS
     .DB 180     ; 3.5 SECONDS
-
-/*
-    PLAYER ANIMATION TABLES
-*/
-normAniTbl: ; $A4
-    .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
-slowAniTbl: ; $B4
-    .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
 .ENDS
 
 
@@ -1643,7 +1657,7 @@ msPalTable:
     .DW bgPalMs06   ; 06 [PLUS]
     .DW bgPalMs07   ; 07 [PLUS]
     .DW bgPalMs08   ; 08 [PLUS]
-    .DW bgPalPac    ; 09 [PLUS]
+    .DW bgPalMs09   ; 09 [PLUS]
 
 ; LEVEL PALETTE TABLE (REFERENCES PREVIOUS TABLE)
 msLevelPalTable:
@@ -1657,9 +1671,9 @@ msLevelPalTable:
     .DB $05 $05         ; LVL 01 - 02
     .DB $06 $06 $06     ; LVL 03 - 05
     .DB $07 $07 $07 $07 ; LVL 06 - 09
-    .DB $01 $01 $01 $01 ; LVL 10 - 13
-    .DB $08 $08 $08 $08 ; LVL 14 - 17
-    .DB $09 $09 $09 $09 ; LVL 18 - 21
+    .DB $08 $08 $08 $08 ; LVL 10 - 13
+    .DB $09 $09 $09 $09 ; LVL 14 - 17
+    .DB $05 $05 $05 $05 ; LVL 18 - 21
 
 ; MAZE COLLISION TABLE
 msMazeColTable:
@@ -1993,6 +2007,11 @@ jrPalTable:
     .DW bgPalJr02   ; 02
     .DW bgPalJr03   ; 03
     .DW bgPalJr04   ; 04
+    .DW bgPalJr05   ; 05 [PLUS]
+    .DW bgPalJr06   ; 06 [PLUS]
+    .DW bgPalJr07   ; 07 [PLUS]
+    .DW bgPalJr08   ; 08 [PLUS]
+    .DW bgPalJr09   ; 09 [PLUS]
 
 ; LEVEL PALETTE TABLE (REFERENCES PREVIOUS TABLE)
 jrLevelPalTable:
@@ -2003,12 +2022,12 @@ jrLevelPalTable:
     .DB $01 $02 $03 $04 ; LVL 14 - 17
     .DB $01 $00 $03 $02 ; LVL 18 - 21
 @plus:
-    .DB $00 $01         ; LVL 01 - 02
-    .DB $02 $03 $04     ; LVL 03 - 05
-    .DB $01 $00 $03 $02 ; LVL 06 - 09
-    .DB $01 $04 $03 $00 ; LVL 10 - 13
-    .DB $01 $02 $03 $04 ; LVL 14 - 17
-    .DB $01 $00 $03 $02 ; LVL 18 - 21
+    .DB $05 $06         ; LVL 01 - 02
+    .DB $07 $08 $09     ; LVL 03 - 05
+    .DB $06 $05 $08 $07 ; LVL 06 - 09
+    .DB $06 $09 $08 $05 ; LVL 10 - 13
+    .DB $06 $07 $08 $09 ; LVL 14 - 17
+    .DB $06 $05 $08 $07 ; LVL 18 - 21
 
 ; 1, 0, 3, 2, 5, 4, 6
 ; MAZE COLLISION TABLE
@@ -2610,8 +2629,7 @@ jrRealScrollTable:
     @plus:
         .INCBIN "TILE_OTTOGHOSTS_PLUS.ZX7"
     jrExplosionTiles:
-        .INCBIN "TILE_EXP.ZX7"
-    
+        .INCBIN "TILE_EXPLODE.ZX7"
 ;   ARCADE
 .INCDIR "ASSETS/GAMEPLAY/ARCADE"
 arcadeGFXData:
@@ -2637,8 +2655,8 @@ arcadeGFXData:
         .INCBIN "TILE_OTTOGHOSTS.ZX7"
     @ottoGhostsPlus:
         .INCBIN "TILE_OTTOGHOSTS_PLUS.ZX7"
-    @jrFruit:
-        .INCBIN "TILE_JRFRUIT.ZX7"
+    @explosion:
+        .INCBIN "TILE_EXPLODE.ZX7"
 .INCDIR "ASSETS/CUTSCENE/ARCADE"
     @cutscenePac:
         .INCBIN "TILE_PAC.ZX7"
@@ -2651,12 +2669,18 @@ arcadeGFXData:
     @cutsceneJr:
 .ENDS
 
-
 .SECTION "ACTOR GFX DATA [PART 2]" BANK MAZE_OTHER_BANK SLOT 2 FREE
+.INCDIR "ASSETS/GAMEPLAY/ARCADE"
+    @jrFruit:
+        .INCBIN "TILE_JRFRUIT.ZX7"
+    @jrFruitPlus:
+        .INCBIN "TILE_JRFRUIT_PLUS.ZX7"
+;   SMOOTH
 .INCDIR "ASSETS/GAMEPLAY/SMOOTH"
     jrFruitTiles:
         .INCBIN "TILE_JRFRUIT.ZX7"
 .ENDS
+
 
 /*
 ----------------------------------------------------------
