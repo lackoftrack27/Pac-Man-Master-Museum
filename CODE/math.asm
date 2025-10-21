@@ -12,6 +12,7 @@
     USES: AF, B
 */
 multiplyBy6:
+;   A * 06 (04 + 02)
     ADD A, A
     LD B, A
     ADD A, A

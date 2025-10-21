@@ -54,7 +54,7 @@ sStateGameplayTable@ready00Mode:
 ;   RESTORE GHOST TILES (PAC/MS.PAC)
     LD HL, SPRITE_ADDR + PAC_VRAM + $80 | VRAMWRITE
     RST setVDPAddress
-    LD HL, workArea
+    LD HL, playerSprBuffer
     LD BC, $80 * $100 + VDPDATA_PORT
     OTIR
     JP @@@removeLife
@@ -66,7 +66,7 @@ sStateGameplayTable@ready00Mode:
     OUT (C), E
     OUT (C), D
     DEC C
-    LD HL, workArea
+    LD HL, mazeTextBuffer
     LD B, $12
     OTIR
         ; PLAYER ROW 1
@@ -150,7 +150,7 @@ sStateGameplayTable@ready01Mode:
     OUT (C), E
     OUT (C), D
     DEC C
-    LD HL, workArea + $24
+    LD HL, mazeTextBuffer + $24
     OTIR
 @@end:
     ; DISABLE UNNEEDED SPRITES

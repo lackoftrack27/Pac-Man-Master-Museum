@@ -14,7 +14,7 @@ sStateAttractTable@optionsMode:
     LD (isNewState), A
 ;   SET LINE
     LD (lineMode), A    ; WHAT LINE IS SELECTED.        0 - "LIVES", 1 - "DIFFICULTY", 2 - "BONUS", 3 - "SPEED", 4 - "STYLE"
-;   
+;   CURRENT SELECTED SOUND ID FOR SOUND TEST
     LD (sndTestIndex), A
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen
@@ -123,8 +123,8 @@ sStateAttractTable@optionsMode:
 ;   SET SUBSTATE TO TITLE, SET NEW-STATE-FLAG
     LD HL, $01 * $100 + ATTRACT_TITLE
     LD (subGameMode), HL
-;   STOP ALL SOUNDS, THEN END
-    JP sndStopAll
+;   RESET ALL SOUND VARS/REGS, THEN EXIT
+    JP sndInit
 +:
 ;   SETUP
     LD DE, liveIndex
@@ -189,7 +189,7 @@ sStateAttractTable@optionsMode:
     RET Z   ; IF NOT, EXIT
     ; PREPARE TO PLAY SND ID
     PUSH DE
-    CALL sndInit ; STOP ALL SOUND
+    CALL sndInit ; RESET ALL SOUND VARS/REGS
     POP DE
     ; EXIT IF ID IS 0
     LD A, (DE)

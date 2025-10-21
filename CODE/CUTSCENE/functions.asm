@@ -244,17 +244,6 @@ pacCutResSpritePal:
 ;           $F8 - "CLR NUM":     
 ;           $FF - "END":
 
-.DEFINE msCut_MainTileTblPtr    workArea
-.DEFINE msCut_SubTileTblPtr     workArea + $02
-.DEFINE msCut_GhostTileTblPtr   workArea + $04
-.DEFINE jrCut_JrTileTblPtr      workArea + $06
-.DEFINE jrCutsceneVarFB         workArea + $08
-
-.DEFINE jrCut_OverrideFlags     workArea + $09  ; $08
-.DEFINE jrCutScreenFlagList     workArea + $11  ; $08
-.DEFINE jrSwingCounter          workArea + $1A
-
-
 commandJumpTable:
     JP cutAniProcess@cmdLoop
     JP cutAniProcess@cmdSetPos

@@ -12,14 +12,14 @@ sStateAttractTable@demoInputCheck:
     ; GET XN DATA INTO BUFFER
     LD HL, SPRITE_TABLE_XN + ($19 * $02)
     RST setVDPAddress
-    LD HL, workArea + $20
+    LD HL, gOverSpriteBuffer
     LD BC, $0C * $100 + VDPDATA_PORT
     INIR
     ; RESET VDP ADDRESS FOR LATER
     LD HL, SPRITE_TABLE_XN + ($19 * $02) | VRAMWRITE
     RST setVDPAddress
     ; ROTATE CIRCULAR BUFFER TO RIGHT
-    LD HL, workArea + $2A
+    LD HL, gOverSpriteBuffer + $0A
     LD A, (HL)  ; BYTE $0A
     INC HL
     LD C, (HL)  ; BYTE $0B

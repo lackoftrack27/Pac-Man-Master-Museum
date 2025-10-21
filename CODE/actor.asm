@@ -8,7 +8,7 @@
     INFO: RESETS COMMON ACTOR VARS
     INPUT: IX: ACTOR BASE ADDRESS
     OUTPUT: NONE
-    USES: IX, AF
+    USES: AF, DE, HL, IX
 */
 actorReset:
 ;   CLEAR OFFSCREEN FLAG
@@ -17,10 +17,11 @@ actorReset:
 ;   NEW STATE
     INC A
     LD (IX + NEW_STATE_FLAG), A
-;   SUBTRACT $08 FROM Y POS IF JR.PAC
+;   MODIFY POSITION IF GAME IS JR.PAC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JR Z, +
+    ; SUB $08 TO Y POS
     ADD A, A    ; 4 -> 8
     NEG         ; 8 ->-8
     ADD A, (IX + Y_WHOLE)
@@ -200,7 +201,7 @@ actorOffScreenCheck:
 ;   SAVE OFFSCREEN FLAG IN C, THEN CLEAR IT
     LD C, (IX + OFFSCREEN_FLAG)
     LD (IX + OFFSCREEN_FLAG), $00
-;   SCALE WORLD POS TO 3/4
+;   SCALE WORLD POS TO 3/4 SCALE
     LD L, (IX + X_WHOLE)    ; POS -> INDEX
     LD H, (IX + X_WHOLE + 1)
     ADD HL, HL
@@ -244,12 +245,14 @@ actorOffScreenCheck:
     LD (IX + REVE_FLAG), A
     RET
 
+
+
 /*
     CANNOT AFFECT HL!!! OR B???
     INFO: CONVERTS LOGICAL POSITION TO SCREEN POSITION
     INPUT: IX
     OUTPUT: DE
-    USES: IX, IYH, AF, C, DE
+    USES: AF, C, DE, IX, IYH
 */
 convPosToScreen:
 ;   CONVERT POSITIONS DIFFERENTLY DEPENDING ON GAME
@@ -316,11 +319,12 @@ convPosToScreen:
     RET
 
 
+
 /*
     INFO: CHECKS IF AN ACTOR IS ABOUT TO WARP
     INPUT: IX
     OUTPUT: CARRY FLAG
-    USES: IX, AF
+    USES: AF, IX
 */
 actorWarpCheck:
     LD A, (IX + NEXT_X)
@@ -350,7 +354,7 @@ actorWarpCheck:
     INFO: UPDATES ACTOR'S CURRENT TILE USING X/Y PIXEL POS
     INPUT: IX
     OUTPUT: NONE
-    USES: IX, AF
+    USES: AF, IX
 */
 updateCurrTile:
 ;   CURRENT Y
@@ -379,7 +383,7 @@ updateCurrTile:
     INFO: UPDATES AN ACTOR'S COLLSION TILES
     INPUT: IX - ACTOR BASE ADDRESS
     OUTPUT: NONE
-    USES: IX, AF, HL, DE, BC
+    USES: AF, BC, DE, HL, IX
 */
 actorUpdate:
 ;   RESET HIGH BYTES IF GAME IS NON SCROLLING
@@ -408,17 +412,14 @@ actorUpdate:
     AND A, $3F  ; REMOVE UNWANTED CARRIES
     ADD A, $1E
     LD (IX + CURR_X), A
-/*
----------------------------------------------
-        COLLISION TILE UPDATE 
----------------------------------------------
-*/
+;   FALL THROUGH
+
 
 /*
     INFO: UPDATES AN ACTOR'S COLLISION TILES FROM A COLLSION MAP
     INPUTS: IX - Actor's Base Address
     OUTPUT: NONE
-    USES: AF, IX, DE, BC, HL
+    USES: AF, BC, DE, HL, IX
 */
 updateCollTiles:
 ;   TILE X/Y VALUES
@@ -438,8 +439,8 @@ updateCollTiles:
     DEC L
 ;   X/Y VALUES
     ; UP
-    LD (IX + UP_X), B ; 0
-    LD (IX + UP_Y), L ; -1
+    LD (IX + UP_X), B   ; 0
+    LD (IX + UP_Y), L   ; -1
     ; LEFT
     LD (IX + LEFT_X), C ; +1
     LD (IX + LEFT_Y), E ; 0
@@ -576,10 +577,9 @@ updateCollTiles:
     INFO: RETURNS TILE ID GIVEN TILE X/Y
     INPUT: DE - TILE Y/X
     OUTPUT: A - TILE IDX
-    USES: HL, BC, DE
+    USES: AF, BC, DE, HL
 */
 getTileID:
-    PUSH DE
 ;   GET ID VALUES FROM COLLSION MAP
     LD A, D
     SUB A, $21
@@ -597,7 +597,6 @@ getTileID:
 +:
     multBy29
 @addX:
-    POP DE
     ; CHECK IF X TILE IS EVEN OR ODD
     LD A, E
     SUB A, $1E

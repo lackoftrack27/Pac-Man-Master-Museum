@@ -330,11 +330,7 @@
     EDIBLE_FLAG DB
     ID          DB
     INVISIBLE_FLAG  DB
-.ENDE
-
-
-
-.DEFINE PATHFIND_TILES_PTR  pfWorkTiles - (_sizeof_actor - _sizeof_pfWorkTiles)
+.ENDE  
 
 /*
             SPRITE PALETTE INDEXES

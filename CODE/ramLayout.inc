@@ -162,10 +162,9 @@
     chan0 INSTANCEOF sndChannel
     chan1 INSTANCEOF sndChannel
     chan2 INSTANCEOF sndChannel
-    chan3 INSTANCEOF sndChannel
 ;   TEMPORARY RAM FOR WHATEVER NEEDS IT
-    workArea: dsb $A0 - $15
-;   
+    workArea: dsb $80
+;   PATHFINDING VARS
     pfWorkTiles INSTANCEOF tilePos 7
 .ENDS
 
@@ -174,11 +173,11 @@
 ;   STARTS AT $C400 [SIZE: $1B18]
 .RAMSECTION "mazeRam" SLOT 4
 ;   STATIC MAZE TABLES
-    mazeEatenTbl: dsb $100        ; [BYTE ALIGNED]
-    mazeMutatedTbl: dsb $200      ; JR. PAC
-    mazeEatenMutatedTbl: dsb $200 ; JR. PAC
-    mazePowTbl: dsb $40           ; [BYTE ALIGNED]
-    mazeRstMutatedTbl: dsb $40
+    mazeEatenTbl: dsb $100          ; [BYTE ALIGNED]
+    mazeMutatedTbl: dsb $200        ; JR.PAC
+    mazeEatenMutatedTbl: dsb $200   ; JR.PAC
+    mazePowTbl: dsb $40             ; [BYTE ALIGNED]
+    mazeRstMutatedTbl: dsb $40      ; JR.PAC
 ;   MAZE PALETTE DATA
     mazePalette: dsb $10
 ;   MAZE DATA GROUP FOR EACH PLAYER

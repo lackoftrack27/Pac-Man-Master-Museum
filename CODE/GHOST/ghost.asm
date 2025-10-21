@@ -1,7 +1,16 @@
-.DEFINE     lowestDist  workArea + 58
-.DEFINE     idAddress   workArea + 60
-.DEFINE     newDir      workArea + 62
-.DEFINE     counter     workArea + 63
+/*
+----------------------------------------------
+        DEFINES FOR GHOSTS (TEMP RAM)
+----------------------------------------------
+*/
+;       PATHFINDING
+.DEFINE     lowestDist      workArea + $3A   ; 2 BYTES
+.DEFINE     idAddress       workArea + $3C   ; 2 BYTES
+.DEFINE     newDir          workArea + $3E
+.DEFINE     counter         workArea + $3F
+
+;       CONSTANTS
+.DEFINE     PATHFIND_TILES_PTR  pfWorkTiles - (_sizeof_actor - _sizeof_pfWorkTiles)
 
 
 /*

@@ -1,5 +1,21 @@
-.DEFINE     cutsceneSubState       workArea + 4
-.DEFINE     nakedFrameCounter      workArea + 5
+/*
+----------------------------------------------
+        DEFINES FOR CUTSCENE MODE (TEMP RAM)
+----------------------------------------------
+*/
+;       PAC-MAN
+.DEFINE     cutsceneSubState        workArea
+.DEFINE     nakedFrameCounter       workArea + $01
+;       MS.PAC/JR.PAC
+.DEFINE     msCut_MainTileTblPtr    workArea + $00  ; 2 BYTES
+.DEFINE     msCut_SubTileTblPtr     workArea + $02  ; 2 BYTES
+.DEFINE     msCut_GhostTileTblPtr   workArea + $04  ; 2 BYTES
+.DEFINE     jrCut_JrTileTblPtr      workArea + $06  ; 2 BYTES
+.DEFINE     jrCutsceneVarFB         workArea + $08  ; 2 BYTES
+.DEFINE     jrCut_OverrideFlags     workArea + $09  ; 8 BYTES
+.DEFINE     jrCutScreenFlagList     workArea + $11  ; 8 BYTES
+.DEFINE     jrSwingCounter          workArea + $1A
+
 
 
 /*

@@ -1,3 +1,15 @@
+/*
+----------------------------------------------
+    DEFINES FOR GAMEPLAY MODE (TEMP RAM)
+----------------------------------------------
+*/
+;       PAC/MS.PAC
+.DEFINE     playerSprBuffer     workArea + $00      ; $80 BYTES
+;       JR.PAC
+.DEFINE     mazeTextBuffer      workArea + $00      ; $2E BYTES
+
+
+
 
 /*
 ----------------------------------------------
@@ -260,7 +272,7 @@ generalResetFunc:
         ; SAVE SOME TILES IN RAM
     LD HL, SPRITE_ADDR + PAC_VRAM + $80
     RST setVDPAddress
-    LD HL, workArea
+    LD HL, playerSprBuffer
     LD BC, $80 * $100 + VDPDATA_PORT
     INIR
         ; SET VDP ADDRESS
@@ -284,7 +296,7 @@ generalResetFunc:
     OUT (C), E
     OUT (C), D
     DEC C
-    LD HL, workArea
+    LD HL, mazeTextBuffer
     LD B, $12
     INIR
     ; PLAYER ROW 1

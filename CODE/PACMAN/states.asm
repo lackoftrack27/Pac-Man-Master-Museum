@@ -495,7 +495,6 @@ pacStateTable@update@normalMode:
     ; STORE RESULT
     LD (tileQuadrant), A
 @@@exit:
-;   NO EXIT
 @@@end:
     JP mazeUpdate
 

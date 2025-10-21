@@ -3,20 +3,20 @@
         DEFINES FOR ATTRACT MODE (TEMP RAM)
 ----------------------------------------------
 */
-;       TITLE / ALL
+;       ALL
 .DEFINE     lineMode            workArea
-.DEFINE     pacAniCounter       workArea + 3
-.DEFINE     pacPos              workArea + 5    ; 2 BYTES
-.DEFINE     pacBase             workArea + $0A  ; 2 BYTES
-
+;       TITLE
+.DEFINE     pacAniCounter       workArea + $01
+.DEFINE     pacPos              workArea + $02  ; 2 BYTES
+.DEFINE     pacBase             workArea + $04  ; 2 BYTES
+;       OPTION
+.DEFINE     sndTestIndex        workArea + $01
 ;       INTRO
-.DEFINE     introSubState       workArea + 4
-
+.DEFINE     introSubState       workArea + $01
 ;       MS INTRO
 .DEFINE     marqueePalBuffer    workArea + $10  ; 12 BYTES
-
-;       OPTION
-.DEFINE     sndTestIndex        workArea + $07
+;       DEMO
+.DEFINE     gOverSpriteBuffer   workArea + $10  ; 12 BYTES
 
 
 ;   TITLE CONSTS
