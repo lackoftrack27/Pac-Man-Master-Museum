@@ -2493,11 +2493,11 @@ musMsInter0:
     ; MAIN HEADER
     smpsHeader      $00 $03 $01 $00
     ; CHANNEL 0 HEADER
-    smpsChanHeader  musMsInter0@ch0,   $00 $05 $00 $00
+    smpsChanHeader  musMsInter0@ch0,   $00 $04 $00 $00
     ; CHANNEL 1 HEADER
-    smpsChanHeader  musMsInter0@ch1,   $00 $05 $00 $02
+    smpsChanHeader  musMsInter0@ch1,   $0C $08 $00 $02;$00 $05 $00 $02
     ; CHANNEL 2 HEADER
-    smpsChanHeader  musMsInter0@ch2,   $F4 $08 $00 $02
+    smpsChanHeader  musMsInter0@ch2,   $F4 $04 $00 $02;$F4 $08 $00 $02
 @ch0:
     ; CHANNEL 0 DATA
     .DB nG3, $08, nA3, nG3, nE3, nE3, nB2, nD3, nEb3, nE3, $20, nD3, $08, nE3, nD3, nB2
@@ -2516,8 +2516,8 @@ musMsInter0:
     .DB nE2, $20, nD2, nC2, nB1
     smpsPSGVoice    $01
     .DB nE2, $10, nG2, nA2, nB1, nD3, $08, nB2, nA2, nG2, nE2, $10
-    smpsChangeVol   $FE
-    .DB nD3, $01    ; GHOST BUMP
+    smpsChangeVol   $FB
+    .DB nD2, $01    ; GHOST BUMP
     smpsStop
 @ch2:
     ; CHANNEL 2 DATA
@@ -2537,11 +2537,11 @@ musMsInter1:
     ; MAIN HEADER
     smpsHeader      $00 $03 $01 $00
     ; CHANNEL 0 HEADER
-    smpsChanHeader  musMsInter1@ch0,   $18 $05 $00 $00
+    smpsChanHeader  musMsInter1@ch0,   $18 $04 $00 $00
     ; CHANNEL 1 HEADER
-    smpsChanHeader  musMsInter1@ch1,   $0C $05 $00 $02
+    smpsChanHeader  musMsInter1@ch1,   $18 $08 $00 $02
     ; CHANNEL 2 HEADER
-    smpsChanHeader  musMsInter1@ch2,   $00 $08 $00 $02
+    smpsChanHeader  musMsInter1@ch2,   $00 $04 $00 $02
 @ch0:
     ; CHANNEL 0 DATA
     .DB nFs1, $08, nFs1, nBb1, nB1, nC2, nCs2, nCs2, nB1, nCs2, nCs2, nBb1, nCs2, nEb2, nE2, nE2, nEb2
@@ -2644,9 +2644,9 @@ musJrInter0:
     ; MAIN HEADER
     smpsHeader      $00 $03 $01 $00
     ; CHANNEL 0 HEADER
-    smpsChanHeader  musJrInter0@ch0,   $00 $05 $00 $00
+    smpsChanHeader  musJrInter0@ch0,   $00 $04 $00 $00
     ; CHANNEL 1 HEADER
-    smpsChanHeader  musJrInter0@ch1,   $F4 $06 $00 $03
+    smpsChanHeader  musJrInter0@ch1,   $F4 $04 $00 $03
     ; CHANNEL 2 HEADER
     smpsChanHeader  musJrInter0@ch2,   $0C $08 $00 $03
 @ch0:
@@ -2970,11 +2970,11 @@ musJrInter1:
     ; MAIN HEADER
     smpsHeader      $00 $03 $01 $00
     ; CHANNEL 0 HEADER
-    smpsChanHeader  musJrInter1@ch0,   $00 $05 $00 $01
+    smpsChanHeader  musJrInter1@ch0,   $00 $04 $00 $01
     ; CHANNEL 1 HEADER
-    smpsChanHeader  musJrInter1@ch1,   $0C $09 $00 $00
+    smpsChanHeader  musJrInter1@ch1,   $0C $08 $00 $00
     ; CHANNEL 2 HEADER
-    smpsChanHeader  musJrInter1@ch2,   $F4 $07 $00 $00
+    smpsChanHeader  musJrInter1@ch2,   $F4 $05 $00 $00
 @ch0:
     .DB nRst, $20, nRst, nRst, $10, nD4, $08, nD4, nCs4, nD4
     smpsPSGVoice $00
@@ -3039,11 +3039,11 @@ musJrInter2:
     ; MAIN HEADER
     smpsHeader      $00 $03 $01 $00
     ; CHANNEL 0 HEADER
-    smpsChanHeader  musJrInter2@ch0,   $00 $05 $00 $00
+    smpsChanHeader  musJrInter2@ch0,   $00 $04 $00 $00
     ; CHANNEL 1 HEADER
     smpsChanHeader  musJrInter2@ch1,   $0C $08 $00 $02
     ; CHANNEL 2 HEADER
-    smpsChanHeader  musJrInter2@ch2,   $F4 $06 $00 $02
+    smpsChanHeader  musJrInter2@ch2,   $F4 $04 $00 $02
 @ch0:
     smpsSetSwingFlag
     .DB nG4, $04, nFs4, nG4, nRst, nD4, nCs4, nD4, 

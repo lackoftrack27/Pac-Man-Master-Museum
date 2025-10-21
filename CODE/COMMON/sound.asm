@@ -99,7 +99,7 @@ processGhostSFX:
 
 
 /*
-    INFO: CONTROLS CHANNEL 2 SFX (PAC/MS.PAC)
+    INFO: CONTROLS TRACK 2 SFX (OR TRACK 0 FOR JR.PAC)
     INPUT: NONE
     OUTPUT: NONE
     USES: AF, BC, DE, HL, IX
@@ -156,17 +156,21 @@ processChan2SFX:
     LD A, C
     LD B, $00   ; CHANNEL 0
     JP sndPlaySFX
+;
 ;   CALLED FROM SOUND DRIVER
+;
 @soundEnded:
-;   CHECK IF WE ARE ON THE CORRECT CHANNEL
+;   CHECK IF WE ARE ON THE CORRECT TRACK
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     LD A, C
     JP Z, +
+    ; TRACK 0 FOR PAC/MS.PAC
     CP A, CHAN0_BITS
     JP Z, @@clearBit
     RET
 +:
+    ; TRACK 2 FOR JR.PAC
     CP A, CHAN2_BITS
     RET NZ
 @@clearBit:
@@ -230,8 +234,11 @@ processChan2SFXJR:
     LD A, C
     LD B, $02   ; CHANNEL 2
     JP sndPlaySFX
+;
+;   CALLED FROM SOUND DRIVER
+;
 @soundEnded:
-;   END IF CHANNEL ISN'T 2
+;   END IF TRACK 02 IS BEING PROCESSED
     LD A, C
     CP A, CHAN2_BITS
     RET NZ

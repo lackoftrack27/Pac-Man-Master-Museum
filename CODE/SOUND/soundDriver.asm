@@ -3,22 +3,38 @@
                 SOUND DRIVER CODE
 ------------------------------------------------
 */
-
 ;   CHANNEL CONTROL BITS
 .DEFINE CHANCON_REST        1
 .DEFINE CHANCON_LITERAL     3
 .DEFINE CHANCON_NOATTACK    4
 .DEFINE CHANCON_PLAYING     7
 
+;   REGISTER BITS
+.DEFINE OP_BIT      $04     ; 0 - FREQUENCY, 1 - VOLUME
+.DEFINE CHAN_BIT0   $05
+.DEFINE CHAN_BIT1   $06
+.DEFINE LATCH_BIT   $07
+
 ;   PSG CHANNEL BITS
 .DEFINE CHAN0_BITS  $00
-.DEFINE CHAN1_BITS  $20
-.DEFINE CHAN2_BITS  $40
-.DEFINE CHAN3_BITS  $60
+.DEFINE CHAN1_BITS  $01 << CHAN_BIT0
+.DEFINE CHAN2_BITS  $01 << CHAN_BIT1
+.DEFINE CHAN3_BITS  ($01 << CHAN_BIT0) | ($01 << CHAN_BIT1)
+.DEFINE CHANALL_BITS    CHAN3_BITS
+.DEFINE LATCH_VOL   ($01 << OP_BIT) | ($01 << LATCH_BIT)
+
+
+;   PSG NOISE TYPES
+.DEFINE NOISE_TONE0 $00
+.DEFINE NOISE_TONE1 $01
+.DEFINE NOISE_TONE2 $02
+.DEFINE NOISE_PULSE $03
+
+;   COUNTS
+.DEFINE TRACK_COUNT $03
 .DEFINE CHAN_COUNT  $04
 
-.DEFINE CHANALL_BITS    $60
-
+;   STARTING COORDINATION FLAG ID
 .DEFINE CF_START    $E0
 
 ;   COORDINATION FLAGS
@@ -36,7 +52,7 @@
     CF_TEMPO    DB  ; $EA
     CF_TEMPODIV_ALL DB  ; $EB
     CF_CHGVOL   DB  ; $EC
-    CF_CLRPUSH  DB  ; $ED
+    CF_SETSWINGFLAG  DB  ; $ED
     CF_READLITERAL  DB  ; $EE
     CF_FMVOICE  DB  ; $EF
     CF_MODSETUP DB  ; $F0
@@ -54,7 +70,9 @@
 
 /*
     INFO: MAIN SOUND UPDATE
-    USES: IY, AF, BC, HL, DE
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IY
 */
 sndProcess:
 ;   DON'T UPDATE WHEN PAUSED
@@ -75,7 +93,7 @@ sndProcess:
 ;   SWING FLAG CHECK (JR CUTSCENE 3 ONLY)
     LD A, (jrSwingFlag)
     OR A
-    JP Z, @setup ; SKIP IF NOT SET
+    JP Z, @updateTracks ; SKIP IF NOT SET
     ; DECREMENT AND KEEP WITHIN RANGE (1 - 7)
     LD HL, jrSwingCounter
     DEC (HL)
@@ -86,105 +104,122 @@ sndProcess:
     LD A, (HL)
     DEC A
     RET Z
-@setup:
-;   SETUP
-    LD A, SOUND_BANK              ; SOUND BANK
+@updateTracks:
+;   SET BANK
+    LD A, SOUND_BANK
     LD (MAPPER_SLOT2), A
-    LD IY, chan0                ; CHANNEL POINTER
-    LD BC, (CHAN_COUNT - 1) * $100    ; LOOP COUNTER AND CHANNEL NUMBER
-@loop:
-;   PROCESS CHANNEL LOOP
-    ; LOAD CHANNEL POINTER
+;   TRACK 0 UPDATE
+    LD IY, chan0
+    LD C, CHAN0_BITS
+    BIT CHANCON_PLAYING, (IY + CHAN_CONTROL)
+    CALL NZ, trackUpdate
+;   TRACK 1 UPDATE
+    LD IY, chan1
+    LD C, CHAN1_BITS
+    BIT CHANCON_PLAYING, (IY + CHAN_CONTROL)
+    CALL NZ, trackUpdate
+;   TRACK 2 UPDATE
+    LD IY, chan2
+    LD C, CHAN2_BITS
+    BIT CHANCON_PLAYING, (IY + CHAN_CONTROL)
+    CALL NZ, trackUpdate
+;   RESTORE BANK
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
+    RET
+
+
+
+
+/*
+------------------------------------------------
+            TRACK UPDATE FUNCTION
+------------------------------------------------
+*/
+trackUpdate:
+;   LOAD TRACK POINTER
     LD E, (IY + POINTER_00)
     LD D, (IY + POINTER_01)
-    ; SAVE LOOP COUNTER AND CHANNEL NUMBER
-    PUSH BC
-    ; CHECK IF CHANNEL IS PLAYING
-    BIT CHANCON_PLAYING, (IY + CHAN_CONTROL)
-    JP Z, @prepareNext   ; IF NOT, PROCESS NEXT CHANNEL
-    ; CHECK IF NOTE DURATION IS 0 AFTER DECREMENT
+;   CHECK IF NOTE DURATION IS 0 AFTER DECREMENT
     DEC (IY + DUR_COUNTER)
-    JP NZ, @@noteGoing     ; IF NOT, SKIP
+    JP NZ, @noteGoing     ; IF NOT, A NOTE IS CURRENTLY PLAYING
+/*
+    ---------
+    A NOTE IS NOT CURRENTLY PLAYING...
+    ---------
+*/
     RES CHANCON_NOATTACK, (IY + CHAN_CONTROL)  ; CLEAR NO-ATTACK BIT
 ;
 ;   GET NEXT BYTE
 ;
-@@getNextByte:
-    ;CALL getNextByte    ; GET NEXT BYTE
+@getNextByte:
 ;   CLEAR REST BIT
     RES CHANCON_REST, (IY + CHAN_CONTROL)
-@@@loop:
+@@readLoop:
 ;   GET NEXT BYTE
     LD A, (DE)
     INC DE
 ;   CHECK IF IT IS COORDINATION FLAG
     CP A, CF_START
-    JP NC, processCF
-    ;JP C, +     ; IF NOT, END COORD. FLAG PROCESSING
-    ;CALL processCF      ; PROCESS COORD. FLAG
-    ;JP - ; LOOP
-;+:
+    JP NC, processCF    ; PROCESS COORD. FLAG
 ;   CHECK IF LITERAL READ MODE IS ON
     BIT CHANCON_LITERAL, (IY + CHAN_CONTROL)
     JP NZ, readLiteral  ; IF SO, READ IT
 ;   CHECK IF IT IS DURATION
     OR A
-    ;JP P, + ; IF SO, PROCESS IT
-    JP P, @@@updateDuration
-;   SET CHANNEL FREQUENCY
+    JP P, @updateDuration ; IF SO, PROCESS IT
+;   SET TRACK FREQUENCY
     CALL setFreq
 ;   GET NEXT BYTE
     LD A, (DE)
 ;   CHECK IF IT IS DURATION
     OR A
-    JP M, @@finTrackUpdate ; IF NOT, SKIP...
+    JP M, @rstDurationCounter   ; IF NOT, SKIP...
     INC DE
-@@@updateDuration:
+@updateDuration:
     CALL processDuration
-@@finTrackUpdate:
-;   RESET DURATION
+@rstDurationCounter:
+;   RESET DURATION COUNTER
     LD A, (IY + DURATION)
     LD (IY + DUR_COUNTER), A
 ;   RESET ENVELOPE INDEX ONLY IF NO ATTACK FLAG IS CLEAR
     BIT CHANCON_NOATTACK, (IY + CHAN_CONTROL)
-    JP NZ, @@noteOn
+    JP NZ, @noteOn
     LD (IY + ENVELOPE_IDX), $00
 ;
 ;   NOTE ON
 ;
-@@noteOn:
-    ;CALL noteOn         ; DO NOTE ON
-    ; CHECK IF FREQUENCY IS INVALID
+@noteOn:
+;   CHECK IF FREQUENCY IS INVALID
     BIT 7, (IY + FREQ_01)
     JP Z, +  ; IF SO, SKIP
-    ; SET REST BIT
+;   SET REST BIT
     SET CHANCON_REST, (IY + CHAN_CONTROL)
-    JP @@updateEnvelope_noChk
+    JP @updateEnvelope_noChk
 +:
-    ; CHECK IF REST BIT IS SET
+;
+;   UPDATE FREQ
+;
+;   CHECK IF REST BIT IS SET
     BIT CHANCON_REST, (IY + CHAN_CONTROL)
-    JP NZ, @@updateEnvelope_noChk
-    ; GET FREQ
+    JP NZ, @updateEnvelope_noChk
+;   GET FREQ
     LD L, (IY + FREQ_00)
     LD H, (IY + FREQ_01)
-    ; ADD DETUNE (SIGN EXTEND FIRST)
+;   ADD DETUNE (SIGN EXTEND FIRST)
     LD A, (IY + DETUNE)
     OR A
     JP P, +
     DEC H
 +:
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    ; BYTE 0 (LOW NIBBLE)
+    addToHL_M
+;   BYTE 0 (LOW NIBBLE)
     LD A, L
     AND A, $0F  ; GET LOWER NIBBLE
-    OR A, $80   ; LATCH
-    OR A, C     ; CHANNEL
+    OR A, $01 << LATCH_BIT
+    OR A, C     ; CHANNEL BITS
     OUT (PSG_PORT), A
-    ; BYTE 1 (HIGH NIBBLE)
+;   BYTE 1 (HIGH NIBBLE)
     ; RIGHT SHIFT HL BY 4
     LD A, L
     SRL H   ; HIGH BYTE ONLY CAN HAVE 2 BITS, SO ONLY DEAL WITH IT TWICE
@@ -198,207 +233,162 @@ sndProcess:
 ;
 ;   UPDATE ENVELOPE (NO CHECK)
 ;
-@@updateEnvelope_noChk:
-    ;CALL updateEnvelope@noCheck     ; UPDATE ENVELOPE
-    ;   GET VOLUME
+@updateEnvelope_noChk:
     LD B, (IY + VOLUME)
-    ; CHECK IF ENVELOPE IS 0
+;   CHECK IF TRACK IS USING A ENVELOPE
     LD A, (IY + ENVELOPE)
     OR A
-    JP Z, +    ; IF SO, SKIP ENVELOPE PROCESSING
-    ; GET ENVELOPE ADDRESS
+    JP Z, +    ; IF NOT, SKIP ENVELOPE UPDATE (BUT STILL WRITE VOLUME TO PSG)
+;   GET ENVELOPE ADDRESS
     LD HL, psgIndexTable
     DEC A
     ADD A, A
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
     LD L, A
-    ; PUT ENVELOPE POSITION INTO HL
+;   ADD ENVELOPE POSITION TO BASE POINTER
     LD A, (IY + ENVELOPE_IDX)
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    ;INC (IY + ENVELOPE_IDX)
-    ; CHECK IF VALUE IS $80 OR ABOVE
+    addToHL_M
+;   CHECK IF VALUE IS $80 OR ABOVE
     BIT 7, (HL)
-    ;JP M, envelopeHold  ; IF SO, SKIP
-    JP M, @prepareNext
+    JP M, @prepareNext  ; IF SO, SKIP (END OF ENVELOPE, MAINTAIN VOLUME)
     INC (IY + ENVELOPE_IDX)
-    ; ADD CHANNEL VOLUME TO ENVELOPE VOLUME
+;   ADD TRACK VOLUME TO ENVELOPE VOLUME
     LD A, B
     ADD A, (HL)
     LD B, A
 +:
-    ; CHECK IF REST BIT IS SET
+;
+;   UPDATE VOLUME
+;
+;   CHECK IF REST BIT IS SET
     BIT CHANCON_REST, (IY + CHAN_CONTROL)
     JP NZ, @prepareNext   ; IF SO, END
-    ; CHECK IF NO-ATTACK BIT IS SET (ONLY NEEDED IF IMPLEMENTING NOTE TIMEOUT)
-
-    ; LIMIT VOLUME TO <= $0F
+;   CHECK IF NO-ATTACK BIT IS SET (ONLY NEEDED IF IMPLEMENTING NOTE TIMEOUT)
+;   LIMIT VOLUME TO <= $0F
     LD A, B
     CP A, $10
     JP C, +
     LD B, $0F
 +:
-    ; CHECK IF NOISE TYPE IS SET FOR TONE 2
-    LD A, $01
-    LD I, A
+;   CHECK IF TRACK 02 IS BEING PROCESSED AND NOISE TYPE IS 0x03 ('PERIODIC')
+    LD IXL, $00 ; FLAG TO RESTORE CHANNEL BITS
     LD A, (sndNoiseType)
-    AND A, $03
-    CP A, $03
-    JP NZ, +    ; IF NOT, SKIP...
-    ; CHECK IF CURRENT CHANNEL IS CHANNEL 2
-    LD A, C
-    AND A, CHANALL_BITS
-    CP A, CHAN2_BITS
+    AND A, $0F  ; ISOLATE THE NOISE TYPE BITS
+    OR A, C
+    CP A, CHAN2_BITS | NOISE_PULSE
     JP NZ, +    ; IF NOT, SKIP
-    ; ELSE, WRITE VOLUME TO CHANNEL 3 INSTEAD
-    LD A, C
-    ADD A, CHAN1_BITS
-    LD C, A
-    XOR A
-    LD I, A
+;   ELSE, WRITE VOLUME TO CHANNEL 3 INSTEAD
+    LD C, CHAN3_BITS
+    INC IXL     ; SET FLAG (CHANNEL BITS WILL BE RESTORED)
 +:
+;   WRITE VOLUME TO CHANNEL
     LD A, B
     OR A, C
-    OR A, $90
+    OR A, LATCH_VOL
     OUT (PSG_PORT), A
-    ; CHECK IF FLAG WAS SET
-    LD A, I
-    DEC A
-    JP Z, @prepareNext
-    ; ELSE, RESTORE CHANNEL BITS
-    LD A, C
-    SUB A, CHAN1_BITS
-    LD C, A
-;
-;   PREPARE NEXT
-;
-    JP @prepareNext     ; PREPARE FOR NEXT CHANNEL
-@@noteGoing:
+;   CHECK IF FLAG WAS SET
+    DEC IXL
+    JP NZ, @prepareNext  ; IF NOT, SKIP
+;   ELSE, RESTORE CHANNEL BITS
+    LD C, CHAN2_BITS
+;   PREPARE FOR NEXT TRACK
+    JP @prepareNext
+/*
+    ---------
+    A NOTE IS CURRENTLY PLAYING...
+    ---------
+*/
+@noteGoing:
+;   CHECK IF TRACK IS USING A ENVELOPE
+    LD A, (IY + ENVELOPE)
+    OR A
+    JP Z, @updateFreq   ; IF NOT, SKIP ENVELOPE UPDATE && VOLUME WRITE
 ;
 ;   UPDATE ENVELOPE
 ;
-    ;CALL updateEnvelope ; UPDATE ENVELOPE
-    LD A, (IY + ENVELOPE)
-    OR A
-    JP Z, @@updateFreq
-    ;   GET VOLUME
     LD B, (IY + VOLUME)
-    ; CHECK IF ENVELOPE IS 0
-    LD A, (IY + ENVELOPE)
-    OR A
-    JP Z, +    ; IF SO, SKIP ENVELOPE PROCESSING
-    ; GET ENVELOPE ADDRESS
+;   GET ENVELOPE ADDRESS
     LD HL, psgIndexTable
     DEC A
     ADD A, A
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
     LD L, A
-    ; PUT ENVELOPE POSITION INTO HL
+;   ADD ENVELOPE POSITION TO BASE POINTER
     LD A, (IY + ENVELOPE_IDX)
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    ;INC (IY + ENVELOPE_IDX)
-    ; CHECK IF VALUE IS $80 OR ABOVE
+    addToHL_M
+;   CHECK IF VALUE IS $80 OR ABOVE
     BIT 7, (HL)
-    ;JP M, envelopeHold  ; IF SO, SKIP
-    JP M, @@updateFreq
+    JP M, @updateFreq   ; IF SO, SKIP (END OF ENVELOPE, KEEP VOLUME)
     INC (IY + ENVELOPE_IDX)
-    ; ADD CHANNEL VOLUME TO ENVELOPE VOLUME
+;   ADD TRACK VOLUME TO ENVELOPE VOLUME
     LD A, B
     ADD A, (HL)
     LD B, A
 +:
-    ; CHECK IF REST BIT IS SET
+;
+;   UPDATE VOLUME
+;
+;   CHECK IF REST BIT IS SET
     BIT CHANCON_REST, (IY + CHAN_CONTROL)
-    JP NZ, @@updateFreq   ; IF SO, END
-    ; CHECK IF NO-ATTACK BIT IS SET (ONLY NEEDED IF IMPLEMENTING NOTE TIMEOUT)
-
-    ; LIMIT VOLUME TO <= $0F
+    JP NZ, @updateFreq   ; IF SO, END
+;   CHECK IF NO-ATTACK BIT IS SET (ONLY NEEDED IF IMPLEMENTING NOTE TIMEOUT)
+;   LIMIT VOLUME TO <= $0F
     LD A, B
     CP A, $10
     JP C, +
     LD B, $0F
 +:
-    ; CHECK IF NOISE TYPE IS SET FOR TONE 2
-    LD A, $01
-    LD I, A
+;   CHECK IF TRACK 02 IS BEING PROCESSED AND NOISE TYPE IS 0x03 ('PERIODIC')
+    LD IXL, $00 ; FLAG TO RESTORE CHANNEL BITS
     LD A, (sndNoiseType)
-    AND A, $03
-    CP A, $03
-    JP NZ, +    ; IF NOT, SKIP...
-    ; CHECK IF CURRENT CHANNEL IS CHANNEL 2
-    LD A, C
-    AND A, CHANALL_BITS
-    CP A, CHAN2_BITS
+    AND A, $0F  ; ISOLATE THE NOISE TYPE BITS
+    OR A, C
+    CP A, CHAN2_BITS | NOISE_PULSE
     JP NZ, +    ; IF NOT, SKIP
-    ; ELSE, WRITE VOLUME TO CHANNEL 3 INSTEAD
-    LD A, C
-    ADD A, CHAN1_BITS
-    LD C, A
-    XOR A
-    LD I, A
+;   ELSE, WRITE VOLUME TO CHANNEL 3 INSTEAD
+    LD C, CHAN3_BITS
+    INC IXL     ; SET FLAG (CHANNEL BITS WILL BE RESTORED)
 +:
+;   WRITE VOLUME TO CHANNEL
     LD A, B
     OR A, C
-    OR A, $90
+    OR A, LATCH_VOL
     OUT (PSG_PORT), A
-    ; CHECK IF FLAG WAS SET
-    LD A, I
-    DEC A
-    JP Z, @@updateFreq
-    ; ELSE, RESTORE CHANNEL BITS
-    LD A, C
-    SUB A, CHAN1_BITS
-    LD C, A
+;   CHECK IF FLAG WAS SET
+    DEC IXL
+    JP NZ, @prepareNext  ; IF NOT, SKIP
+;   ELSE, RESTORE CHANNEL BITS
+    LD C, CHAN2_BITS
 ;
 ;   UPDATE FREQ
 ;
-;CALL updateFreq     ; UPDATE FREQUENCY
-@@updateFreq:
-    ; CHECK IF REST BIT IS SET
+@updateFreq:
+;   CHECK IF REST BIT IS SET
     BIT CHANCON_REST, (IY + CHAN_CONTROL)
-    JP NZ, @@updateEnvelope_noChk
-    ; GET FREQ
+    JP NZ, @prepareNext ; IF SO, SKIP FREQUENCY UPDATE
+;   GET FREQ
     LD L, (IY + FREQ_00)
     LD H, (IY + FREQ_01)
-    ; ADD DETUNE (SIGN EXTEND FIRST)
+;   ADD DETUNE (SIGN EXTEND FIRST)
     LD A, (IY + DETUNE)
     OR A
     JP P, +
     DEC H
 +:
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    ; BYTE 0 (LOW NIBBLE)
+    addToHL_M
+;   BYTE 0 (LOW NIBBLE)
     LD A, L
     AND A, $0F  ; GET LOWER NIBBLE
-    OR A, $80   ; LATCH
-    OR A, C     ; CHANNEL
+    OR A, $01 << LATCH_BIT
+    OR A, C     ; CHANNEL BITS
     OUT (PSG_PORT), A
-    ; BYTE 1 (HIGH NIBBLE)
+;   BYTE 1 (HIGH NIBBLE)
     ; RIGHT SHIFT HL BY 4
     LD A, L
     SRL H   ; HIGH BYTE ONLY CAN HAVE 2 BITS, SO ONLY DEAL WITH IT TWICE
@@ -409,70 +399,18 @@ sndProcess:
     RRA
     AND A, $3F  ; KEEP ONLY LOWER 6 BITS
     OUT (PSG_PORT), A
-    ; FALL THROUGH
 @prepareNext:
-    ; GET BACK LOOP COUNTER AND CHANNEL NUM
-    POP BC
-    ; SAVE CHANNEL POINTER
+;   SAVE NEW TRACK POINTER
     LD (IY + POINTER_00), E
     LD (IY + POINTER_01), D
-    ; POINT TO NEXT CHANNEL
-    LD DE, _sizeof_sndChannel
-    ADD IY, DE
-    ; SET CHANNEL BITS FOR NEXT CHANNEL
-    LD A, CHAN1_BITS
-    ADD A, C
-    LD C, A
-    ; LOOP AGAIN IF B ISN'T 0
-    ;DJNZ sndProcess@loop
-    DEC B
-    JP NZ, sndProcess@loop
-    ; RESTORE BANK
-    LD A, DEFAULT_BANK
-    LD (MAPPER_SLOT2), A
     RET
 
 
 /*
 ------------------------------------------------
-        FUNCTIONS USED BY MAIN UPDATE
+        FUNCTIONS USED BY TRACK UPDATE
 ------------------------------------------------
 */
-
-/*
-getNextByte:
-;   CLEAR REST BIT
-    RES CHANCON_REST, (IY + CHAN_CONTROL)
-@loop:
-;   GET NEXT BYTE
-    LD A, (DE)
-    INC DE
-;   CHECK IF IT IS COORDINATION FLAG
-    CP A, CF_START
-    JP C, +     ; IF NOT, END COORD. FLAG PROCESSING
-    CALL processCF      ; PROCESS COORD. FLAG
-    JP getNextByte@loop ; LOOP
-+:
-;   CHECK IF LITERAL READ MODE IS ON
-    BIT CHANCON_LITERAL, (IY + CHAN_CONTROL)
-    JP NZ, readLiteral  ; IF SO, READ IT
-;   CHECK IF IT IS DURATION
-    OR A
-    JP P, + ; IF SO, PROCESS IT
-;   SET CHANNEL FREQUENCY
-    CALL setFreq
-;   GET NEXT BYTE
-    LD A, (DE)
-;   CHECK IF IT IS DURATION
-    OR A
-    JP M, finishTrackUpdate ; IF NOT, SKIP...
-    INC DE
-+:
-    CALL processDuration
-    JP finishTrackUpdate
-*/
-
-
 setFreq:
 ;   CHECK IF NOTE IS REST
     SUB A, $81
@@ -483,11 +421,7 @@ setFreq:
     ADD A, A
 ;   ADD TO FREQUENCY TABLE
     LD HL, sndFreqTable ; GET NOTE FREQ
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     ;
     LD A, (HL)
     LD (IY + FREQ_00), A
@@ -504,7 +438,7 @@ setFreq:
     LD (IY + FREQ_01), $FF
     CALL finishTrackUpdate
 ;   SILENCE CHANNEL
-    JP sndStopChannel@clrChan
+    JP sndStopChannel@silenceChan
 
 
 readLiteral:
@@ -515,18 +449,13 @@ readLiteral:
     LD L, A     ; STORE 'HIGH' BYTE IN L
 ;   CHECK IF WORD IS 0
     OR A, H
-    ;JP Z, setFreq@restNote  ; IF SO, DO REST NOTE
-    JP NZ, +
+    JP NZ, +    ; IF NOT, SET FREQUENCY
     ; SET REST BIT
     SET CHANCON_REST, (IY + CHAN_CONTROL)
-    ; MAKE FREQ INVALID
-    LD (IY + FREQ_00), $FF
-    LD (IY + FREQ_01), $FF
-    ;CALL finishTrackUpdate
     ; SILENCE CHANNEL
-    CALL sndStopChannel@clrChan
-    LD A, $01   ; FIXED DURATION NUMBER
-    JP sndProcess@loop@getNextByte@updateDuration
+    CALL sndStopChannel@silenceChan
+    ; SET INVALID FREQUENCY
+    LD HL, $FFFF
 +:
     ; NOTE TRANSPOSITION GETS ADDED HERE?
 ;   STORE FREQUENCY
@@ -534,149 +463,8 @@ readLiteral:
     LD (IY + FREQ_01), H
 ;   GET NEXT BYTE (ALWAYS DURATION)
     LD A, $01   ; FIXED DURATION NUMBER
-    JP sndProcess@loop@getNextByte@updateDuration
-    ;CALL processDuration
-    ;JP finishTrackUpdate
+    JP trackUpdate@updateDuration
 
-
-/*
-noteOn:
-;   CHECK IF FREQUENCY IS INVALID
-    BIT 7, (IY + FREQ_01)
-    JP NZ, setRest  ; IF SO, SKIP
-updateFreq:
-;   CHECK IF REST BIT IS SET
-    BIT CHANCON_REST, (IY + CHAN_CONTROL)
-    RET NZ   ; IF SO, END
-;   GET FREQ
-    LD L, (IY + FREQ_00)
-    LD H, (IY + FREQ_01)
-;   ADD DETUNE (SIGN EXTEND FIRST)
-    LD A, (IY + DETUNE)
-    OR A
-    JP P, +
-    DEC H
-+:
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    ; BYTE 0 (LOW NIBBLE)
-    LD A, L
-    AND A, $0F  ; GET LOWER NIBBLE
-    OR A, $80   ; LATCH
-    OR A, C     ; CHANNEL
-    OUT (PSG_PORT), A
-    ; BYTE 1 (HIGH NIBBLE)
-    ; RIGHT SHIFT HL BY 4
-    LD A, L
-    SRL H   ; HIGH BYTE ONLY CAN HAVE 2 BITS, SO ONLY DEAL WITH IT TWICE
-    RRA
-    SRL H
-    RRA
-    RRA
-    RRA
-    AND A, $3F  ; KEEP ONLY LOWER 6 BITS
-    OUT (PSG_PORT), A
-    RET
-setRest:
-;   SET REST BIT
-    SET CHANCON_REST, (IY + CHAN_CONTROL)
-    RET
-*/
-
-/*
-updateEnvelope:
-;   CHECK IF ENVELOPE IS 0
-    LD A, (IY + ENVELOPE)
-    OR A
-    RET Z   ; IF SO, RETURN
-@noCheck:
-;   GET VOLUME
-    LD B, (IY + VOLUME)
-;   CHECK IF ENVELOPE IS 0
-    LD A, (IY + ENVELOPE)
-    OR A
-    JP Z, setVolume    ; IF SO, SKIP ENVELOPE PROCESSING
-;   GET ENVELOPE ADDRESS
-    LD HL, psgIndexTable
-    DEC A
-    ADD A, A
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    LD A, (HL)
-    INC HL
-    LD H, (HL)
-    LD L, A
-;   PUT ENVELOPE POSITION INTO HL
-    LD A, (IY + ENVELOPE_IDX)
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
-    INC (IY + ENVELOPE_IDX)
-    ; CHECK IF VALUE IS $80 OR ABOVE
-    BIT 7, (HL)
-    JP M, envelopeHold  ; IF SO, SKIP
-    ; ADD CHANNEL VOLUME TO ENVELOPE VOLUME
-    LD A, B
-    ADD A, (HL)
-    LD B, A
-setVolume:
-;   CHECK IF REST BIT IS SET
-    BIT CHANCON_REST, (IY + CHAN_CONTROL)
-    RET NZ   ; IF SO, END
-;   CHECK IF NO-ATTACK BIT IS SET (ONLY NEEDED IF IMPLEMENTING NOTE TIMEOUT)
-
-;   LIMIT VOLUME TO <= $0F
-    LD A, B
-    CP A, $10
-    JP C, +
-    LD B, $0F
-+:
-;   CHECK IF NOISE TYPE IS SET FOR TONE 2
-    LD A, $01
-    LD I, A
-    LD A, (sndNoiseType)
-    AND A, $03
-    CP A, $03
-    JP NZ, +    ; IF NOT, SKIP...
-;   CHECK IF CURRENT CHANNEL IS CHANNEL 2
-    LD A, C
-    AND A, CHANALL_BITS
-    CP A, CHAN2_BITS
-    JP NZ, +    ; IF NOT, SKIP
-;   ELSE, WRITE VOLUME TO CHANNEL 3 INSTEAD
-    LD A, C
-    ADD A, CHAN1_BITS
-    LD C, A
-    XOR A
-    LD I, A
-+:
-    LD A, B
-    OR A, C
-    OR A, $90
-    OUT (PSG_PORT), A
-;   CHECK IF FLAG WAS SET
-    LD A, I
-    DEC A
-    RET Z
-;   ELSE, RESTORE CHANNEL BITS
-    LD A, C
-    SUB A, CHAN1_BITS
-    LD C, A
-    RET
-*/
-/*
-envelopeHold:
-    DEC (IY + ENVELOPE_IDX)
-    RET
-*/
 
 processDuration:
 ;   SET DURATION
@@ -684,6 +472,7 @@ processDuration:
 ;   SET COUNTER
     LD (IY + DUR_COUNTER), A
     RET
+
 
 finishTrackUpdate:
 ;   RESET DURATION
@@ -696,7 +485,14 @@ finishTrackUpdate:
     RET
 
 
+
+/*
+------------------------------------------------
+            COORDINATION FLAG PROCESS
+------------------------------------------------
+*/
 processCF:
+;   PUSH RETURN ADDRESS
     LD HL, cfTable@return
     PUSH HL
 ;   CONVERT FLAG INTO OFFSET
@@ -704,17 +500,13 @@ processCF:
     ADD A, A
 ;   ADD TO TABLE
     LD HL, cfTable
-    ADD A, L
-    LD L, A
-    ADC A, H
-    SUB A, L
-    LD H, A
+    addToHL_M
     LD A, (HL)
     INC HL
     LD H, (HL)
     LD L, A
 ;   GET FUNCTION PTR AT ADDRESS
-;   GET DATA FROM CHANNEL
+;   GET DATA FROM TRACK
     LD A, (DE)
 ;   EXECUTE JUMP
     JP (HL)
@@ -733,7 +525,7 @@ cfTable:
     .DW @return             ; $EA (SET TEMPO)
     .DW @return             ; $EB (SET TEMPO DIVIDER ALL)
     .DW @cfChangePSGVol     ; $EC (CHANGE PSG VOL)
-    .DW @cfSetSwingFlag     ; $ED (CLEAR PUSH)
+    .DW @cfSetSwingFlag     ; $ED (SET SWING FLAG)
     .DW @cfReadLiteral      ; $EE (READ LITERAL MODE)
     .DW @return             ; $EF (SET FM VOICE)
     .DW @return             ; $F0 (MODULATION SETUP/ON)
@@ -749,8 +541,7 @@ cfTable:
     
 @return:
     INC DE
-    ;RET
-    JP sndProcess@loop@getNextByte@loop
+    JP trackUpdate@getNextByte@readLoop
 
 
 ;   ---------------------------------------------
@@ -796,7 +587,7 @@ cfTable:
     ; CLEAR SOUND ID
     LD (IY + SND_ID), $00
     ; SILENCE CHANNEL
-    CALL sndStopChannel@postCalcNoClear
+    CALL sndStopChannel@silenceChan
     ; PROCESS CH2 SOUND CONTROL
     LD A, (ch2SoundControl)
     OR A
@@ -807,10 +598,8 @@ cfTable:
     CALL NZ, processChan2SFXJR@soundEnded
     ; REMOVE CALLERS
     POP HL  ; CF RETURN CALLER
-    ;POP HL  ; CF PROCESS CALLER
-    ;POP HL  ; GET DATA CALLER
-    ; CHANNEL PROCESS END
-    JP sndProcess@prepareNext
+    ; TRACK PROCESS END
+    JP trackUpdate@prepareNext
 ;   ---------------------------------------------
 ;   F3 - NOISE TYPE
 @cfSetPSGNoise:
@@ -827,7 +616,7 @@ cfTable:
 ;   ---------------------------------------------
 ;   F6 - JUMP TO ADDRESS
 @cfJumpTo:
-    ; SET CHANNEL POINTER TO GIVEN ADDRESS
+    ; SET TRACK POINTER TO GIVEN ADDRESS
     EX DE, HL
     LD E, (HL)
     INC HL
@@ -842,13 +631,12 @@ cfTable:
                 AUX FUNCTIONS
 ------------------------------------------------
 */
-
-
 /*
-    A: SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
-    B: CHANNEL      [0 -> 3]
-
-    USED: AF, HL, DE, BC, IY
+    INFO: PLAYS A SFX GIVEN ITS ID AND TRACK TO PLAY ON
+    INPUT:  A - SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
+            B -TRACK    [0 -> 3]
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IY
 */
 sndPlaySFX:
 ;   SET BANK
@@ -856,20 +644,20 @@ sndPlaySFX:
     LD A, SOUND_BANK
     LD (MAPPER_SLOT2), A
     POP AF
-;
+;   SET TRACK POINTER
     LD IY, chan0
-;   CHECK IF CHANNEL NUMBER IS 0
+    ; CHECK IF TRACK NUMBER IS 0
     INC B
     DEC B
     JP Z, + ; IF SO, SKIP
-;   ELSE, CALCULATE ADDRESS FROM CHANNEL NUM
+    ; ELSE, CALCULATE ADDRESS FROM TRACK NUM
     LD DE, _sizeof_sndChannel
 -:  
     ADD IY, DE
     DJNZ -
 +:
     LD (IY + SND_ID), A
-;   SET POINTER
+;   SET TRACK DATA
     ; CONVERT SOUND NUMBER TO TABLE OFFSET
     SUB A, $81
     ADD A, A
@@ -920,7 +708,7 @@ sndPlaySFX:
 ;   RESTORE BANK
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
-;   CHECK IF CHANNEL 2 IS SELECTED
+;   CHECK IF TRACK 2 IS SELECTED
     LD HL, chan2
     LD E, IYL
     LD D, IYH
@@ -930,16 +718,18 @@ sndPlaySFX:
     ; CLEAR NOISE TYPE
     XOR A
     LD (sndNoiseType), A
-    ; CLEAR BOTH CHANNEL 2 AND 3'S VOLUME
+    ; CLEAR BOTH TRACK 2 AND 3'S VOLUME
     LD C, CHAN2_BITS
-    JP sndStopChannel@clrChan
+    JP sndStopChannel@silenceChan
+
 
 
 
 /*
-    A: SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
-
-    USED: AF, HL, DE, BC, IY
+    INFO: PLAYS MUSIC TRACK GIVEN ITS ID
+    INPUT:  A - SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IY
 */
 sndPlayMusic:
 ;   SET BANK
@@ -947,9 +737,8 @@ sndPlayMusic:
     LD A, SOUND_BANK
     LD (MAPPER_SLOT2), A
     POP AF
-;
+;   SET TRACK POINTERS
     LD IY, chan0
-;   SET POINTER
     ; CONVERT SOUND NUMBER TO TABLE OFFSET
     SUB A, $81
     ADD A, A
@@ -966,7 +755,7 @@ sndPlayMusic:
     INC HL      ; (AT TEMPO MULT)
     INC HL      ; (AT TEMPO)
 -:
-    ; POINT TO POINTER OF CHANNEL
+    ; POINT TO POINTER OF TRACK
     INC HL
     PUSH HL ; SAVE
     ; LOAD ADDRESS AT OFFSET
@@ -1016,33 +805,36 @@ sndPlayMusic:
 
 
 /*
-    B: CHANNEL
+    INFO: CLEARS TRACK'S PLAYING FLAG AND WRITES MAX ATTENUATION TO ITS CHANNEL
+    INPUT: B - TRACK NUMBER
+    OUTPUT: NONE
+    USES: AF, BC, DE, IY
 */
 sndStopChannel:
+;   GET TRACK POINTER
     LD IY, chan0
-    LD C, $00   ; CHANNEL 0
-    LD A, B     ; MOVE CHANNEL NUMBER TO A
-;   CHECK IF CHANNEL NUMBER IS 0
+    LD C, $00   ; CHANNEL BITS FOR CHANNEL 0
+    LD A, B     ; MOVE TRACK NUMBER TO A
+    ; CHECK IF TRACK NUMBER IS 0
     OR A
     JP Z, @postCalcChan ; IF SO, SKIP
-;   CALC ADDRESS FROM CHANNEL NUM
+    ; CALC ADDRESS FROM TRACK NUM
     LD DE, _sizeof_sndChannel
 -:  
-    ADD IY, DE  ; POINT TO NEXT CHANNEL
-    LD A, C     ; HAVE NEXT CHANNEL BITS
+    ADD IY, DE  ; POINT TO NEXT TRACK
+    LD A, C     ; PREPARE CHANNEL BITS
     ADD A, CHAN1_BITS
     LD C, A
     DJNZ -
 @postCalcChan:
 ;   CLEAR PLAYING FLAG
     LD (IY + CHAN_CONTROL), $00
-@postCalcNoClear:
-@clrChan:
+@silenceChan:
 ;   WRITE MAX ATTENUATION TO CHANNEL
     LD A, ~CHANALL_BITS
-    OR A, C     ; OR WITH CHANNEL
+    OR A, C     ; OR WITH CHANNEL BITS
     OUT (PSG_PORT), A
-;   CHECK IF CHANNEL IS 02
+;   CHECK IF TRACK 02 IS BEING PROCESSED
     LD A, C
     CP A, CHAN2_BITS
     RET NZ  ; IF NOT, EXIT
@@ -1052,24 +844,35 @@ sndStopChannel:
     OUT (PSG_PORT), A
     RET
 
+
+
+/*
+    INFO: RESETS ALL SOUND VARIABLES AND REGISTERS
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 sndInit:
 ;   CLEAR ALL SOUND VARIABLES
     XOR A
     LD HL, sndNoiseType
     LD (HL), A
     LD DE, sndNoiseType + 1
-    LD BC, _sizeof_sndChannel * 4 + 3
+    LD BC, _sizeof_sndChannel * TRACK_COUNT + $03
     LDIR
 ;   FALL THROUGH
 
 
 /*
-    NO ARGUMENTS
+    INFO: CLEARS PLAYING FLAGS FOR ALL TRACKS AND WRITES MAX ATTENUATION TO ALL CHANNELS
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, B, DE, HL
 */
 sndStopAll:
-    XOR A
 ;   CLEAR PLAYING FLAGS 
-    LD B, CHAN_COUNT
+    XOR A
+    LD B, TRACK_COUNT
     LD HL, chan0.chanControl
     LD DE, _sizeof_sndChannel
 -:
