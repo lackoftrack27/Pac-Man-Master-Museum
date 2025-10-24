@@ -104,14 +104,22 @@ loadTileAssets:
     CALL zx7_decompressVRAM
     ; EXPLOSION
     LD HL, jrExplosionTiles
-    LD DE, (192 * 32) | VRAMWRITE
+    LD DE, JR_EXPLODE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; HUD ICONS
     LD A, bank(jrHudIconTilesSmo)
     LD (MAPPER_SLOT2), A
     LD HL, jrHudIconTilesSmo
-    LD DE, $3C00 | VRAMWRITE
+    LD DE, JR_HUD_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
+        ; PLUS
+    LD A, (plusBitFlags)
+    RRCA
+    JR NC, +
+    LD HL, jrHudIconFruitPlus
+    LD DE, JR_HUD_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
++:
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     ; FRUIT
@@ -213,14 +221,22 @@ loadTileAssets:
     CALL zx7_decompressVRAM
     ; EXPLOSION
     LD HL, arcadeGFXData@explosion
-    LD DE, (192 * 32) | VRAMWRITE
+    LD DE, JR_EXPLODE_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
     ; HUD ICONS
     LD A, bank(jrHudIconTilesArc)
     LD (MAPPER_SLOT2), A
     LD HL, jrHudIconTilesArc
-    LD DE, $3C00 | VRAMWRITE
+    LD DE, JR_HUD_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
+        ; PLUS
+    LD A, (plusBitFlags)
+    RRCA
+    JR NC, +
+    LD HL, jrHudIconFruitPlus
+    LD DE, JR_HUD_VRAM | VRAMWRITE
+    CALL zx7_decompressVRAM
++:
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     ; FRUIT

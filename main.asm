@@ -2281,6 +2281,8 @@ jrRealScrollTable:
         .INCBIN "TILE_ICONS_JR_SMO.ZX7"
     jrHudIconTilesArc:
         .INCBIN "TILE_ICONS_JR_ARC.ZX7"
+    jrHudIconFruitPlus:
+        .INCBIN "TILE_ICONS_JR_PLUS.ZX7"
     jrMazeTxtCommTiles:
         .INCBIN "TILE_MAZETXT_JR.ZX7"
 .ENDS

@@ -416,6 +416,9 @@
 
 .DEFINE JR_CUT_VRAM             $11A0 - SPRITE_ADDR
 
+.DEFINE JR_EXPLODE_VRAM         $C0 * TILE_SIZE
+.DEFINE JR_HUD_VRAM             $3C00
+
 
 /*
                     PAC-MAN CONSTANTS
