@@ -1198,7 +1198,7 @@ fruitPositionTable:
                 SQUARED VALUES TABLE
 ----------------------------------------------------------
 */
-.SECTION "SQUARED VALUES TABLE" BANK CODE_BANK SLOT 0 FORCE ORG $7E00
+.SECTION "SQUARED VALUES TABLE" FORCE ORG $7E00
 squareTable:
     .DW $0000 $0001 $0004 $0009 $0010 $0019 $0024 $0031 $0040 $0051 $0064 $0079 $0090 $00A9 $00C4 $00E1 
     .DW $0100 $0121 $0144 $0169 $0190 $01B9 $01E4 $0211 $0240 $0271 $02A4 $02D9 $0310 $0349 $0384 $03C1 
@@ -1215,7 +1215,7 @@ squareTable:
 ----------------------------------------------------------
 */
 ;   $E0
-.SECTION "COLOR TABLES FOR POWER DOTS" BANK CODE_BANK SLOT 0 FORCE ORG $7F00
+.SECTION "COLOR TABLES FOR POWER DOTS" FORCE ORG $7F00
 colorDecTable:  ; $00
     .DB $00 $00 $01 $02 $00 $00 $01 $02
     .DB $04 $04 $05 $06 $08 $08 $09 $0A
@@ -1957,42 +1957,22 @@ msMazeGhostPath:
 
 
 ;               $YYXX
-/*
-.DEFINE B_U     $FF00
-.DEFINE B_R     $FFFF 
-.DEFINE B_L     $0001
-.DEFINE B_D     $0100
-.DEFINE B_UR    $FEFF
-.DEFINE B_DR    $00FF
-.DEFINE B_UL    $FF01
-.DEFINE B_DL    $0101
-.DEFINE B_Z     $0000
-*/
-.DEFINE B_U     $FF00
-.DEFINE B_R     $00FF 
-.DEFINE B_L     $0001
-.DEFINE B_D     $0100
-.DEFINE B_UR    $FFFF
-.DEFINE B_DR    $01FF
-.DEFINE B_UL    $FF01
-.DEFINE B_DL    $0101
-.DEFINE B_Z     $0000
+.DEFINE B_U     $FF00   ; MOVE UP
+.DEFINE B_R     $00FF   ; MOVE RIGHT
+.DEFINE B_L     $0001   ; MOVE LEFT
+.DEFINE B_D     $0100   ; MOVE DOWN
+.DEFINE B_UR    $FFFF   ; MOVE UP-RIGHT
+.DEFINE B_DR    $01FF   ; MOVE DOWN-RIGHT
+.DEFINE B_UL    $FF01   ; MOVE UP-LEFT
+.DEFINE B_DL    $0101   ; MOVE DOWN-LEFT
+.DEFINE B_Z     $0000   ; NO MOVEMENT
 
 fruitBounceFrames:
-    ; UP:       U U U U U U U U U Z U Z Z D Z D
-    ; UP_6:     U U U Z U U U Z U Z U Z Z D Z D
     .DW B_U, B_U, B_U, B_U, B_U, B_U, B_U, B_U, B_U, B_Z, B_U, B_Z, B_Z, B_D, B_Z, B_D
-    ; RIGHT:    Z UR Z R Z UR Z R Z R Z R Z DR DR Z
-    ; RIGHT_6:  Z UR Z R Z UR Z Z Z R Z R Z DR D Z
     .DW B_Z, B_UR, B_Z, B_R, B_Z, B_UR, B_Z, B_R, B_Z, B_R, B_Z, B_R, B_Z, B_DR, B_DR, B_Z
-    ; LEFT:     Z Z UL Z L Z UL Z L Z L Z L Z DL DL
-    ; LEFT_6:   Z Z UL Z L Z UL Z Z Z L Z L Z DL D
     .DW B_Z, B_Z, B_UL, B_Z, B_L, B_Z, B_UL, B_Z, B_L, B_Z, B_L, B_Z, B_L, B_Z, B_DL, B_DL
-    ; DOWN:     Z D D D D D D D D D D D U U Z U
-    ; DOWN_6:   Z D D D Z D D D Z D D D U U Z U
     .DW B_Z, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_U, B_U, B_Z, B_U
 .ENDS
-
 
 /*
 ----------------------------------------------------------
@@ -2216,7 +2196,6 @@ jrLeftTileTable:
 
     ; VAL = (328 + 12) - (X - X/4)
     ; $00 - $70 = $01 HIBYTE
-
 jrScaleTable:
 ;   H: $3A, $400
     .DW $0154, $0153, $0152, $0151, $0151, $0150, $014F, $014E, $014E, $014D, $014C, $014B, $014B, $014A, $0149, $0148
@@ -2256,6 +2235,7 @@ jrScaleTable:
     .DW $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
 
 
+    ; USES VALUE RETRIEVED IN jrScaleTable AS INDEX
 jrRealScrollTable:
 ;   H: $3E, $147
     .DB $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28, $28
@@ -2600,7 +2580,7 @@ jrRealScrollTable:
 
 /*
 ----------------------------------------------------------
-                    ACTOR TILE DATA
+                ACTOR/OBJECT TILE DATA
 ----------------------------------------------------------
 */
 .SECTION "ACTOR GFX DATA [PART 1]" BANK ACTOR_GFX_BANK SLOT 2 FREE
@@ -2630,6 +2610,18 @@ jrRealScrollTable:
         .INCBIN "TILE_OTTOGHOSTS_PLUS.ZX7"
     jrExplosionTiles:
         .INCBIN "TILE_EXPLODE.ZX7"
+    ; CUTSCENE STUFF
+.INCDIR "ASSETS/CUTSCENE/SMOOTH"
+    cutscenePacTiles:
+        .INCBIN "TILE_PAC.ZX7"
+    cutsceneGhostTiles:
+        .INCBIN "TILE_GHOST.ZX7"
+    @plus:
+        .INCBIN "TILE_GHOST_PLUS.ZX7"
+    msCutsceneTiles:
+        .INCBIN "TILE_MSCUT.ZX7"
+    jrCutsceneTiles:
+        .INCBIN "TILE_JRCUT.ZX7"
 ;   ARCADE
 .INCDIR "ASSETS/GAMEPLAY/ARCADE"
 arcadeGFXData:
@@ -2657,6 +2649,7 @@ arcadeGFXData:
         .INCBIN "TILE_OTTOGHOSTS_PLUS.ZX7"
     @explosion:
         .INCBIN "TILE_EXPLODE.ZX7"
+    ; CUTSCENE STUFF
 .INCDIR "ASSETS/CUTSCENE/ARCADE"
     @cutscenePac:
         .INCBIN "TILE_PAC.ZX7"
@@ -2666,10 +2659,11 @@ arcadeGFXData:
         .INCBIN "TILE_GHOST_PLUS.ZX7"
     @cutsceneMs:
         .INCBIN "TILE_MSCUT.ZX7"
-    @cutsceneJr:
 .ENDS
 
-.SECTION "ACTOR GFX DATA [PART 2]" BANK MAZE_OTHER_BANK SLOT 2 FREE
+.SECTION "ACTOR GFX DATA [PART 2]" BANK ACTOR3_GFX_BANK SLOT 2 FREE
+    @cutsceneJr:
+        .INCBIN "TILE_JRCUT.ZX7"
 .INCDIR "ASSETS/GAMEPLAY/ARCADE"
     @jrFruit:
         .INCBIN "TILE_JRFRUIT.ZX7"
@@ -2681,31 +2675,9 @@ arcadeGFXData:
         .INCBIN "TILE_JRFRUIT.ZX7"
 .ENDS
 
-
 /*
 ----------------------------------------------------------
-                    CUTSCENE TILE DATA
-----------------------------------------------------------
-*/
-.SECTION "CUTSCENE GFX DATA" BANK ACTOR_GFX_BANK SLOT 2 FREE
-    .INCDIR "ASSETS/CUTSCENE/SMOOTH"
-    cutscenePacTiles:
-        .INCBIN "TILE_PAC.ZX7"
-    cutsceneGhostTiles:
-        .INCBIN "TILE_GHOST.ZX7"
-    @plus:
-        .INCBIN "TILE_GHOST_PLUS.ZX7"
-    msCutsceneTiles:
-        .INCBIN "TILE_MSCUT.ZX7"
-    jrCutsceneTiles:
-        .INCBIN "TILE_JRCUT.ZX7"
-.ENDS
-
-
-
-/*
-----------------------------------------------------------
-                JR CUTSCENE BG TILE DATA
+                JR CUTSCENE BG DATA
 ----------------------------------------------------------
 */
 .SECTION "JR CUTSCENE BG TILE DATA [PART 1]" BANK MAZE_GFX_BANK SLOT 2 FREE
@@ -2716,7 +2688,7 @@ arcadeGFXData:
         .INCBIN "TILE_JRCUT0.ZX7"
 .ENDS
 
-.SECTION "JR CUTSCENE BG TILE DATA [PART 2]" BANK MAZE_OTHER_BANK SLOT 2 FREE
+.SECTION "JR CUTSCENE BG TILE DATA [PART 2]" BANK ACTOR3_GFX_BANK SLOT 2 FREE
     .INCDIR "ASSETS/CUTSCENE"
     jrCut1Tiles:
         .INCBIN "TILE_JRCUT1.ZX7"
@@ -2724,12 +2696,6 @@ arcadeGFXData:
         .INCBIN "TILE_JRCUT2.ZX7"
 .ENDS
 
-
-/*
-----------------------------------------------------------
-                JR CUTSCENE BG TILEMAP DATA
-----------------------------------------------------------
-*/
 .SECTION "JR CUTSCENE BG TILEMAP DATA" BANK MAZE_TILEMAP_BANK SLOT 2 FREE
     .INCDIR "ASSETS/CUTSCENE"
     jrAttractTilemap:
@@ -2804,4 +2770,3 @@ jrDTileA07:
 ;   MAZE TEXT?
 .INCDIR "ASSETS"
 .INCLUDE "TILE_MAZETXT.INC"
-

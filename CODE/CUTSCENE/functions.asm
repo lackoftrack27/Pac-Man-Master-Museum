@@ -1238,8 +1238,13 @@ jrCutSetup:
     LD A, (plusBitFlags)
     AND A, $01 << STYLE_0
     JP Z, zx7_decompressVRAM
-    LD HL, arcadeGFXData@cutsceneJr 
-    JP zx7_decompressVRAM
+    LD HL, arcadeGFXData@cutsceneJr
+    LD A, bank(arcadeGFXData@cutsceneJr)
+    LD (MAPPER_SLOT2), A
+    CALL zx7_decompressVRAM
+    LD A, DEFAULT_BANK
+    LD (MAPPER_SLOT2), A
+    RET
 
 
 
