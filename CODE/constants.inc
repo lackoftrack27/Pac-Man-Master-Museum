@@ -209,6 +209,9 @@
     P2_TH           DB
 .ENDE
 
+/*
+                    BANKS
+*/
 
 .DEFINE CODE_BANK           $00
 .DEFINE HEADER_BANK         $01
