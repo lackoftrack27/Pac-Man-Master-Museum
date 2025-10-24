@@ -54,8 +54,6 @@ sStateCutsceneTable:
 .INCLUDE "jrScene1.asm"
 .INCLUDE "jrScene2.asm"
 
-//.INCLUDE "waitTrans.asm"
-
 .INCLUDE "functions.asm"
 
 
