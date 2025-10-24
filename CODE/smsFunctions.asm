@@ -80,14 +80,15 @@ turnOnLineInts:
     INPUT: hl = data address, bc = data length
     OUTPUT: NONE
     USES: AF, HL, BC
-    B, DE, 
 */
 copyToVDP:
-    LD A, (HL)    ; Get data byte
+    LD A, (HL)      ; WRITE BYTE TO VDP
     OUT (VDPDATA_PORT), A
     CPI     ; POINT TO NEXT BYTE AND DECREMENT COUNTER
     JP PE, copyToVDP    ; KEEP LOOPING UNTIL BC IS 0
     RET
+    
+
 
 
 
@@ -98,7 +99,7 @@ copyToVDP:
     USES: AF, HL, BC
 */
 copyFromVDP:
-    IN A, (VDPDATA_PORT)
+    IN A, (VDPDATA_PORT)    ; COPY BYTE FROM VDP TO DATA
     LD (HL), A
     CPI     ; POINT TO NEXT BYTE AND DECREMENT COUNTER
     JP PE, copyFromVDP    ; KEEP LOOPING UNTIL BC IS 0

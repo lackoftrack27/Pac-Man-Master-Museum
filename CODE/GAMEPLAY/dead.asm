@@ -170,11 +170,12 @@ sStateGameplayTable@dead02Mode:
     BIT PLAYER_MODE, (HL)
     JR Z, + ; IF NOT, SKIP...
 @@@swapPlayers:
-;   TOGGLE CURRENT PLAYER BIT (BIT 1)
+;   SWITCHING PLAYERS...
+    ; TOGGLE CURRENT PLAYER BIT (BIT 1)
     LD A, $01 << CURR_PLAYER
     XOR A, (HL)
     LD (HL), A
-;   SWAP PLAYER DATA (NON MAZE STUFF)
+    ; SWAP PLAYER DATA (NON MAZE STUFF)
     LD IX, currPlayerInfo
     LD IY, altPlayerInfo
     LD B, _sizeof_playerInfo
@@ -186,10 +187,10 @@ sStateGameplayTable@dead02Mode:
     INC IX
     INC IY
     DJNZ -
-;   SWAP PLAYER DATA (MAZE STUFF)
+    ; SWAP PLAYER DATA (MAZE STUFF)
     LD IX, mazeGroup1   ; CURRENT PLAYER
     LD IY, mazeGroup2   ; ALT PLAYER
-    LD BC, _sizeof_mazeGroup1
+    LD BC, lobyte(_sizeof_mazeGroup1) * $100 + hibyte(_sizeof_mazeGroup1) + $01
 -:
     LD E, (IX + 0)
     LD D, (IY + 0)
@@ -197,8 +198,12 @@ sStateGameplayTable@dead02Mode:
     LD (IX + 0), D
     INC IX
     INC IY
-    CPI
-    JP PE, -
+    DJNZ -
+    DEC C
+    JP NZ, -
+    ; TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
+    XOR A
+    LD (vblankFlag), A
 +:
 ;   SWITCH TO SECOND READY MODE
     LD HL, $01 * $100 + GAMEPLAY_READY01

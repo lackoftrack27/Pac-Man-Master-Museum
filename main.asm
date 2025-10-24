@@ -312,12 +312,13 @@ main:
     LD HL, $0000 | VRAMWRITE
     RST setVDPAddress
     ; WRITE ZEROS TO VRAM
-    LD BC, VRAM_SIZE    ; 16KB COUNTER
+    LD BC, lobyte(VRAM_SIZE) * $100 + hibyte(VRAM_SIZE)
     XOR A               ; DATA VALUE
 -:
     OUT (VDPDATA_PORT), A
-    CPI         ; DECREMENTS BC
-    JP PE, -    ; P/V IS CLEARED WHEN BC OVERFLOWS
+    DJNZ -
+    DEC C
+    JP NZ, -
 ;   INITIALIZE VDP REGISTERS
     LD HL, vdpInitData
     LD BC, _sizeof_vdpInitData * $100 + VDPCON_PORT
