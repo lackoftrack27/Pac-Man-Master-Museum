@@ -31,13 +31,12 @@ sStateAttractTable@optionsMode:
 ;   CLEAR TILEMAP
     LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress
-    LD DE, MAZE_TILEMAP_SIZE
--:
+    LD BC, lobyte(NAMETABLE_SIZE) * $100 + hibyte(NAMETABLE_SIZE)
     XOR A
+-:
     OUT (VDPDATA_PORT), A
-    DEC DE
-    LD A, D
-    OR A, E
+    DJNZ -
+    DEC C
     JR NZ, -
 ;   DRAW LIVES TEXT AND TYPE
     LD A, (liveIndex)

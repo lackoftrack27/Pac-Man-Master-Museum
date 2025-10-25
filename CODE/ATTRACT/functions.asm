@@ -363,13 +363,12 @@ generalIntroSetup00:
     LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress
     ; WRITE ZEROS TO VRAM
-    LD DE, $800
--:
     XOR A
+    LD BC, lobyte(NAMETABLE_SIZE + SPRTABLE_SIZE) * $100 + hibyte(NAMETABLE_SIZE + SPRTABLE_SIZE)
+-:
     OUT (VDPDATA_PORT), A
-    DEC DE
-    LD A, D
-    OR A, E
+    DJNZ -
+    DEC C
     JR NZ, -
 ;   USE PRIORITY TILE TO COVER ACTORS
     ; HIGH BYTE (PRIORITY / INDEX MSB)
