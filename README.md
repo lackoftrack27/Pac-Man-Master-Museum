@@ -1,6 +1,6 @@
 # Pac-Man Master Museum
 
-An **accuracy-focused** conversion of *Pac-Man* and *Ms. Pac-Man* for the Sega Master System.
+An **accuracy-focused** conversion of *Pac-Man*, *Ms. Pac-Man*, and *Jr. Pac-Man* for the Sega Master System.
 
 **Download Here:** https://www.smspower.org/Homebrew/Pac-ManMasterMuseum-SMS
 
@@ -10,8 +10,9 @@ An **accuracy-focused** conversion of *Pac-Man* and *Ms. Pac-Man* for the Sega M
 - **High Accuracy:** The games play just like the originals. 
   - The Ghost AI is faithfully replicated. Patterns for the originals can be executed here as well. *(Not 100% verified)*
   - Sound effects and music are as accurate as possible given the limitations of the SN76489, the Master System's sound chip.
-- **Game Selection:** Choose between *Pac-Man* and *Ms. Pac-Man* by pressing left or right on the title screen.
+- **Game Selection:** Choose between *Pac-Man*, *Ms. Pac-Man*, and *Jr. Pac-Man* by pressing left or right on the title screen.
   - Press **Button 2** to play the *Plus* variants.
+  - There's a *crazy* surprise game awaiting as well! 
 - **Customizable:** Difficulty, life count, bonus life, and other settings are fully configurable in the options menu.
   - The popular speed-up mode can be toggled in the options menu as well.
 - **Two Graphic Styles:**
@@ -40,12 +41,32 @@ This project wouldn't nearly be as polished without the help of these people:
 - **umjammercammy** – Art and general guidance
 
 Additional Credits:
-- **Einar Saukas** - ZX7 compression algorithm used here to compress graphics and tilemaps
+- **Einar Saukas** - [ZX7 compression](https://spectrumcomputing.co.uk/entry/27996/ZX-Spectrum/ZX7) algorithm used here to compress graphics and tilemaps
+- **Maxim** - [BMP2Tile](https://github.com/maxim-zhao/bmp2tile)
 
 ---
 
 
 ## Changelog
+
+**v3.00**
+- Added Jr. Pac-Man and Jr. Pac-Man Plus
+	- They feature a larger viewable area compared to the original at the cost of some ghost AI accuracy
+- Minor corrections to ghost AI
+- Changed maze palettes for Ms. Pac-Man Plus to be more appealing
+- Added IGR button combo for MD/Genesis controllers (Start + A + B + C)
+- Added Crazy Otto as a bonus game
+	- Crazy Otto is one of the many iterations Ms. Pac-Man went through before starring one of gaming's most famous icons
+	- Features a completely different cast: Otto, "Plato", "Darwin", "Freud", "Newton", and Anna
+	- Gameplay is almost identical to Ms. Pac-Man except ~ 
+		- Freud and Newton, (Inky and Clyde), have random movement during Scatter Mode
+		- Monsters turn invisible when eaten instead of only having their eyes viewable. The accompanying sound effect does not play either
+
+**v2.20**
+-   Fixed a bug where the ghosts wouldn't be eaten during Pac-Man's introduction.
+-   Fixed the 6th fruit sprite on the HUD for Ms. Pac-Man Plus.
+-   Properly initialized player inactivity timer.
+
 **v2.10**
 - Fixed a bug where the player could still die after eating the last dot
 - Fruit timer now decrements when eating a ghost
