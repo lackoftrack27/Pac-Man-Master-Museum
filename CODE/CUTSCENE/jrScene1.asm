@@ -9,9 +9,6 @@ sStateCutsceneTable@jrScene1:
     OR A
     JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
 @@enter:
-;   CLEAR STATE FLAG
-    XOR A
-    LD (isNewState), A
 ;   CUTSCENE 2 SETUP FOR JR. PAC
     LD HL, jrScene1ProgTable
     CALL jrCutSetup
