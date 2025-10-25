@@ -15,28 +15,34 @@ sStateGameplayTable@normalMode:
     ; CHECK IF INVISIBLE FLAG IS SET
     LD HL, plusBitFlags
     BIT INVISIBLE_MAZE, (HL)
-    JR Z, @@draw    ; IF NOT, SKIP
+    JP Z, @@draw    ; IF NOT, SKIP
     ; CLEAR FLAG
     RES INVISIBLE_MAZE, (HL)
     ; RESTORE COLORS
     LD HL, $0000 | CRAMWRITE
-    RST setVDPAddress
+    LD BC, BGPAL_PDOT0 * $100 + VDPCON_PORT     ; DO UP TO, BUT NOT INCLUDING, 1ST POW DOT COLOR
+    OUT (C), L
+    OUT (C), H
     LD HL, mazePalette
-    LD BC, BGPAL_PDOT0 * $100 + VDPDATA_PORT    ; DO UP TO, BUT NOT INCLUDING, 1ST POW DOT COLOR
+    DEC C
     OTIR
 @@draw:
-;   OFF
+.IF SAFE_DRAW != $00
+;   TURN OFF SCREEN
     LD A, $A0
     OUT (VDPCON_PORT), A
     LD A, $81
     OUT (VDPCON_PORT), A
+.ENDIF
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
-;   ON
+.IF SAFE_DRAW != $00
+;   TURN ON SCREEN
     LD A, $E0
     OUT (VDPCON_PORT), A
     LD A, $81
     OUT (VDPCON_PORT), A
+.ENDIF
 @@update:
 ;   CHECK FOR ALL DOTS EATEN
     CALL allDotsEatenCheck

@@ -6,6 +6,26 @@
 
 
 /*
+    INFO: RESETS SOME FRUIT VARIABLES
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, HL
+*/
+fruitReset:
+    XOR A
+    LD H, A
+    LD L, A
+    LD (fruit + X_WHOLE), HL
+    LD (fruit + Y_WHOLE), HL
+    LD (fruit + STATE), A
+    INC A
+    LD (fruit + OFFSCREEN_FLAG), A
+    LD A, $15
+    LD (fruit.sprTableNum), A
+    RET
+
+
+/*
     INFO: CHECK IF PAC-MAN IS EATING A FRUIT
     INPUT: NONE
     OUTPUT: NONE

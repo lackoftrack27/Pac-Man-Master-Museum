@@ -117,16 +117,13 @@ gamePlayInit:
     DEC (HL)
 ;   SETUP PLAYER TILE POINTERS
     CALL setupTilePtrs
-
-    ;LD A, $06
-    ;LD (currPlayerInfo.level), A
 ;   UPLOAD TILES FOR LIFE HUD (IF GAME ISN'T JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP NZ, generalResetFunc
+    JR NZ, generalResetFunc
     ; SET VDP ADDRESS
     LD C, VDPCON_PORT
-    LD HL, $3B80 | VRAMWRITE
+    LD HL, HUD_LIFE_VRAM | VRAMWRITE
     OUT (C), L
     OUT (C), H
     DEC C   ; VDP DATA PORT
@@ -158,7 +155,7 @@ generalResetFunc:
 ;   LOAD MAZE TEXT SPRITES
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP NZ, +
+    JR NZ, +
     ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + MAZETXT_VRAM + ($0B * TILE_SIZE) | VRAMWRITE
     RST setVDPAddress
@@ -173,7 +170,7 @@ generalResetFunc:
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
-    JP @loadSprites
+    JR @loadSprites
 +:
     LD A, bank(jrMazeTxtCommTiles)
     LD (MAPPER_SLOT2), A
@@ -257,13 +254,13 @@ generalResetFunc:
     LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress
     LD HL, mazeGroup1.tileMap
-    LD BC, $600
+    LD BC, NAMETABLE_SIZE
     CALL copyToVDP
 @prepareMazeText:
 ;   PAC/MS.PAC DRAW MAZE TEXT AS SPRITES, JR DRAWS AS BG
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP NZ, @saveTileMapJr
+    JR NZ, @saveTileMapJr
     ; SKIP IF GAMEMODE ISN'T 1ST READY STATE
     LD A, (subGameMode)
     CP A, GAMEPLAY_READY00
@@ -287,7 +284,7 @@ generalResetFunc:
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
-    JP @firstTimeChk
+    JR @firstTimeChk
 @saveTileMapJr:
 ;   SAVE TILEMAP AREA TO RAM FOR "PLAYER ONE/TWO" & "READY"
     LD C, VDPCON_PORT
@@ -487,24 +484,11 @@ firstTimeEnd:
     CALL pinkyReset     
     CALL inkyReset
     CALL clydeReset
-
-    XOR A
-    LD H, A
-    LD L, A
-    LD (fruit + X_WHOLE), HL
-    LD (fruit + Y_WHOLE), HL
-    LD (fruit + STATE), A
-    INC A
-    LD (fruit + OFFSCREEN_FLAG), A
-    LD A, $15
-    LD (fruit.sprTableNum), A
+    CALL fruitReset
 ;   DRAW STATIC HUD
-    ; HIGH SCORE AND SCORE TEXT
-    CALL drawScoresText
-    ; LIVES
-    CALL drawLives
-    ; FRUIT
-    CALL drawFruitHUD
+    CALL drawScoresText ; HIGH SCORE AND SCORE TEXT
+    CALL drawLives      ; LIVES
+    CALL drawFruitHUD   ; FRUIT
 ;   TURN ON DISPLAY
     CALL waitForVblank
     EI

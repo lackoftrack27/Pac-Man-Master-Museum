@@ -75,6 +75,7 @@ sStateGameplayTable@gameoverMode:
     JP NC, @@@enterEnd
     LD (pacman.xPos), DE
 @@@enterEnd:
+    ; TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
     XOR A
     LD (vblankFlag), A
     RET 
