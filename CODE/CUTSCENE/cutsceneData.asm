@@ -624,7 +624,6 @@ msScene0ProgTable:
     .DW msScene0Prog4
     .DW msScene0Prog5
     .DW cutsceneEnd
-    .DW cutsceneEnd
     ; OTTO
 ottoScene0ProgTable:
     .DW ottoScene0Prog0
@@ -633,7 +632,6 @@ ottoScene0ProgTable:
     .DW msScene0Prog3
     .DW msScene0Prog4
     .DW msScene0Prog5
-    .DW cutsceneEnd
     .DW cutsceneEnd
 
 
@@ -646,7 +644,6 @@ msScene1ProgTable:
     .DW msScene1Prog4
     .DW msScene1Prog5
     .DW cutsceneEnd
-    .DW cutsceneEnd
 
 
 ;   MS PAC-MAN SCENE 2 POINTERS
@@ -657,7 +654,6 @@ msScene2ProgTable:
     .DW msScene2Prog3
     .DW msScene2Prog4
     .DW msScene2Prog5
-    .DW cutsceneEnd
     .DW cutsceneEnd
 
 
@@ -670,7 +666,6 @@ jrAttractProgTable:
     .DW jrAttractProg4
     .DW jrAttractProg5
     .DW jrAttractProg6
-    .DW cutsceneEnd
 
 
 ;   JR PAC-MAN SCENE 0 POINTERS
@@ -679,7 +674,6 @@ jrScene0ProgTable:
     .DW jrScene0Prog1
     .DW jrScene0Prog2
     .DW jrScene0Prog3
-    .DW cutsceneEnd
     .DW cutsceneEnd
     .DW cutsceneEnd
     .DW cutsceneEnd
@@ -694,7 +688,6 @@ jrScene1ProgTable:
     .DW jrScene1Prog4
     .DW jrScene1Prog5
     .DW cutsceneEnd
-    .DW cutsceneEnd
 
 
 ;   JR PAC-MAN SCENE 2 POINTERS
@@ -706,4 +699,3 @@ jrScene2ProgTable:
     .DW jrScene2Prog4
     .DW jrScene2Prog5
     .DW jrScene2Prog6
-    .DW cutsceneEnd

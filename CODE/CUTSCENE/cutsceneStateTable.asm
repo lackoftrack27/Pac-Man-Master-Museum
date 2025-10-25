@@ -11,10 +11,10 @@
 .DEFINE     msCut_SubTileTblPtr     workArea + $02  ; 2 BYTES
 .DEFINE     msCut_GhostTileTblPtr   workArea + $04  ; 2 BYTES
 .DEFINE     jrCut_JrTileTblPtr      workArea + $06  ; 2 BYTES
-.DEFINE     jrCutsceneVarFB         workArea + $08  ; 2 BYTES
-.DEFINE     jrCut_OverrideFlags     workArea + $09  ; 8 BYTES
-.DEFINE     jrCutScreenFlagList     workArea + $11  ; 8 BYTES
-.DEFINE     jrSwingCounter          workArea + $1A
+.DEFINE     jrCutsceneVarFB         workArea + $08
+.DEFINE     jrSwingCounter          workArea + $09
+.DEFINE     jrCut_OverrideFlags     workArea + $0A  ; 7 BYTES
+.DEFINE     jrCutScreenFlagList     jrCut_OverrideFlags + PROG_AMOUNT   ; 7 BYTES
 
 
 

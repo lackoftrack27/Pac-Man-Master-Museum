@@ -230,18 +230,22 @@ pacCutResSpritePal:
         CUTSCENE ANIMATION FUNCS FOR MS. PAC
 --------------------------------------------------------
 */
-
-;   8 INDEPENDENT SUB PROGRAMS RUNNING IN PARALLEL
-
 ;   COMMANDS:
 ;           $F0 - "LOOP":       X, Y
 ;           $F1 - "SET POS":    X, Y
 ;           $F2 - "SETN":       VAL (DB)
 ;           $F3 - "SET CHAR":   VAL (DW)
+;           $F4 - "SET BG PRIORITY": VAL (DB) (NOT IMPLEMENTED)
 ;           $F5 - "PLAY SOUND": VAL (DB) (NOT IMPLEMENTED)
 ;           $F6 - "PAUSE":
 ;           $F7 - "CLR TEXT":
-;           $F8 - "CLR NUM":     
+;           $F8 - "CLR NUM":  
+;           $F9 - "SET BG PALETTE": VAL (DB)
+;           $FA - "CLEAR POWER DOT": VAL (DB)
+;           $FB - "SET JR VAR": VAL (DB)
+;           $FC - "DECREMENT PTR": VAL (DB)
+;           $FD - "SET OVERRIDE OFFSCREEN FLAG": VAL (DB)
+;           $FE - "SET X MSB": VAL (DB)   
 ;           $FF - "END":
 
 commandJumpTable:
@@ -401,10 +405,10 @@ msSceneCommonDrawUpdate:
     CALL draw1UP
 ;   DO CUTSCENE DRAW
     ; SETUP
-    LD IYL, $06                     ; COUNTER
-    LD IX, cutsceneControl.charList + $0A       ; START AT LAST CHAR
-    LD DE, cutsceneControl.charOffsetList + $05 ; START AT LAST OFFSET
-    LD BC, cutsceneControl.posList + $0B        ; START AT LAST Y       
+    LD IYL, PROG_AMOUNT - $01                                       ; COUNTER
+    LD IX, cutsceneControl.charList + (PROG_AMOUNT-$02) * $02       ; START AT LAST CHAR
+    LD DE, cutsceneControl.charOffsetList + (PROG_AMOUNT-$02)       ; START AT LAST OFFSET
+    LD BC, cutsceneControl.posList + (PROG_AMOUNT-$02) * $02 + $01  ; START AT LAST Y       
 -:
     ; GET CHARACTER ARRAY PTR
     LD L, (IX + 0)
@@ -548,8 +552,8 @@ cutAniProcess:
 ;   SETUP
     LD A, CUTSCENE_DATA_BANK
     LD (MAPPER_SLOT2), A
-    LD B, $08   ; COUNTER
-    LD IX, cutsceneControl.ptrList + $0E
+    LD B, PROG_AMOUNT
+    LD IX, cutsceneControl.ptrList + (PROG_AMOUNT-1) * $02
 @loop:
 ;   GET SUB PROG PTR
     LD L, (IX + 0)
@@ -568,41 +572,6 @@ cutAniProcess:
     SUB A, IYL
     LD IYH, A
     JP (IY)
-    /*
-    ; JR SPECIFIC COMMANDS
-    CP A, $FE
-    JP Z, @cmdSetHighXPos
-    CP A, $FD
-    JP Z, @cmdSetOverrideFlag
-    CP A, $FC
-    JP Z, @cmdDecPtr
-    CP A, $FB
-    JP Z, @cmdSetJrVar
-    CP A, $FA
-    JP Z, @cmdClrPowDot
-    CP A, $F9
-    JP Z, @cmdSetBGPal
-    CP A, $F4
-    JP Z, @cmdSetBGPri
-    ; COMMON COMMANDS
-    CP A, $F0
-    JP Z, @cmdLoop
-    CP A, $F1
-    JP Z, @cmdSetPos
-    CP A, $F2
-    JP Z, @cmdSetN
-    CP A, $F3
-    JP Z, @cmdSetChar
-    CP A, $F5
-    JP Z, @cmdPlaySnd
-    CP A, $F6
-    JP Z, @cmdPause
-    CP A, $F7
-    JP Z, @cmdClrText
-    CP A, $F8
-    JP Z, @cmdClrNum
-    JP @cmdStop
-    */
 
 /*
     COMMAND - "LOOP": X, Y
@@ -1031,20 +1000,10 @@ cutAniProcess:
 ;   CHECK IF ALL FLAGS ARE SET
     LD HL, cutsceneControl.doneList
     LD A, (HL)
+.REPEAT PROG_AMOUNT - $01
     INC HL
     AND A, (HL)
-    INC HL
-    AND A, (HL)
-    INC HL
-    AND A, (HL)
-    INC HL
-    AND A, (HL)
-    INC HL
-    AND A, (HL)
-    INC HL
-    AND A, (HL)
-    INC HL
-    AND A, (HL)
+.ENDR
 ;   FINISH
     LD DE, $0000        ; ADVANCE BY 0 BYTES...
     JR Z, cmdCleanUp01  ; IF ANY FLAG ISN'T SET (PROG NOT DONE)
@@ -1164,9 +1123,9 @@ cutFuncCalcMovement:
 
 
 /*
--------------------------------------
-            JR PAC-MAN
--------------------------------------
+--------------------------------------------------------
+        CUTSCENE ANIMATION FUNCS FOR JR.PAC
+--------------------------------------------------------
 */
 
 ;   HL: PROG TABLE FOR CUTSCENE
@@ -1209,13 +1168,13 @@ jrCutSetup:
     ; INIT. OVERRIDE FLAGS 
     LD HL, jrCut_OverrideFlags
     LD DE, jrCut_OverrideFlags + $01
-    LD BC, $05
+    LD BC, PROG_AMOUNT - $02    ; ONLY 6 ACTORS/OFFSCREEN FLAGS
     LD (HL), $01
     LDIR
     ; INIT. OFFSCREEN FLAGS FOR CUTSCENES (COPY OF ACTOR FLAGS)
     LD HL, jrCutScreenFlagList
     LD DE, jrCutScreenFlagList + $01
-    LD BC, $07
+    LD BC, PROG_AMOUNT - $01
     LD (HL), $00
     LDIR
 ;   TILE POINTER SETUP
@@ -1282,15 +1241,10 @@ jrSceneCommonDrawUpdate:
     AND A, (HL)
     LD (DE), A
     ; SETUP
-    ;LD IYL, $08                     ; COUNTER
-    ;LD IX, cutsceneControl.charList + $0E       ; START AT LAST CHAR
-    ;LD DE, cutsceneControl.charOffsetList + $07 ; START AT LAST OFFSET
-    ;LD BC, cutsceneControl.posList + $0F        ; START AT LAST Y
-
-    LD IYL, $07                     ; COUNTER
-    LD IX, cutsceneControl.charList + $0C       ; START AT LAST CHAR
-    LD DE, cutsceneControl.charOffsetList + $06 ; START AT LAST OFFSET
-    LD BC, cutsceneControl.posList + $0D        ; START AT LAST Y
+    LD IYL, PROG_AMOUNT                         ; COUNTER
+    LD IX, cutsceneControl.charList + (PROG_AMOUNT-1) * $02         ; START AT LAST CHAR
+    LD DE, cutsceneControl.charOffsetList + (PROG_AMOUNT-1)         ; START AT LAST OFFSET
+    LD BC, cutsceneControl.posList + (PROG_AMOUNT-1) * $02 + $01    ; START AT LAST Y
 -:
     ; SKIP IF OFFSCREEN FLAG IS SET
     LD HL, jrCutScreenFlagList - $01
@@ -1634,7 +1588,6 @@ jrSceneCommonDrawUpdate:
     INC A
     CP A, $0B   ; SCROLL MORE THAN $D8
     JP C, updateJRScroll@cutsceneJump
-    ;LD A, 0   ; SCROLL IN EMPTY COLUMN
     XOR A       ; WILL BE ADDED TO $1F, SINCE SCROLLING RIGHT
     LD (jrLeftMostTile), A
 ;   UPDATE CAMERA POS, OFFSCREEN FLAGS, COLUMN, SCROLL FLAG
