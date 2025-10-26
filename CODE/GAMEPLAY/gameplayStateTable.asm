@@ -159,14 +159,13 @@ generalResetFunc:
     ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + MAZETXT_VRAM + ($0B * TILE_SIZE) | VRAMWRITE
     RST setVDPAddress
-    ; GET CORRECT TILES
-    LD HL, mazeTxtTileREADY
     ; WRITE TO VRAM
-    LD A, UNCOMP_BANK
+    LD HL, mazeTxtTileREADY ; "READY" & "GAME  OVER"
+    LD A, bank(mazeTxtTileREADY)
     LD (MAPPER_SLOT2), A
-    LD BC, VDPDATA_PORT
+    LD BC, VDPDATA_PORT ; 8 TILES
     OTIR
-    LD B, 96
+    LD B, 3 * TILE_SIZE ; 3 TILES
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
@@ -265,7 +264,7 @@ generalResetFunc:
     LD A, (subGameMode)
     CP A, GAMEPLAY_READY00
     JR NZ, @firstTimeChk
-    ; WRITE "PLAYER" TILES FOR PAC/MS.PAC
+    ; WRITE "PLAYER ONE" TILES FOR PAC/MS.PAC
         ; SAVE SOME TILES IN RAM
     LD HL, SPRITE_ADDR + PAC_VRAM + $80
     RST setVDPAddress
@@ -275,12 +274,11 @@ generalResetFunc:
         ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
     RST setVDPAddress
-        ; GET CORRECT TILES
-    LD HL, mazeTxtTilePLAYER
         ; WRITE TO VRAM
-    LD A, UNCOMP_BANK
+    LD HL, mazeTxtTilePLAYER
+    LD A, bank(mazeTxtTilePLAYER)
     LD (MAPPER_SLOT2), A
-    LD BC, VDPDATA_PORT
+    LD BC, VDPDATA_PORT ; 8 TILES
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A

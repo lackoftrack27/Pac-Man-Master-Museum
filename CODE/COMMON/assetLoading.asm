@@ -127,7 +127,7 @@ loadTileAssets:
     LD A, (plusBitFlags)
     RRCA
     JR NC, +
-    LD HL, jrFruitTiles
+    LD HL, jrFruitTiles@plus
 +:
     LD DE, SPRITE_ADDR + FRUIT_VRAM | VRAMWRITE
     LD A, bank(jrFruitTiles)

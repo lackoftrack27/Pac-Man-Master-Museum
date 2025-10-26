@@ -28,18 +28,17 @@ sStateGameplayTable@gameoverMode:
 ;   WRITE "PLAYER ONE/TWO" TILES TO VRAM (IF GAME ISN'T JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP NZ, @@@displayTileMaps
+    JR NZ, @@@displayTileMaps
     ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
     RST setVDPAddress
-    ; GET CORRECT TILES
-    LD HL, mazeTxtTilePLAYER
     ; WRITE TO VRAM
-    LD A, UNCOMP_BANK
+    LD HL, mazeTxtTilePLAYER
+    LD A, bank(mazeTxtTilePLAYER)
     LD (MAPPER_SLOT2), A
-    LD BC, VDPDATA_PORT
+    LD BC, VDPDATA_PORT     ; 8 TILES ("PLAYER ONE")
     OTIR
-    LD B, $03 * $20
+    LD B, $03 * TILE_SIZE   ; 3 TILES ("TWO")
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
@@ -65,14 +64,14 @@ sStateGameplayTable@gameoverMode:
     OR A
     SBC HL, DE
     ADD HL, DE
-    JP C, +
+    JR C, +
     LD (pacman.xPos), DE
-    JP @@@enterEnd
+    JR @@@enterEnd
 +:
     LD DE, $007A
     OR A
     SBC HL, DE
-    JP NC, @@@enterEnd
+    JR NC, @@@enterEnd
     LD (pacman.xPos), DE
 @@@enterEnd:
     ; TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
