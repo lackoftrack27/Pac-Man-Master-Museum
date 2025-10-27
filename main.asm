@@ -2595,7 +2595,7 @@ arcadeGFXData:
     jrFruitTiles:
         .INCBIN "TILE_JRFRUIT.ZX7"
     @plus:
-        .INCBIN "TILE_JRFRUIT.ZX7"
+        .INCBIN "TILE_JRFRUIT_PLUS.ZX7"
 .ENDS
 
 /*
