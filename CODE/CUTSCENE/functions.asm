@@ -174,58 +174,22 @@ pacCutsceneInit:
 
 ;   USED FOR CUTSCENE 1
 pacCutSetSpritePal0:
-;   CHECK IF ARCADE STYLE IS ON
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    RET NZ  ; IF SO, EXIT
 ;   PALETTE SETUP
-    LD HL, $001A | CRAMWRITE
+    LD HL, $0019 | CRAMWRITE
     RST setVDPAddress
-    LD A, $05       ; VERY DARK YELLOW FOR PAC-MAN'S SHADING (REPLACES DARK ORANGE)
-    OUT (VDPDATA_PORT), A
-    RET
-
-;   USED FOR CUTSCENE 1
-pacCutResSpritePal0:
-;   CHECK IF ARCADE STYLE IS ON
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    RET NZ  ; IF SO, EXIT
-;   RESTORE PALETTE
-    LD HL, $001A | CRAMWRITE
-    RST setVDPAddress
-    LD A, $06       ; DARK ORANGE
+    LD A, $05       ; VERY DARK YELLOW FOR PAC-MAN'S SHADING (REPLACES ORANGE)
     OUT (VDPDATA_PORT), A
     RET
 
 
 ;   USED FOR CUTSCENES 2 AND 3
 pacCutSetSpritePal:
-;   CHECK IF ARCADE STYLE IS ON
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    RET NZ  ; IF SO, EXIT
-    ; PALETTE SETUP
+;   PALETTE SETUP
     LD HL, $0015 | CRAMWRITE
     RST setVDPAddress
     LD A, $2B       ; TAN FOR BLINKY'S SKIN (REPLACES PINK)
     OUT (VDPDATA_PORT), A
     LD A, $16       ; DARK TAN FOR BLINKY'S SKIN SHADING (REPLACES DARK PINK)
-    OUT (VDPDATA_PORT), A
-    RET
-
-;   USED FOR CUTSCENES 2 AND 3
-pacCutResSpritePal:
-;   CHECK IF ARCADE STYLE IS ON
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    RET NZ  ; IF SO, EXIT
-;   RESTORE PALETTE
-    LD HL, $0015 | CRAMWRITE
-    RST setVDPAddress
-    LD A, $3B       ; PINK
-    OUT (VDPDATA_PORT), A
-    LD A, $26       ; DARK PINK
     OUT (VDPDATA_PORT), A
     RET
 
