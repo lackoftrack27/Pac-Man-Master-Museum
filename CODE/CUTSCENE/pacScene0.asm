@@ -12,7 +12,10 @@ sStateCutsceneTable@pacScene0:
 ;   PAC-MAN CUTSCENE SETUP
     CALL pacCutsceneInit
 ;   SPECIFIC CUTSCENE INITIALIZTION
-    CALL pacCutSetSpritePal0
+    ; PALETTE SETUP (SMOOTH)
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    CALL Z, pacCutSetSpritePal0
 @@draw:
 ;   DO COMMON DRAW
     CALL generalGamePlayDraw
@@ -134,8 +137,6 @@ scene0Update6:
 -:
     HALT
     DJNZ -
-;   PALETTE RESTORE
-    CALL pacCutResSpritePal0
 ;   ELSE, SWITCH BACK TO GAME
     JP switchToGameplay
 

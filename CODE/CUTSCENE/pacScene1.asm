@@ -12,8 +12,10 @@ sStateCutsceneTable@pacScene1:
 ;   PAC-MAN COMMON CUTSCENE SETUP
     CALL pacCutsceneInit
 ;   SPECIFIC CUTSCENE INITIALIZTION
-    ; PALETTE SETUP
-    CALL pacCutSetSpritePal
+    ; PALETTE SETUP (SMOOTH)
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    CALL Z, pacCutSetSpritePal
     ; SHOW STUMP THAT BLINKY WILL GET CAUGHT ON
     LD HL, NAMETABLE + ($0D * 2) + ($0D * $40) | VRAMWRITE
     RST setVDPAddress
@@ -206,8 +208,6 @@ scene1Update0A:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ  ; IF NOT 0, END
-;   RESTORE PALETTE
-    CALL pacCutResSpritePal
 ;   SWITCH BACK TO GAME
     JP switchToGameplay
 

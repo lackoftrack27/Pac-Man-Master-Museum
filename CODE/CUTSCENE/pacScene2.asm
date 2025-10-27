@@ -12,8 +12,10 @@ sStateCutsceneTable@pacScene2:
 ;   PAC-MAN CUTSCENE SETUP
     CALL pacCutsceneInit
 ;   SPECIFIC CUTSCENE INITIALIZTION
-    ; PALETTE SETUP
-    CALL pacCutSetSpritePal
+    ; PALETTE SETUP (SMOOTH)
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    CALL Z, pacCutSetSpritePal
     ; HIDE RIGHT-MOST PIXEL COLUMN OF BLINKY
     LD HL, blinky + X_WHOLE
     INC (HL)
@@ -126,8 +128,6 @@ scene2Update5:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ
-;   RESTORE PALETTE
-    CALL pacCutResSpritePal
 ;   PREPARE TO GO INTO GAMEPLAY
     JP switchToGameplay
 
@@ -222,8 +222,7 @@ specialDrawBlinky1:
     AND A, $F8
     RRCA
     RRCA
-    ADD A, L
-    LD L, A
+    RST addToHL
     ; SETUP SPRITE VARS
     CALL convPosToScreen
     ; ADJUST X
