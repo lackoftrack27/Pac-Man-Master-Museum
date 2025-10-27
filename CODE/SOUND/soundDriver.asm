@@ -75,10 +75,6 @@
     USES: AF, BC, DE, HL, IY
 */
 sndProcess:
-;   DON'T UPDATE WHEN PAUSED
-    LD A, (pauseRequest)
-    OR A
-    JP NZ, sndStopAll@write
 ;   DON'T UPDATE WHEN IN ATTRACT MODE (EXCEPT FOR TITLE AND OPTIONS)
     LD HL, (mainGameMode)   ; L: MAIN, H: SUB
     LD A, L

@@ -328,7 +328,7 @@ coldBoot:
     LD (highScore), A
     LD (highScore + 1), A
     LD (highScore + 2), A
-;   PLUS
+;   STYLE/GAME TYPE
     LD (plusBitFlags), A
 ;   TASK
     LD HL, taskListArea
@@ -411,7 +411,7 @@ mainGameLoop:
 ;   CHECK PAUSE
     LD A, (pauseRequest)
     OR A
-    JP NZ, pauseMode    ; IF PASUE BUTTON WAS PRESSED (AND HONORED), SWITCH TO PAUSE "MODE"
+    JP NZ, pauseMode    ; IF PAUSE BUTTON WAS PRESSED (AND HONORED), SWITCH TO PAUSE "MODE"
 ;   UPDATE RNG VALUE (USED IN PLUS)
     ; RNG = RNG * 5 + 1
     LD HL, plusRNGValue
@@ -499,21 +499,12 @@ mainGameLoop:
 */
 .SECTION "Pause Mode and Related Functions" FORCE
 pauseMode:
-;   PAUSE REQUEST PROCESSING
+;   CHECK IF BIT 1 OF PAUSE REQUEST IS SET (IF BUTTON WAS PRESSED DURING PAUSE)
     LD A, (pauseRequest)
-    ; CHECK IF BIT 1 OF PAUSE REQUEST IS SET (IF BUTTON WAS PRESSED DURING PAUSE)
-    BIT UNPAUSE_REQ, A
+    AND A, $01 << UNPAUSE_REQ
     JR NZ, @exit    ; IF SO, THEN EXIT
-    ; CHECK IF BIT 2 IS SET   (IF THIS MODE IS NOT NEW)
-    BIT NEW_PAUSE, A
-    JR NZ, @update  ; IF SO, SKIP TRANSITION CODE
-@enter:
-    ; SET BIT 2 (MODE ISN'T NEW)
-    OR A, $01 << NEW_PAUSE
-    LD (pauseRequest), A
-@update:
-;   DO SOUND PROCESSING
-    CALL sndProcess
+;   CLEAR ALL SOUNDS
+    CALL sndStopAll@write
 ;   UPDATE 'PAUSE' TILEMAP AREA
     ; PREPARE VDP ADDRESS
     LD HL, NAMETABLE + XUP_TEXT | VRAMWRITE
@@ -531,7 +522,7 @@ pauseMode:
     INC (HL)
     ; CHECK IF BIT 4 OF FLASH COUNTER IS SET (CYCLES EVERY 16 FRAMES)
     BIT 4, (HL)
-    JR NZ, @@clrPause   ; IF SO, CLEAR 'PAUSE'
+    JR NZ, @clrPause   ; IF SO, CLEAR 'PAUSE'
     ; DISPLAY "PAUSE" TILES (5 TILES)
     LD HL, hudTileMaps@pause
     OUTI
@@ -544,7 +535,8 @@ pauseMode:
     IN F, (C)
     OUTI
     JP mainGameLoop
-@@clrPause:
+@clrPause:
+    ; BLANK OUT "PAUSE"
     LD A, MASK_TILE
     OUT (VDPDATA_PORT), A
     IN F, (C)
@@ -564,7 +556,7 @@ pauseMode:
 ;   CLEAR VARIABLES
     XOR A
     LD (pauseRequest), A
-;   BLANK THE PAUSE TILES THAT OVERLAP THE SCORE IN JR.
+;   BLANK THE 'S' AND 'E' TILES SINCE THEY EXTEND PAST '1UP'/'2UP' (ONLY IN PAC/MS.PAC)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JP NZ, mainGameLoop
@@ -575,7 +567,7 @@ pauseMode:
     OUT (C), H
     DEC C
     ; BLANK OUT TILES
-    XOR A
+    LD A, MASK_TILE
     OUT (VDPDATA_PORT), A
     IN F, (C)
     OUT (VDPDATA_PORT), A
@@ -583,6 +575,7 @@ pauseMode:
 
 /*
     FOR DETECTING START BUTTON PRESS ON MD CONTROLLER
+    IGR BUTTON COMBO CHECKER
 */
 checkMDPause:
 ;   CHECK IF STATE IS GAMEPLAY
@@ -1121,7 +1114,6 @@ fruitPositionTable:
     .DW NAMETABLE + (29 * 2) + (12 * 64) | VRAMWRITE
 .ENDS
 
-
 /*
 ----------------------------------------------------------
                 SQUARED VALUES TABLE
@@ -1191,16 +1183,17 @@ mult29Table:
                     COMMON TABLES
 ----------------------------------------------------------
 */
-
-.SECTION "COMMON TABLES" FREE
 /*
     PLAYER ANIMATION TABLES
 */
-normAniTbl: ; $A4
+.SECTION "PLAYER ANIMATION TABLES" FORCE ORG $7DE0
+normAniTbl:
     .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
-slowAniTbl: ; $B4
+slowAniTbl: ; FOR OTTO MOVING VERTICALLY
     .DB $00 $00 $00 $00 $08 $08 $08 $08 $10 $10 $10 $10 $18 $18 $18 $18
+.ENDS
 
+.SECTION "COMMON TABLES" FREE
 /*
     GHOST POINTS TILE INDEXES
 */
@@ -2548,8 +2541,6 @@ jrRealScrollTable:
         .INCBIN "TILE_PAC.ZX7"
     cutsceneGhostTiles:
         .INCBIN "TILE_GHOST.ZX7"
-    @plus:
-        .INCBIN "TILE_GHOST_PLUS.ZX7"
     msCutsceneTiles:
         .INCBIN "TILE_MSCUT.ZX7"
     jrCutsceneTiles:
@@ -2587,8 +2578,6 @@ arcadeGFXData:
         .INCBIN "TILE_PAC.ZX7"
     @cutsceneGhost:
         .INCBIN "TILE_GHOST.ZX7"
-    @cutsceneGhostPlus:
-        .INCBIN "TILE_GHOST_PLUS.ZX7"
     @cutsceneMs:
         .INCBIN "TILE_MSCUT.ZX7"
 .ENDS

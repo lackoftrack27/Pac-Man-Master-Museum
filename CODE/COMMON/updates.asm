@@ -1113,7 +1113,7 @@ removeMDots:
     LD A, IXH
     OR A, IXL
     JP NZ, -
-;   CLEAR VBLANK FLAG
+;   TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
     XOR A
     LD (vblankFlag), A
     RET

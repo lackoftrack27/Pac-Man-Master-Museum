@@ -79,34 +79,40 @@ switchToGameplay:
 pacCutsceneInit:
 ;   COMMON CUTSCENE SETUP
     CALL commonCutsceneInit
-;   SETUP GFX POINTER
-    LD HL, pacCutsceneGfxTable@smooth   ; ASSUME SMOOTH
-    LD A, (plusBitFlags)
-    BIT STYLE_0, A
-    JR Z, + ; IF SO, SKIP
-    LD HL, pacCutsceneGfxTable@arcade   ; ELSE, DO ARCADE
-+:
-    LD A, (plusBitFlags)
-    BIT PLUS, A     ; CHECK FOR PLUS
-    JR Z, +         ; IF NOT, SKIP
-    INC HL          ; ELSE, ADD 4
-    INC HL
-    INC HL
-    INC HL
-+:
 ;   LOAD GFX DATA
-    PUSH HL
-    RST getDataAtHL
-    ; GHOST CUTSCENE
+    LD HL, cutsceneGhostTiles
+    LD DE, cutscenePacTiles
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    JR Z, +
+    LD HL, arcadeGFXData@cutsceneGhost
+    LD DE, arcadeGFXData@cutscenePac
++:
+    ; GHOST SPRITES
+    PUSH DE
     LD DE, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
+    ; GIANT PAC-MAN
     POP HL
-    INC HL
-    INC HL
-    RST getDataAtHL
-    ; BIG PAC-MAN
     LD DE, SPRITE_ADDR + PAC_CUT_VRAM | VRAMWRITE
     CALL zx7_decompressVRAM
+    ; IF GAME IS PLUS MODE, OVERWRITE GHOST EYES
+    LD A, (plusBitFlags)
+    RRCA
+    JR NC, +
+    ; COPY TILES TO BUFFER
+    LD HL, PACCUT_GHOST_PLUS * TILE_SIZE
+    RST setVDPAddress
+    LD HL, plusGhostSprBuffer
+    LD BC, $02 * TILE_SIZE * $100 + VDPDATA_PORT
+    INIR
+    ; WRITE TO CORRECT VRAM ADDRESS
+    LD HL, SPRITE_ADDR + GHOST_CUT_VRAM | VRAMWRITE
+    RST setVDPAddress
+    LD HL, plusGhostSprBuffer
+    LD B, $02 * TILE_SIZE
+    OTIR
++:
 ;   PLAY MUSIC
     LD A, MUS_COFFEE
     CALL sndPlayMusic

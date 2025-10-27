@@ -3,26 +3,9 @@
         CUTSCENE MODE DATA FOR PAC-MAN
 ----------------------------------------------
 */
-
-;   GFX DATA PTRS FOR PAC-MAN
-pacCutsceneGfxTable:
-@smooth:
-    .DW cutsceneGhostTiles
-    .DW cutscenePacTiles
-@smoothPlus:
-    .DW cutsceneGhostTiles@plus
-    .DW cutscenePacTiles
-@arcade:
-    .DW arcadeGFXData@cutsceneGhost
-    .DW arcadeGFXData@cutscenePac
-@arcadePlus
-    .DW arcadeGFXData@cutsceneGhostPlus
-    .DW arcadeGFXData@cutscenePac
-
 ;   --------------
 ;   GFX TILE LISTS
 ;   --------------
-
 .MACRO pacCutGhostDefs   ARGS, VAL
     ghostBrokenTileDefs:
     .db VAL+$06, VAL+$12, VAL+$07, VAL+$13
@@ -45,6 +28,8 @@ pacCutsceneGfxTable:
 .DEFINE SCENE2_STUMP3           SCENE2_STUMP2 + $01
 .DEFINE SCENE2_STUMP4           SCENE2_STUMP3 + $01
 .DEFINE SCENE2_STUMP5           SCENE2_STUMP4 + $01
+
+.DEFINE PACCUT_GHOST_PLUS       SCENE2_STUMP5 + $01
 
 
 pacCutGhostDefs         (SPRITE_ADDR + GHOST_CUT_VRAM) / TILE_SIZE

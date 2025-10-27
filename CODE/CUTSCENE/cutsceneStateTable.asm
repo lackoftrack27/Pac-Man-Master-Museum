@@ -6,6 +6,7 @@
 ;       PAC-MAN
 .DEFINE     cutsceneSubState        workArea
 .DEFINE     nakedFrameCounter       workArea + $01
+.DEFINE     plusGhostSprBuffer      workArea + $02  ; $40 BYTES
 ;       MS.PAC/JR.PAC
 .DEFINE     msCut_MainTileTblPtr    workArea + $00  ; 2 BYTES
 .DEFINE     msCut_SubTileTblPtr     workArea + $02  ; 2 BYTES

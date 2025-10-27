@@ -385,7 +385,6 @@ draw1UP:
     OUT (VDPDATA_PORT), A
     IN F, (C)
     OUT (VDPDATA_PORT), A
-    IN F, (C)
     RET
 @draw:
     EX DE, HL
