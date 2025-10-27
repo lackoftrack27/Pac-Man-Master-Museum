@@ -161,7 +161,7 @@ ghostDotReleaser:
     OR A
     JP Z, @pinky
 @pinkyDiedFlag:
-;   SKIP IF PINKY IS AT REST
+;   SKIP IF PINKY IS NOT AT REST
     LD A, (pinky + STATE)
     CP A, B
     JP NZ, @inkyDiedFlag
@@ -169,15 +169,14 @@ ghostDotReleaser:
     LD A, (globalDotCounter)
     CP A, $07
     JP Z, +
+    JP C, @inkyDiedFlag
     BIT JR_PAC, C
     JP Z, @inkyDiedFlag
-    CP A, $07
-    JP C, @inkyDiedFlag
 +:
 ;   RELEASE PINKY
     LD (pinky + NEW_STATE_FLAG), DE
 @inkyDiedFlag:
-;   SKIP IF INKY IS AT REST
+;   SKIP IF INKY IS NOT AT REST
     LD A, (inky + STATE)
     CP A, B
     JP NZ, @clydeDiedFlag
@@ -185,15 +184,14 @@ ghostDotReleaser:
     LD A, (globalDotCounter)
     CP A, $11
     JP Z, +
+    JP C, @clydeDiedFlag
     BIT JR_PAC, C
     JP Z, @clydeDiedFlag
-    CP A, $11
-    JP C, @clydeDiedFlag
 +:
 ;   RELEASE INKY
     LD (inky + NEW_STATE_FLAG), DE
 @clydeDiedFlag:
-;   END IF CLYDE IS AT REST
+;   END IF CLYDE IS NOT AT REST
     LD A, (clyde + STATE)
     CP A, B
     RET NZ
@@ -201,10 +199,9 @@ ghostDotReleaser:
     LD A, (globalDotCounter)
     CP A, $20
     JP Z, +
+    RET C
     BIT JR_PAC, C
     RET Z
-    CP A, $20
-    RET C
 +:
 ;   RESET DIED FLAG AND GLOBAL DOT COUNTER
     XOR A
@@ -213,7 +210,7 @@ ghostDotReleaser:
     RET
 @pinky:
     LD HL, personalDotCounts
-;   SKIP IF PINKY IS AT REST
+;   SKIP IF PINKY IS NOT AT REST
     LD A, (pinky + STATE)
     CP A, B
     JP NZ, @inky
@@ -225,7 +222,7 @@ ghostDotReleaser:
     LD (pinky + NEW_STATE_FLAG), DE
 @inky:
     INC HL
-;   SKIP IF INKY IS AT REST
+;   SKIP IF INKY IS NOT AT REST
     LD A, (inky + STATE)
     CP A, B
     JP NZ, @clyde
@@ -237,7 +234,7 @@ ghostDotReleaser:
     LD (inky + NEW_STATE_FLAG), DE
 @clyde:
     INC HL
-;   END IF CLYDE IS AT REST
+;   END IF CLYDE IS NOT AT REST
     LD A, (clyde + STATE)
     CP A, B
     RET NZ

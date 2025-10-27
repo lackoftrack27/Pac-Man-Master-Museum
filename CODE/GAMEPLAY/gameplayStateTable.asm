@@ -340,6 +340,7 @@ firstTimeEnd:
     LD (rngIndex), HL       ; RNG INDEX
     LD (mainTimer2), HL     ; SCATTER/CHASE TIMER
     LD (mainTimer3), HL     ; FRUIT TIMER
+    LD (mainTimer4), A      ; DOT EXPIRE DURATION
     LD (powDotFrameCounter), A  ; POWER DOT FRAME COUNTER FOR PALETTE CYCLE
     LD (xUPCounter), A      ; 1UP / 2UP FLASH COUNTER
     LD (sprFlickerControl), A   ; SPRITE FLICKER FLAGS
@@ -474,8 +475,6 @@ firstTimeEnd:
     RST addToHL
     ; COPY BYTE INTO RAM
     LD (dotExpireTime), A
-;   SET DOT EXPIRE DURATION
-    LD (mainTimer4), A
 ;   RESET ACTORS
     CALL pacmanReset
     CALL blinkyReset
