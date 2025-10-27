@@ -64,7 +64,7 @@ deathTileTblList:
     ; SMOOTH
     .DW pacSNDeathTileTbl
     .DW msSNDeathTileTbl
-    .DW pacSNDeathTileTbl;jrSNDeathTileTbl
+    .DW jrSNDeathTileTbl
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW ottoSNDeathTileTbl
@@ -596,7 +596,22 @@ jrANTileTbl:
     .DW jrTileA11 jrTileA19 jrTileA12 jrTileA22 ; CLOSED
     .DW jrTileA0B jrTileA19 jrTileA0C jrTileA1E ; HALF
 
+
 jrSNDeathTileTbl:
+    .DW jrDTileS00 jrDTileS14 jrDTileS01 jrDTileS15
+    .DW jrDTileS02 jrDTileS16 jrDTileS03 jrDTileS17
+    .DW jrDTileS04 jrDTileS18 jrDTileS05 jrDTileS19
+    .DW jrDTileS06 jrDTileS1A jrDTileS07 jrDTileS1B
+
+    .DW jrDTileS08 jrDTileS1C jrDTileS09 jrDTileS1D
+    .DW jrDTileS0A jrDTileS1E jrDTileS0B jrDTileS0B
+    .DW jrDTileS0C jrDTileS1F jrDTileS0B jrDTileS0B
+    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
+
+    .DW jrDTileS0F jrDTileS22 jrDTileS10 jrDTileS23
+    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
+    .DW jrDTileS11 jrDTileS24 jrDTileS0B jrDTileS25
+    .DW jrDTileS12 jrDTileS26 jrDTileS13 jrDTileS27
 
 
 jrANDeathTileTbl:
