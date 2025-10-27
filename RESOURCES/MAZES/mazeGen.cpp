@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdio>
+#include <cassert>
 
-#define IMG_DATA_SIZE   16128
+#define JR          1
+
 
 #define CLR_BLACK   0
 
@@ -20,6 +22,19 @@
 #define CLR_POW_3   13
 
 #define TILE_SIZE   32
+
+#if JR == 0
+#define TILEX_COUNT     21
+#define TILEY_COUNT     24
+#else
+#define TILEX_COUNT     41
+#define TILEY_COUNT     23
+#endif
+
+
+#define ROW_SIZE        TILEX_COUNT * 4
+#define TOTALROW_SIZE   ROW_SIZE * 8
+#define IMG_DATA_SIZE   TILEX_COUNT * TILEY_COUNT * TILE_SIZE
 
 
 #define OUTHEADER_SIZE  118
@@ -173,6 +188,48 @@ tile blankoutQuad(const tile& t, int quadNum)
     return out;
 }
 
+tile mutateQuad(const tile& t, int quadNum)
+{
+    tile out = t;
+
+    const int *quadPtr = quadPtrs[quadNum];
+
+    bool color2 = false;
+    for (int i = 0; i < 8; i++)
+    {
+        int idx = quadPtr[i];
+        if (out.data[idx] == (CLR_DOT_0 << 4 | CLR_DOT_0) ||
+        out.data[idx] == (CLR_DOT_1 << 4 | CLR_DOT_1) ||
+        out.data[idx] == (CLR_DOT_2 << 4 | CLR_DOT_2))
+        {
+            /*
+            if (color2 == false)
+                out.data[idx] = 0x12;
+            else
+                out.data[idx] = 0x21;
+            */
+            out.data[idx] = 0x22;
+
+            color2 = true;
+        }
+    }
+
+    return out;
+}
+
+tile mutateToNormal(const tile& t) 
+{
+    tile out = t;
+    for (int i = 0; i < 32-4; i++) {
+        if (out.data[i] == 0x22 && out.data[i+4] == 0x22)
+        {
+            out.data[i] = ((CLR_DOT_0 << 4) | CLR_DOT_0);
+            out.data[i+4] = ((CLR_DOT_0 << 4) | CLR_DOT_0);
+        }
+    }
+    return out;
+}
+
 // Get color index at (x, y) from tile
 unsigned char getPixel(const tile& t, int x, int y) {
     int byteIndex = y * 4 + x / 2;
@@ -315,11 +372,20 @@ void extractQuadrant(tile* src, tile* dst, int quadrant) {
 
 int main() 
 {
+    // PAC-MAN / MS.PAC-MAN
     /*
     INPUT BMP: 4-BIT, 168px X 192px (21 * 24)
     OUTPUT BMP: 4-BIT, 128px X (numofTiles / 16) * 8
 
     IMAGE DATA SIZE: 16128 bytes
+    */
+
+    // JR PAC-MAN
+    /*
+    INPUT BMP: 4-BIT, 328px X 184px (41 * 23)
+    OUTPUT BMP: 4-BIT, 128px X (numofTiles / 16) * 8
+
+    IMAGE DATA SIZE: 30176 bytes
     */
 
     std::vector<unsigned char> imgData;
@@ -358,14 +424,14 @@ int main()
         // SIZE OF ROW: 84
         // SIZE OF TILE ROW: 4
         // SIZE OF TOTAL TILE ROW: 672 (8 * 84)
-    for (int y = 0; y < 24; y++)
+    for (int y = 0; y < TILEY_COUNT; y++)
     {
-        for (int x = 0; x < 21; x++)
+        for (int x = 0; x < TILEX_COUNT; x++)
         {
             tile tempTile;
             for (int i = 0; i < 8; i++)
             {
-                memcpy(tempTile.data + (i * 4), &imgData[(y * 672) + (x * 4) + (i * 84)], 4);
+                memcpy(tempTile.data + (i * 4), &imgData[(y * TOTALROW_SIZE) + (x * 4) + (i * ROW_SIZE)], 4);
             }
             tileBank.push_back(tempTile);
             originalTileGrid.push_back(tempTile);
@@ -504,6 +570,129 @@ int main()
     const int DOT_TABLE_SIZE = tileBank.size();
     // -------------------------------
 
+    #if JR == 1
+    // GENERATE NEW MUTATED DOT TILES
+    // -------------------------------
+    std::vector<tile> mutatedDotTiles;
+    for (int z = 0; z < 4; z++)     // UP TO 4 DOTS IN ONE TILE
+    {
+        for (const tile& t : tileBank) 
+        {
+            // FOR ALL 4 QUADRANTS
+            for (int i = 0; i < 4; i++)
+            {
+                bool foundDot = false;
+                const int *quadPtr = quadPtrs[i];
+
+                // CHECK FOR DOT INDEXES
+                for (int j = 0; j < 8; j++)
+                {
+                    int idx = quadPtr[j];
+                    unsigned char lNibble = t.data[idx] & 0x0F;
+                    unsigned char hNibble = (t.data[idx] & 0xF0) >> 4;
+
+                    if (lNibble >= CLR_DOT_0 && lNibble <= CLR_DOT_2)
+                        foundDot = true;
+                    else if (hNibble >= CLR_DOT_0 && hNibble <= CLR_DOT_2)
+                        foundDot = true;
+                }
+                // IF FOUND, MUTATE DOT AND ADD TO VECTOR
+                if (foundDot == true)
+                {
+                    tile blanked = mutateQuad(t, i);
+                    mutatedDotTiles.push_back(blanked);
+                }
+            }
+        }
+        // Append modified tiles
+        tileBank.insert(tileBank.end(), mutatedDotTiles.begin(), mutatedDotTiles.end());
+    }
+        // REMOVE DUPLICATES
+    removeDuplicates(tileBank);
+    // -------------------------------
+
+
+    // GENERATE NEW POWER DOT TILES MUTATED
+    // -------------------------------
+    std::vector<tile> powerCleanedTilesMutated;
+
+    for (const tile& t : tileBank) {
+        bool hasPower = false;
+
+        // First scan the tile to check if it contains any of the power indices
+        if (containsColor(t, CLR_POW_0, CLR_POW_3) == true)
+            hasPower = true;
+
+        if (hasPower) 
+        {
+            tile cleaned = t;
+
+            // Now zero out all matching power colors
+            for (int y = 0; y < 8; y++) 
+            {
+                for (int x = 0; x < 8; x++) 
+                {
+                    unsigned char px = getPixel(cleaned, x, y);
+                    if (px == CLR_POW_0 || px == CLR_POW_1 || px == CLR_POW_2 || px == CLR_POW_3) 
+                    {
+                        setPixel(cleaned, x, y, CLR_BLACK);
+                    }
+                }
+            }
+
+            powerCleanedTilesMutated.push_back(cleaned);
+        }
+    }
+        // Add to tileBank
+    tileBank.insert(tileBank.end(), powerCleanedTilesMutated.begin(), powerCleanedTilesMutated.end());
+        // REMOVE DUPLICATES
+    removeDuplicates(tileBank);
+
+    // GENERATE NEW MUTATED DOT TILES (EATEN)
+    // -------------------------------
+    std::vector<tile> eatenMutatedDotTiles;
+    for (int z = 0; z < 4; z++)     // UP TO 4 DOTS IN ONE TILE
+    {
+        for (const tile& t : tileBank) 
+        {
+            // FOR ALL 4 QUADRANTS
+            for (int i = 0; i < 4; i++)
+            {
+                bool foundDot = false;
+                const int *quadPtr = quadPtrs[i];
+
+                // CHECK FOR DOT INDEXES
+                for (int j = 0; j < 8; j++)
+                {
+                    int idx = quadPtr[j];
+                    unsigned char lNibble = t.data[idx] & 0x0F;
+                    unsigned char hNibble = (t.data[idx] & 0xF0) >> 4;
+
+                    if (lNibble >= CLR_DOT_0 && lNibble <= CLR_DOT_2)
+                        foundDot = true;
+                    else if (hNibble >= CLR_DOT_0 && hNibble <= CLR_DOT_2)
+                        foundDot = true;
+                    else if (lNibble == 2 || hNibble == 2)
+                        foundDot = true;
+                }
+                // IF FOUND, REMOVE DOT AND ADD TO VECTOR
+                if (foundDot == true)
+                {
+                    tile blanked = blankoutQuad(t, i);
+                    eatenMutatedDotTiles.push_back(blanked);
+                }
+            }
+        }
+        // Append modified tiles
+        tileBank.insert(tileBank.end(), eatenMutatedDotTiles.begin(), eatenMutatedDotTiles.end());
+    }
+        // REMOVE DUPLICATES
+    removeDuplicates(tileBank);
+    const int MDOT0_TABLE_SIZE = tileBank.size() - DOT_TABLE_SIZE;
+    const int OTHER_TILE_START = tileBank.size();
+    // -------------------------------
+    #endif
+
 
     // ADD OTHER TILES
     // -------------------------------
@@ -575,12 +764,20 @@ int main()
     // -------------------------------
     std::vector<uint16_t> tilemap;
 
-    for (int row = 23; row >= 0; row--) {
-        tilemap.push_back(0x11BF);
-        tilemap.push_back(0x11BF);
+    uint16_t pDotNumber = 0x0000;
+    uint8_t lastRowPDot = TILEY_COUNT-1;
+    uint8_t lastColPDot = 0;
+    for (int row = TILEY_COUNT-1; row >= 0; row--) {
+        // MASKING TILES
+        #if JR == 0
+        tilemap.push_back(0x11FF);
+        tilemap.push_back(0x11FF);
+        #else
+        //for (int i = 0; i < 5; i++) tilemap.push_back(0x11FF);
+        #endif
 
-        for (int col = 0; col < 21; col++) {
-            tile& inputTile = originalTileGrid[row * 21 + col];
+        for (int col = 0; col < TILEX_COUNT; col++) {
+            tile& inputTile = originalTileGrid[row * TILEX_COUNT + col];
 
             uint16_t word = 0;
             int matchedIndex = -1;
@@ -619,6 +816,7 @@ int main()
             if (hFlip) word |= 0x200;
             if (vFlip) word |= 0x400;
 
+            #if JR == 0
             if (containsColor(inputTile, CLR_POW_0, CLR_POW_3)) {
                 if (row >= 12 && col < 11)       word |= 0x0000; // Bit 13
                 else if (row < 12 && col >= 11)  word |= 0x6000; // Bit 14
@@ -626,13 +824,29 @@ int main()
                 else                             word |= 0x2000;
                 // Top-left: no extra bits
             }
+            #else
+            if (containsColor(inputTile, CLR_POW_0, CLR_POW_3)) {
+                word |= pDotNumber;
+
+                //if ((lastRowPDot - row) >= 2 || col - lastColPDot >= 2)
+                //{
+                    pDotNumber += 0x2000;
+                //    lastRowPDot = row;
+                //    lastColPDot = col;
+               //}
+            }
+            #endif
 
             tilemap.push_back(word);
         }
 
-        for (int i = 0; i < 9; i++) tilemap.push_back(0x11BF);
+        // MASKING TILES
+        #if JR == 0
+        for (int i = 0; i < 9; i++) tilemap.push_back(0x11FF);
+        #else
+        //for (int i = 0; i < 5; i++) tilemap.push_back(0x11FF);
+        #endif
     }
-
 
     FILE* out = fopen("MAP_MAZE.BIN", "wb");
     if (!out) {
@@ -720,7 +934,8 @@ int main()
                 } 
                 else 
                 {
-                    outBytes[dotMatch[i]] = 0xFF; // fallback if not found
+                    std::cerr << "COULDN'T FIND MATCH!/nDOT TABLE";
+                    return 1;
                 }
             }
         }
@@ -730,6 +945,220 @@ int main()
     fclose(dotFile);
     // -------------------------------
 
+    // END HERE IF NOT ANALYZING A JR. MAZE
+    #if JR == 1
+
+    // WRITE MUTATED DOT TABLE (NORMAL TO MUTATED)
+    // -------------------------------
+    FILE* mDotFile = fopen("MDOT0_MAZE.BIN", "wb");
+    if (!mDotFile) {
+        std::cerr << "Couldn't create MDOT0_MAZE.BIN!\n";
+        return 1;
+    }
+
+    // WRITE TILE OFFSET AS FIRST BYTE
+    // WRITE UPPER BOUND AS SECOND BYTE
+    unsigned char tileOffsetMDot[4] = {DOT_TABLE_SIZE, OTHER_TILE_START, 0, 0};
+    fwrite(tileOffsetMDot, 1, 4, mDotFile);
+
+
+    //for (int t = 1; t < DOT_TABLE_SIZE; t++) {
+    for (int t = 1; t < (DOT_TABLE_SIZE + MDOT0_TABLE_SIZE); t++) {
+        tile base = tileBank[t];
+        unsigned char outBytes[4] = {0};
+
+
+        // FOR ALL 4 QUADRANTS
+        for (int i = 0; i < 4; i++)
+        {
+            bool foundDot = false;
+            const int *quadPtr = quadPtrs[i];
+
+            // CHECK FOR DOT INDEXES
+            for (int j = 0; j < 8; j++)
+            {
+                int idx = quadPtr[j];
+                unsigned char lNibble = base.data[idx] & 0x0F;
+                unsigned char hNibble = (base.data[idx] & 0xF0) >> 4;
+
+                 // DOT
+                if (lNibble >= CLR_DOT_0 && lNibble <= CLR_DOT_2)
+                    foundDot = true;
+                else if (hNibble >= CLR_DOT_0 && hNibble <= CLR_DOT_2)
+                    foundDot = true;
+                
+            }
+
+            if (foundDot == true)
+            {
+                tile blanked;
+                // MUTATE DOT
+                blanked = mutateQuad(base, i);
+                // FIND TILE THAT MATCHES
+                int matchIdx = -1, h = 0, v = 0;
+                if (findMatchingTileIndex(&blanked, tileBank, &matchIdx, &h, &v)) 
+                {
+                    unsigned char val = matchIdx;
+                    if (val != 0)
+                        val = (matchIdx - DOT_TABLE_SIZE) & 0x3F;
+
+                    if (h) val |= 0x40;
+                    if (v) val |= 0x80;
+                    outBytes[dotMatch[i]] = val;
+                } 
+                else 
+                {
+                    std::cerr << "COULDN'T FIND MATCH!\nMUTATED DOT NORMAL";
+                    return 1;
+                }
+            }
+        }
+        fwrite(outBytes, 1, 4, mDotFile);
+    }
+
+    fclose(mDotFile);
+    // -------------------------------
+
+    
+
+
+    
+    // WRITE 2ND MUTATED DOT TABLE (MUTATED TO EATEN)
+    // -------------------------------
+    FILE* eatMDotFile = fopen("MDOT1_MAZE.BIN", "wb");
+    if (!eatMDotFile) {
+        std::cerr << "Couldn't create MDOT1_MAZE.BIN!\n";
+        return 1;
+    }
+
+    for (int t = DOT_TABLE_SIZE; t < (DOT_TABLE_SIZE + MDOT0_TABLE_SIZE); t++) {
+        tile base = tileBank[t];
+        unsigned char outBytes[8] = {0};
+
+
+        // FOR ALL 4 QUADRANTS
+        for (int i = 0; i < 4; i++)
+        {
+            bool foundDot = false;
+            bool foundPower = false;
+            const int *quadPtr = quadPtrs[i];
+
+            // CHECK FOR DOT INDEXES OR POWER DOT INDEXES
+            for (int j = 0; j < 8; j++)
+            {
+                int idx = quadPtr[j];
+                unsigned char lNibble = base.data[idx] & 0x0F;
+                unsigned char hNibble = (base.data[idx] & 0xF0) >> 4;
+
+                 // DOT
+                if (lNibble >= CLR_DOT_0 && lNibble <= CLR_DOT_2)
+                    foundDot = true;
+                else if (hNibble >= CLR_DOT_0 && hNibble <= CLR_DOT_2)
+                    foundDot = true;
+                else if (lNibble == 2 || hNibble == 2)
+                    foundDot = true;
+
+                // POWER DOT
+                if (lNibble >= CLR_POW_0)
+                    foundPower = true;
+                else if (hNibble >= CLR_POW_0)
+                    foundPower = true;
+
+                
+            }
+
+            tile blanked;
+            if (foundDot == true)
+            {
+                // REMOVE DOT
+                blanked = blankoutQuad(base, i);
+            }
+            else if (foundPower == true)
+            {
+                // REMOVE POWER DOT
+                for (int idx = 0; idx < 32; idx++)
+                {
+                    unsigned char hNibb = (base.data[idx] & 0xF0) >> 4;
+                    unsigned char lNibb = (base.data[idx] & 0x0F);
+
+                    if (lNibb >= CLR_POW_0)
+                        lNibb = 0;
+                    if (hNibb >= CLR_POW_0)
+                        hNibb = 0;
+
+                    blanked.data[idx] = (hNibb << 4) | lNibb;
+                }
+            }
+
+            if (foundDot == true || foundPower == true)
+            {
+                /*
+                tile blanked;
+                // BLANK DOT
+                blanked = blankoutQuad(base, i);
+                */
+                // FIND TILE THAT MATCHES
+                int matchIdx = -1, h = 0, v = 0;
+                if (findMatchingTileIndex(&blanked, tileBank, &matchIdx, &h, &v)) 
+                {
+                    outBytes[dotMatch[i] * 2] = matchIdx;
+
+                    unsigned char val = 0x00;
+                    if (h) val |= 0x02;
+                    if (v) val |= 0x04;
+                    outBytes[dotMatch[i] * 2 + 1] = val;
+                } 
+                else 
+                {
+                    std::cerr << "COULDN'T FIND MATCH!\nMUTATED DOT EATEN";
+                    return 1;
+                }
+            }
+        }
+        fwrite(outBytes, 1, 8, eatMDotFile);
+    }
+
+    fclose(eatMDotFile);
+    // -------------------------------
+
+
+
+
+
+    // WRITE 3RD MUTATED DOT TABLE (MUTATED TO NORMAL)
+    // -------------------------------
+    FILE* normMDotFile = fopen("MDOT2_MAZE.BIN", "wb");
+    if (!normMDotFile) {
+        std::cerr << "Couldn't create MDOT2_MAZE.BIN!\n";
+        return 1;
+    }
+
+    // WRITE UPPER BOUND WHERE NON DOT MAZE TILES START
+    for (int t = DOT_TABLE_SIZE; t < (DOT_TABLE_SIZE + MDOT0_TABLE_SIZE); t++) {
+        tile base = tileBank[t];
+        unsigned char outByte = 0;
+
+
+        tile normal;
+        // BLANK DOT
+        normal = mutateToNormal(base);
+        // FIND TILE THAT MATCHES
+        int matchIdx = -1, h = 0, v = 0;
+        if (findMatchingTileIndex(&normal, tileBank, &matchIdx, &h, &v)) 
+        {
+            outByte = matchIdx;
+        } 
+        else 
+        {
+            std::cerr << "COULDN'T FIND MATCH!\nMUTATED DOT TO NORMAL";
+            return 1;
+        }
+        fwrite(&outByte, 1, 1, normMDotFile);
+    }
+
+    fclose(normMDotFile);
+    // -------------------------------
+    #endif
 
 
 

@@ -3,6 +3,7 @@ from PIL import Image
 # Define tile color constants
 BLACK   = (0, 0, 0)
 WHITE   = (255, 255, 255)
+YELLOW	= (255, 255, 0)
 RED     = (255, 0, 0)
 BLUE    = (0, 0, 255)
 FFAAFF  = (255, 170, 255)
@@ -12,7 +13,7 @@ FFAAAA  = (255, 170, 170)
 def classify_tile(tile_pixels):
     unique_colors = set(tile_pixels)
 
-    if WHITE in unique_colors:
+    if YELLOW in unique_colors:
         return 3  # Super Edible
     if FFAAAA in unique_colors:
         return 2  # Edible
@@ -96,7 +97,7 @@ if __name__ == "__main__":
 
         # Save binary output
         base_name = os.path.splitext(image_path)[0]
-        bin_filename = base_name + "_collision.bin"
+        bin_filename = "COL_MAZE.BIN"
         save_collision_map_bin(collision_rows, bin_filename)
         print(f"Binary collision map saved to: {bin_filename}")
 
