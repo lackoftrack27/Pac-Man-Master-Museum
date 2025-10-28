@@ -39,6 +39,7 @@ I hope this code is useful for anyone interested in learning Z80 assembly or exp
 This project wouldn't nearly be as polished without the help of these people:
 - **125scratch** – Art, sound, and general guidance
 - **umjammercammy** – Art and general guidance
+- **Superjustinbros** - Maze palettes for Ms. Pac-Man Plus and Jr. Pac-Man Plus 
 
 Additional Credits:
 - **Einar Saukas** - [ZX7 compression](https://spectrumcomputing.co.uk/entry/27996/ZX-Spectrum/ZX7) algorithm used here to compress graphics and tilemaps
@@ -53,7 +54,11 @@ Additional Credits:
 - Added Jr. Pac-Man and Jr. Pac-Man Plus
 	- They feature a larger viewable area compared to the original at the cost of some ghost AI accuracy
 - Minor corrections to ghost AI
-- Changed maze palettes for Ms. Pac-Man Plus to be more appealing
+- Changed maze palettes in Ms. Pac-Man Plus to be more appealing
+- Added SRAM support for high scores
+	- 12 high scores in total
+		- 4 for each game (Non Plus/Normal), (Non Plus/Fast), (Plus/Normal), (Plus/Fast)
+	- Saves upon Game Over
 - Added IGR button combo for MD/Genesis controllers (Start + A + B + C)
 - Added Crazy Otto as a bonus game
 	- Crazy Otto is one of the many iterations Ms. Pac-Man went through before starring one of gaming's most famous icons
