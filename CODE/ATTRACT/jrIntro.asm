@@ -19,7 +19,7 @@ sStateAttractTable@jrIntroMode:
     LD HL, $0000 | CRAMWRITE
     RST setVDPAddress
     LD HL, bgPalJrFD
-    LD BC, $10 * $100 + VDPDATA_PORT
+    LD BC, BG_CRAM_SIZE * $100 + VDPDATA_PORT
     OTIR
 ;   LOAD BACKGROUND TILES
     LD A, bank(jrAttractTiles)

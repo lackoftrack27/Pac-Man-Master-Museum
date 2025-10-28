@@ -15,7 +15,7 @@ sStateCutsceneTable@jrScene2:
 ;   RESET BACKGROUND PALETTE
     LD HL, $0000 | CRAMWRITE
     RST setVDPAddress
-    LD B, $10
+    LD B, BG_CRAM_SIZE
     XOR A
 -:
     OUT (VDPDATA_PORT), A

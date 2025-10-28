@@ -13,29 +13,49 @@ sStateCutsceneTable@jrScene0:
     LD HL, jrScene0ProgTable
     CALL jrCutSetup
 ;   LOAD BACKGROUND PALETTE
-    CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
-    ; CRAM
-    LD HL, $0000 | CRAMWRITE
-    RST setVDPAddress
-    LD HL, bgPalJrFE
-    LD BC, $10 * $100 + VDPDATA_PORT
-    OTIR
     ; RAM BUFFER
     LD HL, bgPalJrFE
     LD DE, mazePalette
-    LD BC, $10
+    LD BC, BG_CRAM_SIZE
     LDIR
+        ; MODIFY IF STYLE IS "ARCADE"
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    JR Z, +
+    LD A, (mazePalette + BGPAL_PDOT1)   ; PDOT0 BECOMES PDOT1,2,3
+    LD (mazePalette + BGPAL_PDOT0), A
++:
+    ; SET POWER PELLET COLOR BUFFER 
+    CALL powDotCyclingUpdate@refresh
+    ; CRAM
+    CALL waitForVblank  ; WAIT DUE TO CRAM UPDATE
+    LD HL, $0000 | CRAMWRITE
+    RST setVDPAddress
+    LD HL, mazePalette
+    LD BC, BG_CRAM_SIZE * $100 + VDPDATA_PORT
+    OTIR
 ;   LOAD BACKGROUND TILES
     LD A, bank(jrCut0Tiles)
     LD (MAPPER_SLOT2), A
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, jrCut0Tiles
     CALL zx7_decompressVRAM
+        ; EXTRA TILES FOR POWER DOT IN SMOOTH STYLE
+    LD A, bank(jrCut0ExtraTiles)
+    LD (MAPPER_SLOT2), A
+    LD DE, BACKGROUND_ADDR + $14E0 | VRAMWRITE
+    LD HL, jrCut0ExtraTiles
+    CALL zx7_decompressVRAM
 ;   LOAD BACKGROUND TILEMAP
     LD A, bank(jrCut0Tilemap)
     LD (MAPPER_SLOT2), A
-    LD DE, NAMETABLE | VRAMWRITE
     LD HL, jrCut0Tilemap
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0
+    JR NZ, +
+    LD HL, jrCut0Tilemap@smooth
++:
+    LD DE, NAMETABLE | VRAMWRITE
     CALL zx7_decompressVRAM
 ;   RESTORE BANK
     LD A, DEFAULT_BANK

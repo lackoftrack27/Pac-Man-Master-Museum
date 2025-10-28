@@ -2613,6 +2613,8 @@ arcadeGFXData:
 
 .SECTION "JR CUTSCENE BG TILE DATA [PART 2]" BANK ACTOR3_GFX_BANK SLOT 2 FREE
     .INCDIR "ASSETS/CUTSCENE"
+    jrCut0ExtraTiles:
+        .INCBIN "TILE_JRCUT0_EXTRA.ZX7"
     jrCut1Tiles:
         .INCBIN "TILE_JRCUT1.ZX7"
     jrCut2Tiles:
@@ -2625,6 +2627,8 @@ arcadeGFXData:
         .INCBIN "MAP_JRINTRO.ZX7"
     jrCut0Tilemap:
         .INCBIN "MAP_JRCUT0.ZX7"
+    @smooth:
+        .INCBIN "MAP_JRCUT0_SMO.ZX7"
     jrCut1Tilemap:
         .INCBIN "MAP_JRCUT1.ZX7"
     jrCut2Tilemap:
