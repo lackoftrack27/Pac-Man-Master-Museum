@@ -50,6 +50,13 @@
 .DEFINE MAPPER_SLOT2        $FFFF
 
 
+;   SRAM
+.DEFINE SRAM_EN             $03
+.DEFINE SRAM_PTR            $8000
+.DEFINE SRAM_WORD_0         $5253
+.DEFINE SRAM_WORD_1         $4D41
+
+
 
 ; GRAPHICAL CONSTS
 .DEFINE EMPTY_PTR           sprPalData

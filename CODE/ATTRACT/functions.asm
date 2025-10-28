@@ -176,6 +176,8 @@ titleToggleModes:
 +:
     ADD HL, DE
     LD (pacBase), HL
+;   LOAD GAME'S HIGH SCORE FROM SRAM
+    CALL loadScorefromSRAM
 ;   FALL THROUGH
 
 

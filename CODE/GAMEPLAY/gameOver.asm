@@ -58,6 +58,8 @@ sStateGameplayTable@gameoverMode:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
+;   SAVE HIGH SCORE TO SRAM
+    CALL saveScoreToSRAM
 ;   CAP PAC-MAN'S POSITION (ONLY USED IN JR FOR SCROLLING)
     LD HL, (pacman.xPos)
     LD DE, $015A

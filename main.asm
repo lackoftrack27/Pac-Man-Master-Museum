@@ -288,6 +288,8 @@ main:
     JR Z, +         ; IF BOTH DIRECTIONS ARE NOT PRESSED, SKIP
     INC (HL)        ; ELSE, SET FLAG
 +:
+;   SRAM INITIALIZATION
+    CALL initSRAM
 ;   CHECK IF RAM MATCHES SECRET VARIABLE
     ; 1ST WORD
     LD DE, RESET_WORD_0
@@ -324,7 +326,7 @@ coldBoot:
     LD (bonusIndex), A  ; 0 - 10K, 1 - 15K, 2 - 20K, 3 - OFF
     LD (speedIndex), A  ; 0 - NORMAL, 1 - FAST
     LD (styleIndex), A  ; 0 - SMOOTH, 1 - ARCADE
-;   RESET HIGH SCORE
+;   RESET HIGH SCORE (ONLY FOR WHEN SRAM ISN'T PRESENT)
     LD (highScore), A
     LD (highScore + 1), A
     LD (highScore + 2), A

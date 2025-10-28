@@ -7,6 +7,8 @@
 ;   GENERAL GAME STUFF
     ; SPECIAL RESET KEY
     resetSig: dsb 4
+    ; SRAM PRESENT FLAG
+    sramFlag: db
     ; SPRITE FLICKER CONTROL
     sprFlickerControl: db
     ; MD CONTROLLER FLAG (FOR PAUSE ON START)
@@ -193,3 +195,9 @@
 .RAMSECTION "stackArea" SLOT 6
     stackList: dsb $40          ; NOT REALLY USED, JUST PLACEHOLDER FOR STACK PTR
 .ENDS
+
+
+;   SRAM
+.ENUM SRAM_PTR
+    sramScores INSTANCEOF highScoresSRAM
+.ENDE

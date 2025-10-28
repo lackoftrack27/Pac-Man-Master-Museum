@@ -1,6 +1,6 @@
 /*
 ------------------------------------------------
-            UNSORTED FUNCTIONS
+                UNSORTED FUNCTIONS
 ------------------------------------------------
 */
 
@@ -230,7 +230,13 @@ jrGetMazeIndex:
     JP @lookup
 @dataLUT:
     .DB 1 0 3 2 5 4 6 2 5 4 6 2 5 4
-    
+
+
+/*
+------------------------------------------------
+                PLUS FUNCTIONS
+------------------------------------------------
+*/
 
 /*
     INFO: RANDOMNESS FOR WHEN PLAYER EATS POWER DOT [PLUS]
@@ -324,4 +330,151 @@ plus_fruitSuper:
 ;   SET POWER DOT'S TIME
     LD HL, (plusFruitSuperTime)
     LD (mainTimer1), HL
+    RET
+
+
+/*
+------------------------------------------------
+                SRAM FUNCTIONS
+------------------------------------------------
+*/
+
+/*
+    INFO: CHECK TO SEE IF SRAM HAS BEEN INITIALIZED. IF NOT, IT INITIALIZES IT
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
+initSRAM:
+;   CHECK IF SRAM IS PRESENT
+    ; ENABLE SRAM
+    LD A, $01 << SRAM_EN
+    LD (MAPPER_RAM), A
+    ; CLEAR PRESENT FLAG
+    XOR A
+    LD (sramFlag), A 
+    ; DO A TEST WRITE
+    LD DE, SRAM_WORD_0
+    LD (sramScores.testWrite), DE
+    LD HL, (sramScores.testWrite)
+    SBC HL, DE  ; CARRY CLEARED
+    JR NZ, @end
+    ; SET FLAG (SRAM IS PRESENT)
+    LD HL, sramFlag
+    INC (HL)
+;   CHECK IF SRAM HAS BEEN INITIALIZED
+    ; CHECK IF SIGNITURE IS PRESENT
+    LD HL, (sramScores.sramSig)
+    SBC HL, DE  ; CARRY CLEARED
+    JR NZ, @initScores
+    LD HL, (sramScores.sramSig + $02)
+    LD DE, SRAM_WORD_1
+    SBC HL, DE  ; CARRY CLEARED
+    JR Z, @end
+@initScores:
+;   INITIALIZE SRAM
+    ; CLEAR SCORES
+    LD HL, sramScores
+    LD DE, sramScores + $01
+    LD (HL), $00
+    LD BC, _sizeof_sramScores - $01
+    LDIR
+    ; SET SIGNATURE
+    LD HL, SRAM_WORD_0
+    LD (sramScores.sramSig), HL
+    LD HL, SRAM_WORD_1
+    LD (sramScores.sramSig + $02), HL
+@end:
+;   DISABLE SRAM
+    XOR A
+    LD (MAPPER_RAM), A
+    RET
+
+
+/*
+    INFO: LOAD HIGH SCORE FROM SRAM IF AVAILABLE
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
+loadScorefromSRAM:
+;   EXIT IF SRAM ISN'T PRESENT
+    LD A, (sramFlag)
+    OR A
+    RET Z
+;   GET HIGH SCORE FROM SRAM
+    CALL getSRAMScore
+;   LOAD TO HIGH SCORE IN RAM
+    LD (highScore + 2), A
+    LD (highScore), DE
+    JR initSRAM@end
+
+
+
+/*
+    INFO: SAVE HIGH SCORE TO SRAM IF AVAILABLE
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
+saveScoreToSRAM:
+;   EXIT IF SRAM ISN'T PRESENT
+    LD A, (sramFlag)
+    OR A
+    RET Z
+;   GET HIGH SCORE FROM SRAM
+    CALL getSRAMScore
+;   COMPARE TO HIGH SCORE
+    ; UPPER BYTES
+    LD A, (highScore + 2)
+    LD B, A
+    LD A, (HL)
+    SUB A, B
+    EX DE, HL   ; HL: SRAM SCORE LOW WORD, DE: SRAM SCORE PTR + 2
+    JR C, +     ; CARRY SET IF SRAMSCORE < HIGHSCORE
+    JR NZ, initSRAM@end
+    ; LOWER WORDS
+    LD BC, (highScore)
+    SBC HL, BC          ; CARRY SET IF SRAMSCORE < HIGHSCORE (CARRY CLEARED)
+    JR NC, initSRAM@end ; IF SCORE ISN'T GREATER THAN HIGHSCORE, RETURN
++:
+;   SAVE HIGH SCORE TO SRAM
+    LD HL, highScore + 2
+    LDD
+    LDD
+    LDD
+    JR initSRAM@end
+
+
+/*
+    [HELPER]
+    INFO: GETS HIGH SCORE FROM SRAM ACCORDING TO GAME MODE/TYPE
+    INPUT: NONE
+    OUTPUT: DE - HIGH SCORE (LOW WORD), A - HIGH SCORE (UPPER BYTE), HL - SRAM SCORE PTR + 2
+    USES: AF, BC, DE, HL
+*/
+getSRAMScore:
+;   ENABLE SRAM
+    LD A, $01 << SRAM_EN
+    LD (MAPPER_RAM), A
+;   CALCULATE CORRECT OFFSET
+    LD A, (speedUpFlag)
+    ADD A, A
+    ADD A, A
+    ADD A, A
+    LD C, A     ; BIT 3
+    LD A, (plusBitFlags)
+    AND A, $01 << PLUS | $01 << MS_PAC | $01 << JR_PAC
+    ADD A, C
+    LD B, A     ; * 3
+    ADD A, A
+    ADD A, B
+    LD HL, sramScores
+    RST addToHL
+;   GET HIGH SCORE
+    LD E, (HL)
+    INC L
+    LD D, (HL)
+    INC L
+    LD A, (HL)
     RET

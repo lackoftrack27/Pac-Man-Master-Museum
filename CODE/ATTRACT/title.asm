@@ -153,7 +153,10 @@ sStateAttractTable@titleMode:
     LD A, $01 << PLUS
     XOR A, (HL)
     LD (HL), A
+    ; LOAD GAME'S HIGH SCORE FROM SRAM
+    CALL loadScorefromSRAM
     ; SHOW OR REMOVE PLUS LOGO DEPENDING ON NEW FLAG
+    LD A, (plusBitFlags)
     RRCA    ; PLUS
     JP NC, plus_clrNametableArea
     JP plus_setNametableArea

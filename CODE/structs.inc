@@ -7,13 +7,31 @@
 .STRUCT playerInfo
     score dsb 3
     dotCount db
-    jrDotCount: dw
+    jrDotCount dw
     levelTablePtr dw
     level db
     lives db
     diedFlag db
     awarded1UPFlag db
     fruitStatus db
+.ENDST
+
+;   HIGH SCORES IN SRAM
+.STRUCT highScoresSRAM
+    pacNormal dsb 3     ; 0
+    pacNormalPlus dsb 3 ; 1
+    msNormal dsb 3      ; 2
+    msNormalPlus dsb 3  ; 3
+    jrNormal dsb 3      ; 4
+    jrNormalPlus dsb 3  ; 5
+    sramSig dsb 4       
+    testWrite dsb 2
+    pacFast dsb 3       ; 8
+    pacFastPlus dsb 3
+    msFast dsb 3
+    msFastPlus dsb 3
+    jrFast dsb 3
+    jrFastPlus dsb 3
 .ENDST
 
 
