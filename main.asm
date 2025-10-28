@@ -691,8 +691,6 @@ lineIntHandler:
     .INCLUDE "collision.asm"
     .INCLUDE "draw.asm"
     .INCLUDE "sound.asm"
-    .INCLUDE "plus.asm"
-    .INCLUDE "mspac.asm"
     .INCLUDE "misc.asm"
     .INCLUDE "assetLoading.asm"
 .ENDS
