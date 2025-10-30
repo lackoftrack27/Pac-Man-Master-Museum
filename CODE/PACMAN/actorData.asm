@@ -52,10 +52,10 @@ playerTileTblList:
     .DW $0000   ; INVALID
     .DW ottoANTileTbl
     .DW ottoANTileTbl
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
 
 /*
     POINTER TABLE FOR DEATH TILE DEFS
@@ -91,10 +91,10 @@ deathTileTblList:
     .DW $0000   ; INVALID
     .DW ottoANDeathTileTbl
     .DW ottoANDeathTileTbl
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
+    ;.DW $0000   ; INVALID
 
 
 /*
@@ -106,32 +106,16 @@ hudTileTblList:
     .DW pacSPTileTbl@hudPtr
     .DW msSNTileTbl@hudPtr
     .DW msSPTileTbl@hudPtr
-    .DW jrSNTileTbl@hudPtr  ; UNUSED
-    .DW jrSNTileTbl@hudPtr  ; UNUSED
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW ottoSNTileTbl@hudPtr
     .DW ottoSNTileTbl@hudPtr
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
     ; ARCADE
     .DW pacANTileTbl@hudPtr
     .DW pacAPTileTbl@hudPtr
     .DW msANTileTbl@hudPtr
     .DW msAPTileTbl@hudPtr
-    .DW jrANTileTbl@hudPtr  ; UNUSED
-    .DW jrANTileTbl@hudPtr  ; UNUSED
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW ottoANTileTbl@hudPtr
     .DW ottoANTileTbl@hudPtr
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID
-    .DW $0000   ; INVALID

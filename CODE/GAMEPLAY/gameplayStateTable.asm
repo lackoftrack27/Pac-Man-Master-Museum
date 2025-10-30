@@ -128,13 +128,15 @@ gamePlayInit:
     OUT (C), H
     DEC C   ; VDP DATA PORT
     ; GET CORRECT SET OF TILES
-    LD HL, hudTileTblList
     LD A, (plusBitFlags)
-    AND A, $1F
+    AND A, $01 << MS_PAC | $01 << PLUS
     ADD A, A
-    LD E, A
-    LD D, $00
-    ADD HL, DE
+    LD B, A
+    LD A, (plusBitFlags)
+    AND A, $01 << STYLE_0 | $01 << OTTO
+    OR A, B
+    LD HL, hudTileTblList
+    RST addToHL
     LD A, (HL)
     INC HL
     LD H, (HL)
