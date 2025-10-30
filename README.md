@@ -19,6 +19,8 @@ An **accuracy-focused** conversion of *Pac-Man*, *Ms. Pac-Man*, and *Jr. Pac-Man
   - **Smooth** – Adds extra detail and color utilizing the Master System’s superior graphical capabilities.
   - **Arcade** – Faithfully replicates the original arcade look as close as possible.
 - **1–2 Player Support**
+- **High Score Saving**
+
 
 ---
 
@@ -53,19 +55,21 @@ Additional Credits:
 **v3.00**
 - Added Jr. Pac-Man and Jr. Pac-Man Plus
 	- They feature a larger viewable area compared to the original at the cost of some ghost AI accuracy
-- Minor corrections to ghost AI
-- Changed maze palettes in Ms. Pac-Man Plus to be more appealing
 - Added SRAM support for high scores
 	- 12 high scores in total
 		- 4 for each game (Non Plus/Normal), (Non Plus/Fast), (Plus/Normal), (Plus/Fast)
 	- Saves upon Game Over
 - Added IGR button combo for MD/Genesis controllers (Start + A + B + C)
+- Minor corrections to ghost AI
+- Changed maze palettes in Ms. Pac-Man Plus to be more appealing
+- Added minor edits to Ms. Pac-Man's sprites and Jr. Pac-Man's sprites for their Plus mode
+- Tweaked some of Ms. Pac-Man's songs to be a bit more accurate
 - Added Crazy Otto as a bonus game
 	- Crazy Otto is one of the many iterations Ms. Pac-Man went through before starring one of gaming's most famous icons
 	- Features a completely different cast: Otto, "Plato", "Darwin", "Freud", "Newton", and Anna
 	- Gameplay is almost identical to Ms. Pac-Man except ~ 
 		- Freud and Newton, (Inky and Clyde), have random movement during Scatter Mode
-		- Monsters turn invisible when eaten instead of only having their eyes viewable. The accompanying sound effect does not play either
+		- Monsters turn invisible when eaten instead of only having their eyes visible. The accompanying sound effect does not play either
 
 **v2.20**
 -   Fixed a bug where the ghosts wouldn't be eaten during Pac-Man's introduction.
