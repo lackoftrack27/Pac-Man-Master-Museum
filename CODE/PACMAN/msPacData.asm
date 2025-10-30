@@ -32,6 +32,7 @@ msSNTileTbl:
     .DW msTileS0D msTileS20 msTileS0E msTileS21 ; HALF
 
 
+
 ;   MS.PAC-MAN [SMOOTH, PLUS] TILE TABLE
 msSPTileTbl:
 ;   UP
@@ -57,6 +58,45 @@ msSPTileTbl:
     .DW msTileS26 msTileS20 msTileS0E msTileS21 ; HALF PLUS
     .DW msTileS14 msTileS20 msTileS15 msTileS17 ; CLOSED
     .DW msTileS26 msTileS20 msTileS0E msTileS21 ; HALF PLUS
+
+
+
+;   MS.PAC-MAN DEATH [SMOOTH, NON-PLUS] TILE TABLE
+msSNDeathTileTbl:
+    .DW msTileS0B msTileS1E msTileS0C msTileS1F ; DOWN HALF
+    .DW msTileS0A msTileS1D msTileS03 msTileS17 ; LEFT HALF
+    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
+    .DW msTileS0D msTileS20 msTileS0E msTileS21 ; RIGHT HALF
+
+    .DW msTileS0B msTileS1E msTileS0C msTileS1F ; DOWN HALF
+    .DW msTileS0A msTileS1D msTileS03 msTileS17 ; LEFT HALF
+    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
+    .DW msTileS0D msTileS20 msTileS0E msTileS21 ; RIGHT HALF
+
+    .DW msTileS0B msTileS1E msTileS0C msTileS1F ; DOWN HALF
+    .DW msTileS0A msTileS1D msTileS03 msTileS17 ; LEFT HALF
+    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
+    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
+
+
+
+;   MS.PAC-MAN DEATH [SMOOTH, PLUS] TILE TABLE
+msSPDeathTileTbl:
+    .DW msTileS25 msTileS1E msTileS0C msTileS1F ; DOWN HALF PLUS
+    .DW msTileS24 msTileS1D msTileS03 msTileS17 ; LEFT HALF PLUS
+    .DW msTileS23 msTileS16 msTileS09 msTileS17 ; UP HALF PLUS
+    .DW msTileS26 msTileS20 msTileS0E msTileS21 ; RIGHT HALF PLUS
+
+    .DW msTileS25 msTileS1E msTileS0C msTileS1F ; DOWN HALF PLUS
+    .DW msTileS24 msTileS1D msTileS03 msTileS17 ; LEFT HALF PLUS
+    .DW msTileS23 msTileS16 msTileS09 msTileS17 ; UP HALF PLUS
+    .DW msTileS26 msTileS20 msTileS0E msTileS21 ; RIGHT HALF PLUS
+
+    .DW msTileS25 msTileS1E msTileS0C msTileS1F ; DOWN HALF PLUS
+    .DW msTileS24 msTileS1D msTileS03 msTileS17 ; LEFT HALF PLUS
+    .DW msTileS23 msTileS16 msTileS09 msTileS17 ; UP HALF PLUS
+    .DW msTileS23 msTileS16 msTileS09 msTileS17 ; UP HALF PLUS
+
 
 
 ;   MS.PAC-MAN [ARCADE, NON-PLUS] TILE TABLE
@@ -87,6 +127,7 @@ msANTileTbl:
     .DW msTileA0D msTileA1F msTileA0E msTileA20 ; HALF
 
 
+
 ;   MS.PAC-MAN [ARCADE, PLUS] TILE TABLE
 msAPTileTbl:
 ;   UP
@@ -114,25 +155,8 @@ msAPTileTbl:
     .DW msTileA27 msTileA1F msTileA0E msTileA20 ; HALF PLUS
 
 
-;   MS.PAC-MAN DEATH [SMOOTH] TILE TABLE
-msSNDeathTileTbl:
-    .DW msTileS0B msTileS1E msTileS0C msTileS1F ; DOWN HALF
-    .DW msTileS0A msTileS1D msTileS03 msTileS17 ; LEFT HALF
-    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
-    .DW msTileS0D msTileS20 msTileS0E msTileS21 ; RIGHT HALF
 
-    .DW msTileS0B msTileS1E msTileS0C msTileS1F ; DOWN HALF
-    .DW msTileS0A msTileS1D msTileS03 msTileS17 ; LEFT HALF
-    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
-    .DW msTileS0D msTileS20 msTileS0E msTileS21 ; RIGHT HALF
-
-    .DW msTileS0B msTileS1E msTileS0C msTileS1F ; DOWN HALF
-    .DW msTileS0A msTileS1D msTileS03 msTileS17 ; LEFT HALF
-    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
-    .DW msTileS08 msTileS16 msTileS09 msTileS17 ; UP HALF
-
-
-;   MS.PAC-MAN DEATH [ARCADE] TILE TABLE
+;   MS.PAC-MAN DEATH [ARCADE, NON-PLUS] TILE TABLE
 msANDeathTileTbl:
     .DW msTileA0B msTileA1E msTileA0C msTileA18 ; DOWN HALF
     .DW msTileA0A msTileA1D msTileA03 msTileA18 ; LEFT HALF
@@ -148,3 +172,22 @@ msANDeathTileTbl:
     .DW msTileA0A msTileA1D msTileA03 msTileA18 ; LEFT HALF
     .DW msTileA08 msTileA15 msTileA09 msTileA16 ; UP HALF
     .DW msTileA08 msTileA15 msTileA09 msTileA16 ; UP HALF
+
+
+
+;   MS.PAC-MAN DEATH [ARCADE, PLUS] TILE TABLE
+msAPDeathTileTbl:
+    .DW msTileA26 msTileA1E msTileA0C msTileA18 ; DOWN HALF PLUS
+    .DW msTileA25 msTileA1D msTileA03 msTileA18 ; LEFT HALF PLUS
+    .DW msTileA24 msTileA15 msTileA09 msTileA16 ; UP HALF PLUS
+    .DW msTileA27 msTileA1F msTileA0E msTileA20 ; RIGHT HALF PLUS
+
+    .DW msTileA26 msTileA1E msTileA0C msTileA18 ; DOWN HALF PLUS
+    .DW msTileA25 msTileA1D msTileA03 msTileA18 ; LEFT HALF PLUS
+    .DW msTileA24 msTileA15 msTileA09 msTileA16 ; UP HALF PLUS
+    .DW msTileA27 msTileA1F msTileA0E msTileA20 ; RIGHT HALF PLUS
+
+    .DW msTileA26 msTileA1E msTileA0C msTileA18 ; DOWN HALF PLUS
+    .DW msTileA25 msTileA1D msTileA03 msTileA18 ; LEFT HALF PLUS
+    .DW msTileA24 msTileA15 msTileA09 msTileA16 ; UP HALF PLUS
+    .DW msTileA24 msTileA15 msTileA09 msTileA16 ; UP HALF PLUS

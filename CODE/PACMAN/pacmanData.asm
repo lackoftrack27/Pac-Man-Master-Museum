@@ -32,6 +32,7 @@ pacSNTileTbl:
     .DW pacTileS0D pacTileS12 pacTileS03 pacTileS13 ; CLOSED
 
 
+
 ;   PAC-MAN [SMOOTH, PLUS] TILE TABLE
 pacSPTileTbl:
 ;   UP
@@ -55,6 +56,26 @@ pacSPTileTbl:
     .DW pacTileS06 pacTileS15 pacTileS07 pacTileS07 ; OPEN
     .DW pacTileS11 pacTileS12 pacTileS0C pacTileS13 ; HALF PLUS
     .DW pacTileS0D pacTileS12 pacTileS03 pacTileS13 ; CLOSED
+
+
+
+;   PAC-MAN [SMOOTH] DEATH TILE TABLE
+pacSNDeathTileTbl:
+    .DW pacDTileS00 pacDTileS14 pacDTileS01 pacDTileS0F
+    .DW pacDTileS02 pacDTileS15 pacDTileS03 pacDTileS16
+    .DW pacDTileS04 pacDTileS17 pacDTileS05 pacDTileS18
+    .DW pacDTileS06 pacDTileS17 pacDTileS07 pacDTileS18
+
+    .DW pacDTileS08 pacDTileS19 pacDTileS09 pacDTileS1A
+    .DW pacDTileS0A pacDTileS1B pacDTileS0B pacDTileS1C
+    .DW pacDTileS0C pacDTileS1D pacDTileS0D pacDTileS1E
+    .DW pacDTileS0E pacDTileS1F pacDTileS0F pacDTileS20
+
+    .DW pacDTileS10 pacDTileS21 pacDTileS0F pacDTileS22
+    .DW pacDTileS11 pacDTileS23 pacDTileS0F pacDTileS0F
+    .DW pacDTileS12 pacDTileS24 pacDTileS13 pacDTileS25
+    .DW pacDTileS0F pacDTileS0F pacDTileS0F pacDTileS0F
+
 
 
 ;   PAC-MAN [ARCADE, NON-PLUS] TILE TABLE
@@ -111,23 +132,6 @@ pacAPTileTbl:
     .DW pacTileA11 pacTileA1F pacTileA0C pacTileA1E ; CLOSED
 
 
-;   PAC-MAN [SMOOTH] DEATH TILE TABLE
-pacSNDeathTileTbl:
-    .DW pacDTileS00 pacDTileS14 pacDTileS01 pacDTileS0F
-    .DW pacDTileS02 pacDTileS15 pacDTileS03 pacDTileS16
-    .DW pacDTileS04 pacDTileS17 pacDTileS05 pacDTileS18
-    .DW pacDTileS06 pacDTileS17 pacDTileS07 pacDTileS18
-
-    .DW pacDTileS08 pacDTileS19 pacDTileS09 pacDTileS1A
-    .DW pacDTileS0A pacDTileS1B pacDTileS0B pacDTileS1C
-    .DW pacDTileS0C pacDTileS1D pacDTileS0D pacDTileS1E
-    .DW pacDTileS0E pacDTileS1F pacDTileS0F pacDTileS20
-
-    .DW pacDTileS10 pacDTileS21 pacDTileS0F pacDTileS22
-    .DW pacDTileS11 pacDTileS23 pacDTileS0F pacDTileS0F
-    .DW pacDTileS12 pacDTileS24 pacDTileS13 pacDTileS25
-    .DW pacDTileS0F pacDTileS0F pacDTileS0F pacDTileS0F
-
 
 ;   PAC-MAN [ARCADE] DEATH TILE TABLE
 pacANDeathTileTbl:
@@ -146,10 +150,11 @@ pacANDeathTileTbl:
     .DW pacDTileA11 pacDTileA23 pacDTileA12 pacDTileA24
     .DW pacDTileA0F pacDTileA0F pacDTileA0F pacDTileA0F
 
+
+
 ;   FRAMES TIMES
 pacmanDeathTimes:
     .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $0F $55
-
 
 /*
     MACRO AND LIST FOR PAC-MAN TILES [BIG - CUTSCENE 1]

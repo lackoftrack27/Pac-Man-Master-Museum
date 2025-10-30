@@ -156,7 +156,8 @@ setupTilePtrs:
 ;   DEATH TILE DEFINITION TABLE SETUP
     LD HL, deathTileTblList
     LD A, (plusBitFlags)
-    AND A, $01 << STYLE_0 | $01 << OTTO | $01 << JR_PAC | $01 << MS_PAC
+    AND A, $01 << STYLE_0 | $01 << OTTO | $01 << JR_PAC | $01 << MS_PAC | $01 << PLUS
+    ADD A, A
     RST addToHL
     LD A, (HL)
     INC HL

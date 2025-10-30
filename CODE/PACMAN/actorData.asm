@@ -63,20 +63,36 @@ playerTileTblList:
 deathTileTblList:
     ; SMOOTH
     .DW pacSNDeathTileTbl
+    .DW pacSNDeathTileTbl
     .DW msSNDeathTileTbl
+    .DW msSPDeathTileTbl
     .DW jrSNDeathTileTbl
+    .DW jrSPDeathTileTbl
+    .DW $0000   ; INVALID
+    .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW ottoSNDeathTileTbl
+    .DW ottoSNDeathTileTbl
+    .DW $0000   ; INVALID
+    .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     ; ARCADE
     .DW pacANDeathTileTbl
+    .DW pacANDeathTileTbl
     .DW msANDeathTileTbl
+    .DW msAPDeathTileTbl
     .DW jrANDeathTileTbl
+    .DW jrAPDeathTileTbl
+    .DW $0000   ; INVALID
+    .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW ottoANDeathTileTbl
+    .DW ottoANDeathTileTbl
+    .DW $0000   ; INVALID
+    .DW $0000   ; INVALID
     .DW $0000   ; INVALID
     .DW $0000   ; INVALID
 

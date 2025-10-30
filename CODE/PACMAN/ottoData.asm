@@ -32,6 +32,26 @@ ottoSNTileTbl:
     .DW ottoTileS18 ottoTileS2F ottoTileS0D ottoTileS30 ; HALF 1
     
 
+
+;   OTTO DEATH [SMOOTH] TILE TABLE
+ottoSNDeathTileTbl:
+    .DW ottoTileS00 ottoTileS2C ottoTileS0E ottoTileS27 ; UP HALF 1
+    .DW ottoTileS18 ottoTileS2F ottoTileS0D ottoTileS30 ; RIGHT HALF 1
+    .DW ottoTileS17 ottoTileS2C ottoTileS12 ottoTileS27 ; DOWN HALF 1
+    .DW ottoTileS15 ottoTileS2D ottoTileS16 ottoTileS2E ; LEFT HALF 1
+
+    .DW ottoTileS00 ottoTileS2C ottoTileS0E ottoTileS27 ; UP HALF 1
+    .DW ottoTileS18 ottoTileS2F ottoTileS0D ottoTileS30 ; RIGHT HALF 1
+    .DW ottoTileS17 ottoTileS2C ottoTileS12 ottoTileS27 ; DOWN HALF 1
+    .DW ottoTileS15 ottoTileS2D ottoTileS16 ottoTileS2E ; LEFT HALF 1
+
+    .DW ottoTileS00 ottoTileS2C ottoTileS0E ottoTileS27 ; UP HALF 1
+    .DW ottoTileS18 ottoTileS2F ottoTileS0D ottoTileS30 ; RIGHT HALF 1
+    .DW ottoTileS17 ottoTileS2C ottoTileS12 ottoTileS27 ; DOWN HALF 1
+    .DW ottoTileS19 ottoTileS31 ottoTileS1A ottoTileS32 ; DEATH
+
+
+
 ;   OTTO [ARCADE] TILE TABLE
 ottoANTileTbl:
 ;   UP
@@ -60,23 +80,6 @@ ottoANTileTbl:
     .DW ottoTileA18 ottoTileA2F ottoTileA19 ottoTileA30 ; HALF 1
 
 
-;   OTTO DEATH [SMOOTH] TILE TABLE
-ottoSNDeathTileTbl:
-    .DW ottoTileS00 ottoTileS2C ottoTileS0E ottoTileS27 ; UP HALF 1
-    .DW ottoTileS18 ottoTileS2F ottoTileS0D ottoTileS30 ; RIGHT HALF 1
-    .DW ottoTileS17 ottoTileS2C ottoTileS12 ottoTileS27 ; DOWN HALF 1
-    .DW ottoTileS15 ottoTileS2D ottoTileS16 ottoTileS2E ; LEFT HALF 1
-
-    .DW ottoTileS00 ottoTileS2C ottoTileS0E ottoTileS27 ; UP HALF 1
-    .DW ottoTileS18 ottoTileS2F ottoTileS0D ottoTileS30 ; RIGHT HALF 1
-    .DW ottoTileS17 ottoTileS2C ottoTileS12 ottoTileS27 ; DOWN HALF 1
-    .DW ottoTileS15 ottoTileS2D ottoTileS16 ottoTileS2E ; LEFT HALF 1
-
-    .DW ottoTileS00 ottoTileS2C ottoTileS0E ottoTileS27 ; UP HALF 1
-    .DW ottoTileS18 ottoTileS2F ottoTileS0D ottoTileS30 ; RIGHT HALF 1
-    .DW ottoTileS17 ottoTileS2C ottoTileS12 ottoTileS27 ; DOWN HALF 1
-    .DW ottoTileS19 ottoTileS31 ottoTileS1A ottoTileS32 ; DEATH
-
 
 ;   OTTO DEATH [ARCADE] TILE TABLE
 ottoANDeathTileTbl:
@@ -95,7 +98,8 @@ ottoANDeathTileTbl:
     .DW ottoTileA17 ottoTileA2C ottoTileA12 ottoTileA28 ; DOWN HALF 1
     .DW ottoTileA1A ottoTileA31 ottoTileA1B ottoTileA32 ; DEATH
     
-    
+
+
 ;   ANNA [SMOOTH] TILE TABLE
 annaSNTileTbl:
 @up:
@@ -113,6 +117,7 @@ annaSNTileTbl:
     .DW annaTileS09 annaTileS1C annaTileS0A annaTileS1D ; HALF 0
     .DW annaTileS0E annaTileS22 annaTileS0F annaTileS23 ; CLOSED
     .DW annaTileS12 annaTileS27 annaTileS0A annaTileS28 ; HALF 1
+
 
 
 ;   ANNA [ARCADE] TILE TABLE

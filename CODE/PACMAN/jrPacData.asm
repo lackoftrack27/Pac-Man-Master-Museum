@@ -34,6 +34,7 @@ jrSNTileTbl:
     .DW jrTileS0C jrTileS21 jrTileS0D jrTileS22 ; HALF
 
 
+
 ;   JR.PAC-MAN [SMOOTH, PLUS] TILE TABLE
 jrSPTileTbl:
 ;   UP
@@ -62,6 +63,43 @@ jrSPTileTbl:
     .DW jrTileS2A jrTileS21 jrTileS0D jrTileS22 ; HALF PLUS
     .DW jrTileS14 jrTileS21 jrTileS15 jrTileS26 ; CLOSED
     .DW jrTileS2A jrTileS21 jrTileS0D jrTileS22 ; HALF PLUS
+
+
+
+;   JR.PAC-MAN DEATH [SMOOTH, NON-PLUS] TILE TABLE
+jrSNDeathTileTbl:
+    .DW jrDTileS00 jrDTileS14 jrDTileS01 jrDTileS15
+    .DW jrDTileS02 jrDTileS16 jrDTileS03 jrDTileS17
+    .DW jrDTileS04 jrDTileS18 jrDTileS05 jrDTileS19
+    .DW jrDTileS06 jrDTileS1A jrDTileS07 jrDTileS1B
+
+    .DW jrDTileS08 jrDTileS1C jrDTileS09 jrDTileS1D
+    .DW jrDTileS0A jrDTileS1E jrDTileS0B jrDTileS0B
+    .DW jrDTileS0C jrDTileS1F jrDTileS0B jrDTileS0B
+    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
+
+    .DW jrDTileS0F jrDTileS22 jrDTileS10 jrDTileS23
+    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
+    .DW jrDTileS11 jrDTileS24 jrDTileS0B jrDTileS25
+    .DW jrDTileS12 jrDTileS26 jrDTileS13 jrDTileS27
+
+
+;   JR.PAC-MAN DEATH [SMOOTH, PLUS] TILE TABLE
+jrSPDeathTileTbl:
+    .DW jrTileS2B jrDTileS14 jrDTileS01 jrDTileS15
+    .DW jrDTileS02 jrDTileS16 jrDTileS03 jrDTileS17
+    .DW jrDTileS04 jrDTileS18 jrDTileS05 jrDTileS19
+    .DW jrDTileS06 jrDTileS1A jrDTileS07 jrDTileS1B
+
+    .DW jrDTileS08 jrDTileS1C jrDTileS09 jrDTileS1D
+    .DW jrDTileS0A jrDTileS1E jrDTileS0B jrDTileS0B
+    .DW jrDTileS0C jrDTileS1F jrDTileS0B jrDTileS0B
+    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
+
+    .DW jrDTileS0F jrDTileS22 jrDTileS10 jrDTileS23
+    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
+    .DW jrDTileS11 jrDTileS24 jrDTileS0B jrDTileS25
+    .DW jrDTileS12 jrDTileS26 jrDTileS13 jrDTileS27
 
 
 ;   JR.PAC-MAN [ARCADE, NON-PLUS] TILE TABLE
@@ -94,6 +132,7 @@ jrANTileTbl:
     .DW jrTileA0B jrTileA19 jrTileA0C jrTileA1E ; HALF
 
 
+
 ;   JR.PAC-MAN [ARCADE, PLUS] TILE TABLE
 jrAPTileTbl:
 ;   UP
@@ -124,27 +163,29 @@ jrAPTileTbl:
     .DW jrTileA0B jrTileA19 jrTileA27 jrTileA28 ; HALF PLUS
 
 
-;   JR.PAC-MAN DEATH [SMOOTH] TILE TABLE
-jrSNDeathTileTbl:
-    .DW jrDTileS00 jrDTileS14 jrDTileS01 jrDTileS15
-    .DW jrDTileS02 jrDTileS16 jrDTileS03 jrDTileS17
-    .DW jrDTileS04 jrDTileS18 jrDTileS05 jrDTileS19
-    .DW jrDTileS06 jrDTileS1A jrDTileS07 jrDTileS1B
 
-    .DW jrDTileS08 jrDTileS1C jrDTileS09 jrDTileS1D
-    .DW jrDTileS0A jrDTileS1E jrDTileS0B jrDTileS0B
-    .DW jrDTileS0C jrDTileS1F jrDTileS0B jrDTileS0B
-    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
-
-    .DW jrDTileS0F jrDTileS22 jrDTileS10 jrDTileS23
-    .DW jrDTileS0D jrDTileS20 jrDTileS0E jrDTileS21
-    .DW jrDTileS11 jrDTileS24 jrDTileS0B jrDTileS25
-    .DW jrDTileS12 jrDTileS26 jrDTileS13 jrDTileS27
-
-
-;   JR.PAC-MAN DEATH [ARCADE] TILE TABLE
+;   JR.PAC-MAN DEATH [ARCADE, NON-PLUS] TILE TABLE
 jrANDeathTileTbl:
     .DW jrDTileA00 jrDTileA11 jrDTileA01 jrDTileA12
+    .DW jrDTileA02 jrDTileA13 jrDTileA03 jrDTileA14
+    .DW jrDTileA04 jrDTileA15 jrDTileA05 jrDTileA16
+    .DW jrDTileA06 jrDTileA17 jrDTileA07 jrDTileA18
+
+    .DW jrDTileA08 jrDTileA19 jrDTileA09 jrDTileA1A
+    .DW jrDTileA06 jrDTileA1B jrDTileA07 jrDTileA07
+    .DW jrDTileA0A jrDTileA1C jrDTileA07 jrDTileA07
+    .DW jrDTileA0B jrDTileA1D jrDTileA07 jrDTileA1E
+
+    .DW jrDTileA0C jrDTileA1F jrDTileA0D jrDTileA20
+    .DW jrDTileA0E jrDTileA21 jrDTileA07 jrDTileA22
+    .DW jrDTileA0F jrDTileA23 jrDTileA07 jrDTileA07
+    .DW jrDTileA10 jrDTileA24 jrDTileA07 jrDTileA25
+
+
+
+;   JR.PAC-MAN DEATH [ARCADE, PLUS] TILE TABLE
+jrAPDeathTileTbl:
+    .DW jrDTileA00 jrDTileA11 jrTileA27 jrTileA28
     .DW jrDTileA02 jrDTileA13 jrDTileA03 jrDTileA14
     .DW jrDTileA04 jrDTileA15 jrDTileA05 jrDTileA16
     .DW jrDTileA06 jrDTileA17 jrDTileA07 jrDTileA18
