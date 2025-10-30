@@ -1486,8 +1486,8 @@ jrScene2Prog0:
     SETN    $01
     MOVE    $00 $00 ; BLANK
     ;SETPOS  $7F $E1
-    ;SETPOS  $FD $E1
-    SETPOS  $F1 $E1
+
+    SETPOS  $BF $E1
     SETN    $1C
     MOVE    $40 $00 ; BLANK
     ; --------
@@ -1570,8 +1570,8 @@ jrScene2Prog1:
     SETN    $01
     MOVE    $00 $00 ; BLANK
     ;SETPOS  $7F $E1
-    ;SETPOS  $FF $E1
-    SETPOS  $F3 $E1
+  
+    SETPOS  $BF $E1
     SETN    $17
     MOVE    $40 $00 ; BLANK
     ; --------
@@ -1638,8 +1638,8 @@ jrScene2Prog2:
     SETN    $01
     MOVE    $00 $00 ; BLANK
     ;SETPOS  $7F $D1
-    ;SETPOS  $FF $D1
-    SETPOS  $F3 $D1
+
+    SETPOS  $BF $D1
     SETN    $17
     MOVE    $40 $00 ; BLANK
     ; --------
@@ -1671,10 +1671,13 @@ jrScene2Prog2:
     ; --------
     SETCHAR jrSceneCharacters@heart
     ;SETPOS  $60 $60
-    ;SETPOS  $54 $60
-    SETPOS  $33 $60 ; TOP RIGHT
 
-    SETN    $09
+    ;SETPOS  $A0 $60
+
+    SETHIGHX    $00
+    SETPOS  $00 $60
+
+    SETN    $09     ; TOP RIGHT
     PAUSE
 
     SETN    $40
@@ -1703,8 +1706,8 @@ jrScene2Prog3:
     SETN    $01
     MOVE    $00 $00 ; BLANK
     ;SETPOS  $7F $C1
-    ;SETPOS  $FF $C1
-    SETPOS  $F3 $C1
+
+    SETPOS  $BF $C1
     SETN    $10
     MOVE    $40 $00 ; BLANK
     ; --------
@@ -1762,11 +1765,13 @@ jrScene2Prog3:
     ; --------
     SETCHAR jrSceneCharacters@heart
     ;SETPOS  $60 $A0
-    ;SETPOS  $54 $A0
-    SETPOS  $33 $A0 ; BOTTOM RIGHT
 
+    ;SETPOS  $A0 $A0
 
-    SETN    $10
+    SETHIGHX    $00
+    SETPOS  $00 $A0
+
+    SETN    $10     ; BOTTOM RIGHT
     PAUSE
 
 
@@ -1793,7 +1798,8 @@ jrScene2Prog3:
 jrScene2Prog4:
     SETBGPRI        $01
     SETHIGHX    $01
-    SETPOS  $54 $00
+    ;SETPOS  $54 $00
+    SETPOS  $30 $00
     ;SETCHAR jrSceneCharacters@jrPacLeft
     SETCHAR jrSceneCharacters@emptySpr
     SETN    $01
@@ -1814,8 +1820,15 @@ jrScene2Prog4:
     MOVE    $00 $00 ; BLANK
     DECPTR  $04
     ; --------
-    SETN    $E0
-    MOVE    $E8 $00 ; BLANK
+
+    SETN    $40
+    PAUSE
+
+
+    ;SETN    $E0
+    ;MOVE    $E8 $00 ; BLANK
+    SETN    $A0
+    MOVE    $E4 $00
     SETJRVAR        $05
     ;SETCHAR jrSceneCharacters@heart
     /*
@@ -1853,8 +1866,8 @@ jrScene2Prog5:
     SETN    $01
     MOVE    $00 $00 ; BLANK
     ;SETPOS  $7F $E0
-    ;SETPOS  $FF $E0
-    SETPOS  $F3 $E0
+
+    SETPOS  $BF $E0
     SETN    $17
     MOVE    $40 $00 ; BLANK
     ; --------
@@ -1875,8 +1888,10 @@ jrScene2Prog5:
     SETN    $01
     MOVE    $00 $00 ; BLANK
     ;SETPOS  $FF $E9
-    SETHIGHX    $01
-    SETPOS  $C3 $E9
+
+    ;SETHIGHX    $01
+    ;SETPOS  $C3 $E9
+    SETPOS  $94 $E9
     SETCHAR jrSceneCharacters@msPacRight
     ; --------
     CUT_NOP
@@ -1902,11 +1917,11 @@ jrScene2Prog5:
     SETCHAR jrSceneCharacters@heart
     SETHIGHX    $00
     ;SETPOS  $A0 $60
-    ;SETPOS  $94 $60
-    SETPOS  $73 $60 ; TOP LEFT
 
+    ;SETPOS  $E0 $60
 
-    SETN    $04
+    SETPOS  $40 $60
+    SETN    $04     ; TOP LEFT
     PAUSE
 
     SETN    $40
@@ -1938,8 +1953,12 @@ jrScene2Prog6:
     ; --------
     SETCHAR jrSceneCharacters@heart
     ;SETPOS  $A0 $A0
-    SETPOS  $73 $A0 ; BOTTOM LEFT
-    SETN    $40
+
+    ;SETPOS  $E0 $A0
+
+    SETPOS  $40 $A0
+
+    SETN    $40     ; BOTTOM LEFT
     MOVE    $F0 $00
     SETN    $40
     MOVE    $00 $F0

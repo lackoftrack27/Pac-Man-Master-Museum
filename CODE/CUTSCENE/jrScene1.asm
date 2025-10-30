@@ -41,31 +41,12 @@ sStateCutsceneTable@jrScene1:
     LD (jrCameraPos), A
     LD A, $D8
     LD (jrScrollReal), A
+        ; WRITE TO VDP HERE DUE TO 'WAIT FOR VBLANK'
     OUT (VDPCON_PORT), A
     LD A, $88
     OUT (VDPCON_PORT), A
 ;   LOAD VISIBLE PART OF TILEMAP TO VRAM
-    LD HL, NAMETABLE | VRAMWRITE
-    RST setVDPAddress
-        ; POINT TO LEFT MOST TILE OF MAZE
-    LD HL, mazeGroup1 + ($24 * $02)
-        ; LOOP SETUP
-    LD D, $18
--:
-        ; WRITE ROW [SCROLLED TO RIGHT EDGE]
-    LD BC, $0A * $100 + VDPDATA_PORT
-    OTIR
-        ; WRITE ROW
-    LD BC, -($36 + $0A)
-    ADD HL, BC
-    LD BC, $36 * $100 + VDPDATA_PORT
-    OTIR
-        ; POINT TO NEXT ROW
-    LD BC, ($05 * $02) + ($48)
-    ADD HL, BC
-        ; DO FOR WHOLE SCREEN
-    DEC D
-    JR NZ, -
+    CALL jrLoadStartingTileMapArea
 ;   PLAY MUSIC
     LD A, MUS_INTER1_JR
     CALL sndPlayMusic
@@ -94,9 +75,10 @@ sStateCutsceneTable@jrScene1:
     OR A
     SBC HL, DE
     JP NZ, jrSceneCommonDrawUpdate  ; IF NOT, SKIP
-    ; SET FLAG, REMOVE TEXT
+    ; SET FLAG
     LD A, $FF
     LD (mainTimer0 + 1), A
+    ; REMOVE TEXT
     LD BC, $06 * $100 + VDPCON_PORT
     LD HL, NAMETABLE + (02 * $02) + (10 * $40) | VRAMWRITE
     OUT (C), L

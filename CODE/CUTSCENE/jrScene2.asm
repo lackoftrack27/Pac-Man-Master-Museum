@@ -29,9 +29,9 @@ sStateCutsceneTable@jrScene2:
 ;   LOAD BACKGROUND TILEMAP
     LD A, bank(jrCut2Tilemap)
     LD (MAPPER_SLOT2), A
-    LD DE, mazeGroup1
+    LD DE, NAMETABLE | VRAMWRITE
     LD HL, jrCut2Tilemap
-    CALL zx7_decompress
+    CALL zx7_decompressVRAM
 ;   RESTORE BANK
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
@@ -39,36 +39,17 @@ sStateCutsceneTable@jrScene2:
     XOR A   ; DISABLE NORMAL SCROLL STUFF
     LD (enableScroll), A
     LD (jrCameraPos), A
-    LD A, $28
     LD (jrScrollReal), A
     OUT (VDPCON_PORT), A
     LD A, $88
     OUT (VDPCON_PORT), A
-;   LOAD VISIBLE PART OF TILEMAP TO VRAM
-    LD HL, NAMETABLE | VRAMWRITE
-    RST setVDPAddress
-        ; POINT TO LEFT MOST TILE OF MAZE
-    LD HL, mazeGroup1 + ($04 * $02) ; $24
-        ; LOOP SETUP
-    LD D, $18
--:
-        ; WRITE ROW [SCROLLED TO RIGHT EDGE]
-    LD BC, ($1B * $02) * $100 + VDPDATA_PORT    ; $05
-    OTIR
-        ; SKIP COLUMN 0
-    IN F, (C)
-    IN F, (C)
-        ; WRITE ROW
-    LD BC, -(($1B * $02) + ($04 * $02))
-    ADD HL, BC
-    LD BC, ($04 * $02) * $100 + VDPDATA_PORT
-    OTIR
-        ; POINT TO NEXT ROW
-    LD BC, ($24 * $02) + ($05 * $02)    ; $05, $24
-    ADD HL, BC
-        ; DO FOR WHOLE SCREEN
-    DEC D
-    JR NZ, -
+;   FILL RAM TILEMAP WITH BLANK TILES
+    LD HL, mazeGroup1
+    LD DE, mazeGroup1 + $02
+    LD BC, $0100
+    LD (mazeGroup1), BC
+    LD BC, _sizeof_mazeGroup1 - $02
+    LDIR
 ;   PLAY MUSIC
     LD A, MUS_INTER2_JR
     CALL sndPlayMusic
@@ -99,25 +80,13 @@ sStateCutsceneTable@jrScene2:
     SBC HL, DE
     ADD HL, DE
     JP NZ, +  ; IF NOT, SKIP
-        ; DRAW TEXT [PART 1]
-    LD BC, $03 * $100 + VDPCON_PORT
-    LD HL, NAMETABLE + (00 * $02) + (20 * $40) | VRAMWRITE
+        ; DRAW TEXT
+    LD BC, $09 * $100 + VDPCON_PORT
+    LD HL, NAMETABLE + (04 * $02) + (20 * $40) | VRAMWRITE
     OUT (C), L
     OUT (C), H
     DEC C
-    LD HL, $015D
--:
-    OUT (C), L
-    OUT (C), H
-    INC L
-    DJNZ -
-        ; DRAW TEXT [PART 2]
-    LD BC, $06 * $100 + VDPCON_PORT
-    LD HL, NAMETABLE + (26 * $02) + (20 * $40) | VRAMWRITE
-    OUT (C), L
-    OUT (C), H
-    DEC C
-    LD HL, $0157
+    LD HL, $0159
 -:
     OUT (C), L
     OUT (C), H
@@ -133,20 +102,9 @@ sStateCutsceneTable@jrScene2:
         ; SET FLAG
     LD A, $FF
     LD (mainTimer0 + 1), A
-        ; REMOVE TEXT [PART 1]
-    LD BC, $03 * $100 + VDPCON_PORT
-    LD HL, NAMETABLE + (00 * $02) + (20 * $40) | VRAMWRITE
-    OUT (C), L
-    OUT (C), H
-    DEC C
-    LD HL, $0100
--:
-    OUT (C), L
-    OUT (C), H
-    DJNZ -
-        ; REMOVE TEXT [PART 2]
-    LD BC, $06 * $100 + VDPCON_PORT
-    LD HL, NAMETABLE + (26 * $02) + (20 * $40) | VRAMWRITE
+        ; REMOVE TEXT
+    LD BC, $09 * $100 + VDPCON_PORT
+    LD HL, NAMETABLE + (04 * $02) + (20 * $40) | VRAMWRITE
     OUT (C), L
     OUT (C), H
     DEC C

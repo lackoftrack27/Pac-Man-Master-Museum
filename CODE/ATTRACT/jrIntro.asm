@@ -47,27 +47,7 @@ sStateAttractTable@jrIntroMode:
     LD A, $D8
     LD (jrScrollReal), A
 ;   LOAD VISIBLE PART OF TILEMAP TO VRAM
-    LD HL, NAMETABLE | VRAMWRITE
-    RST setVDPAddress
-        ; POINT TO LEFT MOST TILE OF MAZE
-    LD HL, mazeGroup1 + ($24 * $02)
-        ; LOOP SETUP
-    LD D, $18
--:
-        ; WRITE ROW [SCROLLED TO RIGHT EDGE]
-    LD BC, $0A * $100 + VDPDATA_PORT
-    OTIR
-        ; WRITE ROW
-    LD BC, -($36 + $0A)
-    ADD HL, BC
-    LD BC, $36 * $100 + VDPDATA_PORT
-    OTIR
-        ; POINT TO NEXT ROW
-    LD BC, ($05 * $02) + ($48)
-    ADD HL, BC
-        ; DO FOR WHOLE SCREEN
-    DEC D
-    JR NZ, -
+    CALL jrLoadStartingTileMapArea
 ;   GENERAL INTRO MODE SETUP 2
     CALL generalIntroSetup01
 @@draw:

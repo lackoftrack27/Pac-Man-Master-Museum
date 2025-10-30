@@ -1026,6 +1026,7 @@ updateJRScroll:
     LD A, $28   ; MAX SCROLL
     SUB A, B
     LD (jrCameraPos), A
+@cutsceneJump2:
 ;   UPDATE ACTOR OFFSCREEN FLAGS
     LD B, $00   ; FLAG TO SET REVERSE FLAG IN OFFSCREEN ROUTINE
     LD IX, blinky
