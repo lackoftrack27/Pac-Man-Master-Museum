@@ -556,6 +556,7 @@ cfTable:
 ;   ---------------------------------------------
 ;   ED - SET JR'S SWING FLAG (USED FOR CUTSCENE 3 ONLY)
 @cfSetSwingFlag:
+    DEC DE  ; NO DATA BYTES
     LD A, $01
     LD (jrSwingFlag), A
     LD (jrSwingCounter), A
