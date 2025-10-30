@@ -247,7 +247,7 @@ msCutSetup:
     OUT (C), E
     OUT (C), D
     DEC C
-    LD A, UNCOMP_BANK
+    LD A, bank(babyOttoTileS)
     LD (MAPPER_SLOT2), A
     OTIR
     LD A, DEFAULT_BANK
@@ -340,7 +340,7 @@ msSceneCommonDrawUpdate:
     JR @convPos
 @mainCheck:
 ;   ------
-;   MAIN CHARACTER GFX
+;   MAIN CHARACTER GFX [MS.PAC-MAN, OTTO]
 ;   ------
     CP A, $0D
     JR C, @subCheck
@@ -365,7 +365,7 @@ msSceneCommonDrawUpdate:
     JR @convPos
 @subCheck:
 ;   ------
-;   SUB CHARACTER GFX
+;   SUB CHARACTER GFX [PAC-MAN, ANNA]
 ;   ------
         ; SET VDP ADDRESS
     LD C, VDPCON_PORT
@@ -382,8 +382,15 @@ msSceneCommonDrawUpdate:
     INC HL
     LD H, (HL)
     LD L, A
-        ; WRITE TILE DATA TO VRAM
-    CALL pacTileStreaming@writeToVRAM
+        ; CHANGE BANK IF DISPLAYING ANNA
+    LD BC, @@streamRet
+    PUSH BC
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    JP Z, pacTileStreaming@writeToVRAM      ; WRITE TILE DATA TO VRAM
+    LD A, bank(annaTileS00)
+    JP pacTileStreaming@writeToVRAM + $02   ; WRITE TILE DATA TO VRAM
+@@streamRet:
     LD HL, playerTwoTileList
 @convPos:
     POP BC
@@ -1381,7 +1388,7 @@ jrSceneCommonDrawUpdate:
     JP @convPos
 @mainCheck:
 ;   ------
-;   MAIN CHARACTER GFX [MS.PAC, OTTO]
+;   MAIN CHARACTER GFX [MS.PAC-MAN]
 ;   ------
     CP A, $0D
     JR C, @jrCheck
@@ -1431,7 +1438,7 @@ jrSceneCommonDrawUpdate:
     JP @convPos
 @subCheck:
 ;   ------
-;   SUB CHARACTER GFX [PAC-MAN, ANNA]
+;   SUB CHARACTER GFX [PAC-MAN]
 ;   ------
         ; SET VDP ADDRESS
     LD C, VDPCON_PORT

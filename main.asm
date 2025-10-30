@@ -782,7 +782,7 @@ lineIntHandler:
 ----------------------------------------------------------
 */
 .INCDIR "CODE/ATTRACT"
-.SECTION "Attract Mode Data" FORCE
+.SECTION "Attract Mode Data" FREE
     .INCLUDE "attractData.asm"
 .ENDS
 
@@ -792,7 +792,7 @@ lineIntHandler:
 ----------------------------------------------------------
 */
 .INCDIR "CODE/CUTSCENE"
-.SECTION "Cutscene Mode Data" FORCE
+.SECTION "Cutscene Mode Data" FREE
     .INCLUDE "cutsceneData.asm"
 .ENDS
 
@@ -803,12 +803,28 @@ lineIntHandler:
 
 /*
 ----------------------------------------------------------
-DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR [BANK2 OR CODEBANK]
+DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR
 ----------------------------------------------------------
 */
 .INCDIR "CODE/PACMAN"
-.SECTION "Pac-Man (Player) Data" FORCE
+.SECTION "Actor Data" FORCE
+    .INCLUDE "actorData.asm"
+.ENDS
+
+.SECTION "Pac-Man (Player) Data" FREE
     .INCLUDE "pacmanData.asm"
+.ENDS
+
+.SECTION "Ms.Pac-Man (Player) Data" FREE
+    .INCLUDE "msPacData.asm"
+.ENDS
+
+.SECTION "Jr.Pac-Man (Player) Data" FREE
+    .INCLUDE "jrPacData.asm"
+.ENDS
+
+.SECTION "Otto (Player) Data" FREE
+    .INCLUDE "ottoData.asm"
 .ENDS
 
 /*
@@ -817,7 +833,7 @@ DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR [BANK2 OR CODEBANK]
 ----------------------------------------------------------
 */
 .INCDIR "CODE/GHOST"
-.SECTION "Ghost Data" FORCE
+.SECTION "Ghost Data" FREE
     .INCLUDE "ghostData.asm" 
 .ENDS
 
@@ -2206,7 +2222,11 @@ jrRealScrollTable:
         .INCBIN "TILE_ICONS_JR_PLUS.ZX7"
     jrMazeTxtCommTiles:
         .INCBIN "TILE_MAZETXT_JR.ZX7"
-    .INCLUDE "TILE_MAZETXT_00.INC"    ; "READY" AND "GAME  OVER"
+    .INCLUDE "TILE_MAZETXT_00.INC"      ; "READY" AND "GAME  OVER"
+.ENDS
+
+.SECTION "HUD GFX DATA [PART 2]" BANK SOUND_BANK SLOT 2 FREE
+    .INCLUDE "TILE_MAZETXT_01.INC"      ; "PLAYER ONE/TWO"
 .ENDS
 
 
@@ -2660,17 +2680,29 @@ arcadeGFXData:
         UNCOMPRESSED TILE DATA FOR PLAYER ACTORS
 ----------------------------------------------------------
 */
+.SECTION "ANNA AND BABY OTTO TILES" BANK SOUND_BANK SLOT 2 FREE
+    annaTileS13:
+    annaTileA14:
+        .DSB $20, $00
+
+    .INCDIR "ASSETS/GAMEPLAY/SMOOTH"
+    .INCLUDE "TILE_ANNA.INC"
+
+    .INCDIR "ASSETS/GAMEPLAY/ARCADE"
+    .INCLUDE "TILE_ANNA.INC"
+.ENDS
+
 .BANK UNCOMP_BANK SLOT 2
 .ORG $0000
 
 ;   EMPTY TILE
 pacTileS07:
 pacDTileS0F:
-annaTileS13:
+
 ottoTileS23:
 pacTileA07:
 pacDTileA0F:
-annaTileA14:
+
 ottoTileA24:
 jrDTileA07:
 jrDTileS0B:
@@ -2684,7 +2716,7 @@ jrDTileS0B:
 .INCLUDE "TILE_JR.INC"
 .INCLUDE "TILE_JRDEATH.INC"
 .INCLUDE "TILE_OTTO.INC"
-.INCLUDE "TILE_ANNA.INC"
+;.INCLUDE "TILE_ANNA.INC"
 
 .INCDIR "ASSETS/GAMEPLAY/ARCADE"
 .INCLUDE "TILE_PAC.INC"
@@ -2693,8 +2725,4 @@ jrDTileS0B:
 .INCLUDE "TILE_JR.INC"
 .INCLUDE "TILE_JRDEATH.INC"
 .INCLUDE "TILE_OTTO.INC"
-.INCLUDE "TILE_ANNA.INC"
-
-;   "PLAYER ONE/TWO"
-.INCDIR "ASSETS"
-.INCLUDE "TILE_MAZETXT_01.INC"
+;.INCLUDE "TILE_ANNA.INC"
