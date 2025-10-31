@@ -170,6 +170,7 @@ zx7_decompressVRAM:
     ZX7 FILE DECOMPRESSED TO VRAM (SAFE TO USE WHILE SCREEN IS ON)
 --------------------------------------
 */
+/*
 zx7_decompressVRAMSafe:
     ld a, 1<<7 ; Signal bit for flags byte
     ; This is a trick whereby we can cycle a flags byte in a through the carry flag,
@@ -307,7 +308,7 @@ zx7_decompressVRAMSafe:
 @_done:
     pop hl
     ret
-
+*/
 
 /*
 --------------------------------------

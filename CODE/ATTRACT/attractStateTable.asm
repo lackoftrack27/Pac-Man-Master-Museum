@@ -67,6 +67,7 @@ sStateAttractTable:
 
 
 .UNDEFINE   lineMode
-.UNDEFINE   introSubState, marqueePalBuffer
 .UNDEFINE   pacAniCounter, pacPos, pacBase
+.UNDEFINE   sndTestIndex
+.UNDEFINE   introSubState, marqueePalBuffer, gOverSpriteBuffer
 

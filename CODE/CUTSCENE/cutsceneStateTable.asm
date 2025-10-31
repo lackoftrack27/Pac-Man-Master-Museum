@@ -58,4 +58,6 @@ sStateCutsceneTable:
 .INCLUDE "functions.asm"
 
 
-.UNDEFINE     cutsceneSubState, nakedFrameCounter
+.UNDEFINE   cutsceneSubState, nakedFrameCounter, plusGhostSprBuffer
+.UNDEFINE   msCut_MainTileTblPtr, msCut_SubTileTblPtr, msCut_GhostTileTblPtr
+.UNDEFINE   jrCut_JrTileTblPtr, jrCutsceneVarFB, jrCut_OverrideFlags, jrCutScreenFlagList

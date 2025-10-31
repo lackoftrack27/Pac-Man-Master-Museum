@@ -492,3 +492,6 @@ firstTimeEnd:
     CALL waitForVblank
     EI
     JP turnOnScreen
+
+
+.UNDEFINE     playerSprBuffer, mazeTextBuffer
