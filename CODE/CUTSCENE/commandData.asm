@@ -1827,9 +1827,15 @@ jrScene2Prog4:
 
     ;SETN    $E0
     ;MOVE    $E8 $00 ; BLANK
-    SETN    $A0
+
+    SETN    $A0 ; A0
     MOVE    $E4 $00
     SETJRVAR        $05
+
+    SETN    $10
+    MOVE    $1B $00
+
+    
     ;SETCHAR jrSceneCharacters@heart
     /*
     ; --------
