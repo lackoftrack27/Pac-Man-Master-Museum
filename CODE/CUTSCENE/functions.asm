@@ -383,13 +383,14 @@ msSceneCommonDrawUpdate:
     LD H, (HL)
     LD L, A
         ; CHANGE BANK IF DISPLAYING ANNA
-    LD BC, @@streamRet
-    PUSH BC
     LD A, (plusBitFlags)
     AND A, $01 << OTTO
-    JP Z, pacTileStreaming@writeToVRAM      ; WRITE TILE DATA TO VRAM
+    JR NZ, +
+    CALL pacTileStreaming@writeToVRAM       ; WRITE TILE DATA TO VRAM
+    JR @@streamRet
++:
     LD A, bank(annaTileS00)
-    JP pacTileStreaming@writeToVRAM + $02   ; WRITE TILE DATA TO VRAM
+    CALL pacTileStreaming@writeToVRAM + $02 ; WRITE TILE DATA TO VRAM
 @@streamRet:
     LD HL, playerTwoTileList
 @convPos:
