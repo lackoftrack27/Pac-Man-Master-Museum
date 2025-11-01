@@ -500,7 +500,7 @@ mazeUpdate:
     ; SET TILE BUFFER ADDRESS
     LD DE, (tileMapPointer)
     LD (tileBufferAddress), DE  ; STORE ACTUAL VDP ADDRESS
-    ; CHECK IF DOT IS MUTATED (JR)
+    ; CHECK IF TILE IS IN MUTATED RANGE (JR)
     LD A, (mazeMutatedTbl)
     LD B, A
     LD A, (HL)
@@ -577,15 +577,24 @@ mazeUpdate:
     LD A, (DE)
     XOR A, (HL) ; XOR WITH FLIP FLAGS OF CURRENT TILE
     LD (tileBuffer + 2), A  ; STORE AS HIGH BYTE
+    ; CHECK IF DOT WAS MUTATED
+    BIT 7, (HL)
+    LD A, $01   ; ASSUME DOT ISN'T MUTATED
+    JR Z, +     ; IF NOT SKIP
+    ; UPDATE MUTATED DOT COUNTER
+    LD HL, (currPlayerInfo.jrMDotCount)
+    DEC HL
+    LD (currPlayerInfo.jrMDotCount), HL
+    LD A, $03   ; MUTATED DOT DELAY
++:
+    ; SET PAC-MAN'S DOT DELAY TIMER
+    LD (pacPelletTimer), A
     ; SET OFFSET
     XOR A
     LD (tileBuffer), A
     ; SET COUNT
     INC A   ; $01
     LD (tileBufferCount), A
-    ; SET PAC-MAN'S DOT DELAY TIMER
-    LD A, $03
-    LD (pacPelletTimer), A
     ; UPDATE TILEMAP IN VRAM
     LD HL, (tileMapRamPtr)
     LD A, (tileBuffer + 1)
@@ -596,10 +605,6 @@ mazeUpdate:
     ; ADD TO SCORE
     LD HL, $0050
     CALL addToScore
-    ; UPDATE MUTATED DOT COUNTER
-    LD HL, (currPlayerInfo.jrMDotCount)
-    DEC HL
-    LD (currPlayerInfo.jrMDotCount), HL
     ; GENERAL FINISH
     JP @updateCollision
 @atPowerDot:
