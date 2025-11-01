@@ -1291,6 +1291,10 @@ setTargetToJR:
 
 
 updateCollMapFruitMDot:
+;   UPDATE MUTATED DOT COUNTER
+    LD HL, (currPlayerInfo.jrMDotCount)
+    INC HL
+    LD (currPlayerInfo.jrMDotCount), HL
 ;   OFFSET = X_TILE + (Y_TILE * 32)
     LD A, (fruit + CURR_Y)
     SUB A, $21
@@ -1307,7 +1311,7 @@ updateCollMapFruitMDot:
 ;   ADD INITIAL MAZE COLLISION ADDRESS
     LD BC, mazeGroup1.collMap
     ADD HL, BC
-;   SET BIT 2 OR BIT 5, DEPENDING ON EVEN OR ODD
+;   SET BIT 2 OR BIT 6, DEPENDING ON EVEN OR ODD
     BIT 0, E
     LD A, $04   ; ASSUME CLEARING LOWER NIBBLE (ODD)
     JP NZ, +    ; IF IT IS ODD, SKIP..

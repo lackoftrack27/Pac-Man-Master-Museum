@@ -574,9 +574,8 @@ mazeUpdate:
     LD (tileBuffer + 1), A  ; STORE AS LOW BYTE
     ; SET FLIPPING IN BUFFER
     INC L
-    LD B, (HL)
     LD A, (DE)
-    XOR A, B    ; XOR WITH FLIP FLAGS OF CURRENT TILE
+    XOR A, (HL) ; XOR WITH FLIP FLAGS OF CURRENT TILE
     LD (tileBuffer + 2), A  ; STORE AS HIGH BYTE
     ; SET OFFSET
     XOR A
@@ -597,6 +596,10 @@ mazeUpdate:
     ; ADD TO SCORE
     LD HL, $0050
     CALL addToScore
+    ; UPDATE MUTATED DOT COUNTER
+    LD HL, (currPlayerInfo.jrMDotCount)
+    DEC HL
+    LD (currPlayerInfo.jrMDotCount), HL
     ; GENERAL FINISH
     JP @updateCollision
 @atPowerDot:
@@ -1075,14 +1078,122 @@ updateJRScroll:
     INFO: REMOVES ALL MUTATED DOTS FROM COLLISION MAP & TILE MAP
     INPUT: NONE
     OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
+    USES: AF, BC, DE, HL, IX, IYL
 */
 removeMDots:
+;   CHECK TO SEE IF ONLY MUTATED DOTS ARE LEFT
+    ; ADD BOTH COUNTS AND STORE IN DE
+    LD HL, (currPlayerInfo.jrDotCount)
+    LD DE, (currPlayerInfo.jrMDotCount)
+    ADD HL, DE
+    EX DE, HL
+    ; GET MAZE'S DOT AMOUNT
+    LD HL, jrMazeDotCounts
+    CALL jrGetMazeIndex
+    ; MAZE DOT AMOUNT - COMBINED COUNT 
+    OR A
+    SBC HL, DE
+    JR Z, @onlyMDotsLeft
+    JR C, @onlyMDotsLeft    ; HOW COULD COMBINED COUNT BE GREATER THAN MAZE TOTAL???
+;
+;   NORMAL DOTS ARE STILL ON THE BOARD
+;
+;   ADD MUTATED DOT COUNT TO NORMAL DOT COUNT
+    LD HL, (currPlayerInfo.jrDotCount)
+    LD DE, (currPlayerInfo.jrMDotCount)
+    ADD HL, DE
+    LD (currPlayerInfo.jrDotCount), HL
 ;   REMOVE MUTATED DOTS FROM COLLISION MAP
     LD HL, mazeGroup1.collMap
     LD BC, _sizeof_mazeGroup1.collMap
 -:
-    ; CLEAR BITS 2 & 3 OF EACH NIBBLE
+    ; CLEAR LOW NIBBLE IF MUTATED DOT BIT IS SET
+    LD A, (HL)
+    BIT 2, A
+    JR Z, +
+    AND A, $F0
++:
+    ; CLEAR HIGH NIBBLE IF MUTATED DOT BIT IS SET
+    BIT 6, A
+    JR Z, +
+    AND A, $0F
++:
+    LD (HL), A
+    INC HL
+    DEC BC
+    LD A, B
+    OR A, C
+    JR NZ, -
+;   CLEAR MUTATED DOTS IN TILE MAP
+    LD HL, mazeGroup1.tileMap
+    LD IX, _sizeof_mazeGroup1.tileMap >> $01
+    LD BC, (mazeMutatedTbl) ; B = MUTATED DOT END, C = MUTATED DOT START
+@outerLoop:
+    LD A, (HL)
+    ; CHECK IF TILE IS WITHIN RANGE
+    CP A, B
+    JR NC, @nextOuterLoop   ; EQUAL/GREATER THAN? SKIP
+    CP A, C
+    JR C, @nextOuterLoop    ; LESS THAN? SKIP
+    ; INNER LOOP (TEST ALL QUADRANTS)
+    EX DE, HL       ; DE: TILEMAP PTR
+    LD IYL, $03     ; TILE QUADRANT
+@innerLoop:
+    ; USE TILE INDEX AS OFFSET INTO RAM TABLE
+    LD H, hiByte(mazeEatenMutatedTbl)
+    SUB A, C                ; SUBTRACT MUTATED DOT OFFSET
+    ADD A, A                ; MULTIPLY BY 4
+    ADD A, A
+    ADD A, IYL              ; ADD TILE QUADRANT
+    ADD A, A                ; DOUBLE OFFSET (TILES ARE 8 BYTES INSTEAD OF 4)
+    JR NC, +
+    INC H
++:
+    LD L, A
+    ; CHECK IF THERE IS A DOT AT QUADRANT
+    BIT 7, (HL)
+    JR NZ, @nextInnerLoop   ; SKIP IF NOT
+    ; CHECK IF DOT IS MUTATED
+    INC L
+    BIT 7, (HL)
+    JR Z, @nextInnerLoop    ; SKIP IF NOT
+    ; REPLACE TILE
+    INC DE
+    LD A, (DE)
+    XOR A, (HL) ; XOR WITH FLIP FLAGS OF CURRENT TILE
+    LD (DE), A  ; STORE AS HIGH BYTE
+    DEC DE
+    DEC L
+    LD A, (HL)
+    LD (DE), A  ; STORE AS LOW BYTE
+    ; CHECK IF NEW TILE IS WITHIN MUTATED RANGE
+    LD IYL, $00             ; ASSUME INNER LOOP WILL END (NEW TILE HAS NO MUTATED DOTS LEFT)
+    CP A, C
+    JR C, @nextInnerLoop    ; IF NOT WITHIN RANGE, THERE ARE NO MUTATED DOTS LEFT. END INNER LOOP
+    ; ELSE, RESTART INNER LOOP
+    LD IYL, $04     ; RESET TILE QUADRANT
+@nextInnerLoop:
+    LD A, (DE)      ; LOAD A WITH TILE ID FROM TILEMAP FOR NEXT LOOP
+    DEC IYL
+    JP P, @innerLoop
+    EX DE, HL   ; HL: TILEMAP PTR
+@nextOuterLoop:
+    INC HL
+    INC HL
+    DEC IX
+    LD A, IXH
+    OR A, IXL
+    JR NZ, @outerLoop
+    JR @end
+;
+;   ONLY MUTATED DOTS ARE STILL ON THE BOARD
+;
+@onlyMDotsLeft:
+;   REVERT MUTATED DOTS IN COLLISION MAP
+    LD HL, mazeGroup1.collMap
+    LD BC, _sizeof_mazeGroup1.collMap
+-:
+    ; CLEAR MUTATED DOT BIT FOR BOTH NIBBLES
     LD A, (HL)
     AND A, $33
     LD (HL), A
@@ -1090,22 +1201,24 @@ removeMDots:
     DEC BC
     LD A, B
     OR A, C
-    JP NZ, -
-;   REMOVE MUTATED DOTS FROM TILE MAP
+    JR NZ, -
+;   REVERT MUTATED DOTS IN TILE MAP
     LD HL, mazeGroup1.tileMap
     LD D, hibyte(mazeRstMutatedTbl)
-    LD IX, _sizeof_mazeGroup1.tileMap >> $01
-    LD BC, (mazeMutatedTbl)
+    LD IX, _sizeof_mazeGroup1.tileMap >> $01    ; COUNTER
+    LD BC, (mazeMutatedTbl) ; B = MUTATED DOT END, C = MUTATED DOT START
 -:
     LD A, (HL)
+    ; CHECK IF TILE IS WITHIN RANGE
     CP A, B
-    JP NC, +
+    JR NC, +    ; EQUAL/GREATER THAN? SKIP
     CP A, C
-    JP C, +
-    SUB A, C
-    ADD A, $40
+    JR C, +     ; LESS THAN? SKIP
+    ; REPLACE TILE
+    SUB A, C    ; SUBTRACT MUTATED DOT OFFSET
+    ADD A, $40  ; ADD LOW BYTE OFFSET OF mazeRstMutatedTbl
     LD E, A
-    LD A, (DE)
+    LD A, (DE)  ; REPLACE TILE
     LD (HL), A
 +:
     INC HL
@@ -1113,9 +1226,14 @@ removeMDots:
     DEC IX
     LD A, IXH
     OR A, IXL
-    JP NZ, -
-;   TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
+    JR NZ, -
+@end:
+;   CLEAR MUTATED DOT COUNTER
     XOR A
+    LD H, A
+    LD L, A
+    LD (currPlayerInfo.jrMDotCount), HL
+;   TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
     LD (vblankFlag), A
     RET
     

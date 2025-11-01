@@ -8,6 +8,7 @@
     score dsb 3
     dotCount db
     jrDotCount dw
+    jrMDotCount dw
     levelTablePtr dw
     level db
     lives db
