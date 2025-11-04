@@ -201,9 +201,7 @@ pauseVector:
 ;   CHECK IF SUBSTATE IS ONE WHERE PLAYER IS IN CONTROL
     LD A, (subGameMode)
     CP A, GAMEPLAY_NORMAL
-    JR C, @end  ; IF NOT, END
-    CP A, GAMEPLAY_DEAD00
-    JR NC, @end ; IF NOT, END
+    JR NZ, @end ; IF NOT, DON'T DO ANYTHING
 ;   UPDATE PAUSE STATUS
     LD A, (pauseRequest)
     INC A
