@@ -6,11 +6,12 @@
 sStateGameplayTable@gameoverMode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
+    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
 @@enter:
-;   RESET NEW STATE FLAG
+;   RESET NEW STATE FLAG AND VBLANK FLAG
     XOR A
     LD (isNewState), A
+    LD (vblankFlag), A  ; ENTER TRANSITION WILL TAKE TOO MUCH TIME
 ;   SET TIMER
     LD A, GOVER_TIMER_LEN
     LD (mainTimer0), A
@@ -18,11 +19,8 @@ sStateGameplayTable@gameoverMode:
     LD HL, SPRITE_TABLE + $01 | VRAMWRITE
     RST setVDPAddress
     LD A, $F7
-    LD B, $07
+    LD B, $07 * $04
 -:
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
-    OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     DJNZ - 
 ;   WRITE "PLAYER ONE/TWO" TILES TO VRAM (IF GAME ISN'T JR)
@@ -44,7 +42,6 @@ sStateGameplayTable@gameoverMode:
     LD (MAPPER_SLOT2), A
 @@@displayTileMaps:
 ;   DISPLAY "PLAYER ONE" OR "PLAYER TWO" IF IN 2 PLAYER MODE
-    ; CHECK IF TWO PLAYER MODE IS ENABLED
     LD A, (playerType)
     BIT PLAYER_MODE, A
     CALL NZ, drawPlayerTilemap  ; IF SO, DRAW
@@ -60,7 +57,7 @@ sStateGameplayTable@gameoverMode:
     OUT (VDPDATA_PORT), A
 ;   SAVE HIGH SCORE TO SRAM
     CALL saveScoreToSRAM
-;   CAP PAC-MAN'S POSITION (ONLY USED IN JR FOR SCROLLING)
+;   CAP PAC-MAN'S POSITION (USED IN JR FOR SCROLLING)
     LD HL, (pacman.xPos)
     LD DE, $015A
     OR A
@@ -68,17 +65,13 @@ sStateGameplayTable@gameoverMode:
     ADD HL, DE
     JR C, +
     LD (pacman.xPos), DE
-    JR @@@enterEnd
+    RET
 +:
     LD DE, $007A
     OR A
     SBC HL, DE
-    JR NC, @@@enterEnd
+    RET NC
     LD (pacman.xPos), DE
-@@@enterEnd:
-    ; TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
-    XOR A
-    LD (vblankFlag), A
     RET 
 @@draw:
 ;   UPDATE NEW COLUMN FOR SCROLLING (FLAG MUST BE SET && GAME MUST BE JR)
@@ -103,7 +96,7 @@ sStateGameplayTable@gameoverMode:
     JR C, +
     DEC HL
     LD (pacman.xPos), HL
-    JP @@@updateTimer
+    JR @@@updateTimer
 +:
     INC HL
     LD (pacman.xPos), HL
@@ -113,12 +106,18 @@ sStateGameplayTable@gameoverMode:
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
-;   CHECK IF TWO PLAYER MODE IS ENABLED
+;   PREPARE FOR NEXT GAME STATE
+    ; CHECK IF TWO PLAYER MODE IS ENABLED
     LD HL, playerType
     BIT PLAYER_MODE, (HL) 
-    RES PLAYER_MODE, (HL) ; SET TO 1 PLAYER MODE
-    JP NZ, sStateGameplayTable@dead02Mode@@exit@swapPlayers  ; SWAP PLAYERS IF TWO PLAYER MODE WAS ENABLED
-;   ELSE, RESET GAME
+    JR Z, +
+    RES PLAYER_MODE, (HL)   ; SET TO 1 PLAYER MODE
+    CALL swapPlayerData     ; SWAP PLAYER DATA
+    LD HL, $01 * $100 + GAMEPLAY_READY01 
+    LD (subGameMode), HL    ; SWITCH TO SECOND READY STATE
+    JP generalResetFunc     ; GENERAL GAMEPLAY RESET
++:
+    ; IF NOT, RESET GAME
     POP HL  ; REMOVE FSM CALLER
     ; TURN OFF SCREEN, KEEP VBLANK ON
     LD A, $A0

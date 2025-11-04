@@ -143,7 +143,7 @@ sStateGameplayTable@comp01Mode:
     ; CUTSCENES APPEAR AT DIFFERENT LEVELS IN JR PAC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP NZ, +
+    JR NZ, +
     ; CUTSCENE CHECK [PAC/MS] (2, 5, 9, 13, 17)
     LD A, (currPlayerInfo.level)
     CP A, $11   ; CHECK IF LEVEL IS 17  02

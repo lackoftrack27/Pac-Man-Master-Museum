@@ -1078,6 +1078,48 @@ updateJRScroll:
     RET
 
 
+/*
+    INFO: SWAPS PLAYER DATA (ACTIVE <-> INACTIVE)
+    INPUT: HL - playerType (PLAYER CONFIG)
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IX, IY
+*/
+swapPlayerData:
+;   TOGGLE CURRENT PLAYER BIT (BIT 1)
+    LD A, $01 << CURR_PLAYER
+    XOR A, (HL)
+    LD (HL), A
+;   SWAP PLAYER DATA (NON MAZE STUFF)
+    LD IX, currPlayerInfo
+    LD IY, altPlayerInfo
+    LD B, _sizeof_playerInfo
+-:
+    LD E, (IX + 0)
+    LD D, (IY + 0)
+    LD (IY + 0), E
+    LD (IX + 0), D
+    INC IX
+    INC IY
+    DJNZ -
+;   SWAP PLAYER DATA (MAZE STUFF)
+    LD IX, mazeGroup1   ; CURRENT PLAYER
+    LD IY, mazeGroup2   ; ALT PLAYER
+    LD BC, lobyte(_sizeof_mazeGroup1) * $100 + hibyte(_sizeof_mazeGroup1) + $01
+-:
+    LD E, (IX + 0)
+    LD D, (IY + 0)
+    LD (IY + 0), E
+    LD (IX + 0), D
+    INC IX
+    INC IY
+    DJNZ -
+    DEC C
+    JP NZ, -
+;   TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
+    XOR A
+    LD (vblankFlag), A
+    RET
+
 
 /*
     INFO: REMOVES ALL MUTATED DOTS FROM COLLISION MAP & TILE MAP

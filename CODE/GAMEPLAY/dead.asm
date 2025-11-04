@@ -52,7 +52,7 @@ sStateGameplayTable@dead00Mode:
 sStateGameplayTable@dead01Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
+    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
 @@enter:
 ;   RESET NEW STATE FLAG
     XOR A
@@ -156,57 +156,20 @@ sStateGameplayTable@dead02Mode:
 ;   SET DEATH FLAG
     LD A, $01
     LD (currPlayerInfo.diedFlag), A
-;   CHECK IF THAT WAS LAST LIFE
+;   PREPARE FOR NEXT GAME STATE
+    ; ASSUME PLAYER HAS NO MORE LIVES LEFT
+    LD HL, $01 * $100 + GAMEPLAY_GAMEOVER
     LD A, (currPlayerInfo.lives)
     OR A
-    JR NZ, +    ; IF NOT, SKIP...
-;   SWITCH TO GAME OVER
-    LD HL, $01 * $100 + GAMEPLAY_GAMEOVER
-    LD (subGameMode), HL
-    RET
-+:
-;   CHECK IF TWO PLAYER MODE IS ENABLED
+    JR Z, +                ; IF SO, SKIP...
+    ; SWAP PLAYER DATA IF TWO PLAYER MODE IS ENABLED
     LD HL, playerType
     BIT PLAYER_MODE, (HL)
-    JR Z, + ; IF NOT, SKIP...
-@@@swapPlayers:
-;   SWITCHING PLAYERS...
-    ; TOGGLE CURRENT PLAYER BIT (BIT 1)
-    LD A, $01 << CURR_PLAYER
-    XOR A, (HL)
-    LD (HL), A
-    ; SWAP PLAYER DATA (NON MAZE STUFF)
-    LD IX, currPlayerInfo
-    LD IY, altPlayerInfo
-    LD B, _sizeof_playerInfo
--:
-    LD E, (IX + 0)
-    LD D, (IY + 0)
-    LD (IY + 0), E
-    LD (IX + 0), D
-    INC IX
-    INC IY
-    DJNZ -
-    ; SWAP PLAYER DATA (MAZE STUFF)
-    LD IX, mazeGroup1   ; CURRENT PLAYER
-    LD IY, mazeGroup2   ; ALT PLAYER
-    LD BC, lobyte(_sizeof_mazeGroup1) * $100 + hibyte(_sizeof_mazeGroup1) + $01
--:
-    LD E, (IX + 0)
-    LD D, (IY + 0)
-    LD (IY + 0), E
-    LD (IX + 0), D
-    INC IX
-    INC IY
-    DJNZ -
-    DEC C
-    JP NZ, -
-    ; TOOK LONGER THAN A FRAME, SO CLEAR VBLANK FLAG
-    XOR A
-    LD (vblankFlag), A
+    CALL NZ, swapPlayerData
+    ; GENERAL GAMEPLAY RESET
+    CALL generalResetFunc
+    ; SWITCH TO SECOND READY STATE
+    LD HL, $01 * $100 + GAMEPLAY_READY01 
 +:
-;   SWITCH TO SECOND READY MODE
-    LD HL, $01 * $100 + GAMEPLAY_READY01
     LD (subGameMode), HL
-;   GENERAL GAMEPLAY RESET
-    JP generalResetFunc
+    RET
