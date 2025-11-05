@@ -172,10 +172,10 @@ fruitUpdate:
     LD (fruit + OFFSCREEN_FLAG), A
     RET
 +:
-;   DO EXPLOSION REGARDLESS IF EATING
+;   DO EXPLOSION REGARDLESS OF EATING (JR)
     LD A, (fruit + STATE)
-    CP A, $06
-    JP Z, fruitState6
+    CP A, FRUIT_EXPLODE
+    JP Z, fruitStateExplode
 ;   DON'T UPDATE DURING EAT
     LD A, (ghostPointSprNum)
     OR A
@@ -414,8 +414,8 @@ jrFruitUpdate:
     LD (fruit + X_WHOLE), HL
     LD HL, $005C
     LD (fruit + Y_WHOLE), HL    
-    ; SET STATE TO 1
-    LD A, $01
+    ; SET STATE TO INITIALIZE
+    LD A, FRUIT_INIT
     LD (fruit + STATE), A
     RET
 ;   FRUIT (1) IS ON SCREEN
@@ -607,40 +607,54 @@ prepareFruit:
             JR.PAC-MAN'S FRUIT STATES
 ------------------------------------------------
 */
+;   STATE DEFINES
+.ENUM $00
+    FRUIT_NOTHING   DB
+    FRUIT_INIT      DB
+    FRUIT_UPDATE    DB
+    FRUIT_ATTARGET  DB
+    FRUIT_EXPLODE   DB
+.ENDE
+
+;   JR REDEFINES
+.DEFINE fruitTargetType     fruitPathPtr
+.DEFINE fruitPDotState      fruitPathPtr + $01
+.DEFINE fruitPFFlag         fruitPathBounce
+.DEFINE fruitMoveCounter    fruitPathLen
+
 ;   STATE TABLE
 fruitStateTable:
-    .DW fruitState0 ; NOTHING
-    .DW fruitState1 ; INIT
-    .DW fruitState2 ; UPDATE
-    .DW fruitState3 ; ^
-    .DW fruitState0 ; NOTHING
-    .DW fruitState5 ; AT TARGET
+    .DW fruitState0         ; NOTHING
+    .DW fruitStateInit      ; INIT
+    .DW fruitStateUpdate    ; UPDATE
+    .DW fruitStateAtTarget  ; AT TARGET
+                            ; EXPLOSION! (NOT ACCESSIBLE THROUGH STATE TABLE)
 
-;   STATE 0 - NOTHING
+;   FRUIT STATE - NOTHING
 fruitState0:
     RET
 
-;   STATE 1 - PREPARE FRUIT
-fruitState1:
+;   FRUIT STATE - PREPARE FRUIT
+fruitStateInit:
 ;   CLEAR VARS
     XOR A
     ; POWER DOT SELECTOR [$4931] IS UNINITIALIZED BESIDES HARD RESET (CLEARING RAM)
-    LD (fruitPathPtr), A        ; FRUIT TARGET TYPE [$4919]
-    LD (fruitPathBounce), A     ; PATHFIND FLAG [$491C]
-    LD (fruitPathLen), A        ; MOVEMENT COUNTER [$491B]
+    LD (fruitTargetType), A     ; FRUIT TARGET TYPE [$4919]
+    LD (fruitPFFlag), A         ; PATHFIND FLAG [$491C]
+    LD (fruitMoveCounter), A    ; MOVEMENT COUNTER [$491B]
 ;   SUBTRACT 2 FROM Y POS (WHY?)
     LD HL, fruit + Y_WHOLE
     DEC (HL)
     DEC (HL)
-;   SET STATE TO 2
-    LD A, $02
+;   SET STATE TO NORMAL UPDATE
+    LD A, FRUIT_UPDATE
     LD (fruit + STATE), A
 ;   ASSUME FRUIT WILL GO LEFT
     LD HL, $2B3B    ; TILE POSITION
     LD B, $01       ; DIRECTION
 ;   SET DIRECTION / POSITION BASED ON SCROLL
     LD A, (jrCameraPos)
-    CP A, $28
+    CP A, $28       ; CENTER POSITION
     JP C, +
     ; MAKE FRUIT GO RIGHT
     LD HL, $2B3A    ; TILE POSITION
@@ -654,11 +668,10 @@ fruitState1:
     LD (fruit.nextDir), A
     RET
 
-;   STATE 2/3 - GENERAL MOVEMENT
-fruitState2:
-fruitState3:
+;   FRUIT STATE - GENERAL MOVEMENT
+fruitStateUpdate:
 ;   UPDATE MOVE COUNTER, EXIT IF IT DOESN'T EQUAL 3
-    LD HL, fruitPathLen
+    LD HL, fruitMoveCounter
     INC (HL)
     LD A, (HL)
     CP A, $03
@@ -688,26 +701,26 @@ fruitState3:
     POP AF  ; RESTORE ID
     LD E, A ; PUT ID INTO E
     ; SKIP IF PATHFIND FLAG IS 0
-    LD A, (fruitPathBounce)
+    LD A, (fruitPFFlag)
     OR A
     JP Z, +
     ; CALL HELPER
     CALL fruitHelper00
-    RET C   ; RETURN IF FRUIT STATE BECAME 5
+    RET C   ; RETURN IF FRUIT STATE BECAME 'AT TARGET'
     ; UPDATE FRUIT TILE POS (NEXT DIRECTION)
     LD A, (fruit + NEXT_DIR)
     CALL fruitSetTile
     ; UPDATE FRUIT DIRECTION
     LD A, (fruit.nextDir)
     LD (fruit.currDir), A
-    JP ++
+    JP @setPathfindFlag
 +:
     ; UPDATE FRUIT TILE POS (CURRENT DIRECTION)
     LD A, (fruit + CURR_DIR)
     CALL fruitSetTile
-++:
+@setPathfindFlag:
     ; SET PATHFIND FLAG
-    LD HL, fruitPathBounce
+    LD HL, fruitPFFlag
     SCF
     RL (HL)
     ; ADD PATHFIND TASK
@@ -940,15 +953,15 @@ jrBounceTable:
 ;   1 2 3 0 = DOWN LEFT UP RIGHT
 
 
-;   STATE 5 - FRUIT IS AT POWER DOT TARGET
-fruitState5:
+;   FRUIT STATE - FRUIT IS AT POWER DOT TARGET
+fruitStateAtTarget:
 ;   GET ID OF FRUIT'S CURRENT TILE
     LD DE, (fruit + CURR_X)
     CALL getTileID
     AND A, $03
     JP NZ, +    ; SKIP IF IT ISN'T A BLANK TILE
-    ; ELSE, SET FRUIT STATE TO 2 (TARGET TYPE IS PLAYER)
-    LD A, $02
+    ; ELSE, SET FRUIT STATE TO GENERAL UPDATE (TARGET TYPE IS PLAYER)
+    LD A, FRUIT_UPDATE
     LD (fruit + STATE), A
     RET
 +:
@@ -958,8 +971,8 @@ fruitState5:
     RET NZ
 ;   EXIT IF FRUIT ISN'T WITHIN CERTAIN BOUNDARIES
 
-;   EXPLOSION STATE
-    LD A, $06
+;   SET FRUIT STATE TO EXPLOSION
+    LD A, FRUIT_EXPLODE
     LD (fruit + STATE), A
 ;   INCREMENT LOWER NIBBLE (JR CAN'T EAT IT ANYMORE)
     LD HL, currPlayerInfo.fruitStatus
@@ -970,14 +983,14 @@ fruitState5:
     CALL updatePlayerDotCount 
 ;   RESET EXPLOSION COUNTER
     XOR A
-    LD (fruitPathLen), A    ; HNIBB: LIMITER, LNIBB: FRAME
+    LD (fruitMoveCounter), A    ; HNIBB: LIMITER, LNIBB: FRAME
 ;   REMOVE FRUIT (CLEAR POSITION AND MAKE INVISIBLE)
     RET
 
-;   STATE 6 - EXPLOSION!
-fruitState6:
+;   FRUIT STATE - EXPLOSION!
+fruitStateExplode:
 ;   INCREMENT AND CHECK IF FRAME COUNTER IS 5
-    LD HL, fruitPathLen
+    LD HL, fruitMoveCounter
     INC (HL)
     LD A, (HL)
     AND A, $0F
@@ -1003,15 +1016,18 @@ fruitState6:
 
 
 
+/*
+    HELPER ROUTINES FOR GENERAL UPDATE STATE
+*/
 
-
+;   TARGET SETTER...
 fruitHelper00:
-;   JUMP IF FRUIT STATE ISN'T TWO
+;   JUMP IF FRUIT STATE ISN'T GENERAL UPDATE
     LD A, (fruit + STATE)
-    CP A, $02
+    CP A, FRUIT_UPDATE
     JP NZ, @clrCarryEnd
 ;   JUMP IF FRUIT TARGET IS SET TO PLAYER
-    LD A, (fruitPathPtr)
+    LD A, (fruitTargetType)
     CP A, $02
     JP Z, @setState
 ;   JUMP IF FRUIT ISN'T ON POWER DOT TILE
@@ -1019,16 +1035,16 @@ fruitHelper00:
     CP A, $03
     JP NZ, @clrCarryEnd
 ;   JUMP IF FRUIT ISN'T AT POWER DOT TARGET
-    LD A, (fruitPathPtr)
+    LD A, (fruitTargetType)
     CP A, $01
     JP NZ, @clrCarryEnd
-;   SET STATE TO 5, SET CARRY
-    LD A, $05
+;   SET STATE TO 'AT TARGET', SET CARRY
+    LD A, FRUIT_ATTARGET
     LD (fruit + STATE), A
     SCF
     RET
 @setState:
-    LD A, $03
+    LD A, FRUIT_UPDATE   ; WAS 3 IN ARCADE CODE, BUT 3 IS SAME AS 2
     LD (fruit + STATE), A
 @clrCarryEnd:
     OR A
@@ -1071,18 +1087,16 @@ fruitPowerDotTable:
 
 fruitPathFindingAI:
 ;   EXIT IF PATHFIND FLAG IS 0
-    LD A, (fruitPathBounce)
+    LD A, (fruitPFFlag)
     OR A
     RET Z
-;   DETERMINE TARGET TILE
-    ; PUSH RETURN ADDRESS FOR TARGET FUNCTIONS
-    LD HL, @helperRet
-    PUSH HL
-    ; DO ONE OF TWO FUNCTIONS DEPENDING ON PATHFIND FLAG
+;   DETERMINE TARGET TILE (DEPENDING ON PATHFIND FLAG)
+    LD HL, fruitPFTargetHelper1 ; $AA87
     DEC A
-    JP NZ, fruitPFTargetHelper1 ; $AA87
-    JP fruitPFTargetHelper0     ; $AA5E (TARGET INITIALIZER)
-@helperRet:
+    JR NZ, +
+    LD HL, fruitPFTargetHelper0 ; $AA5E (TARGET INITIALIZER)
++:
+    CALL indirectHLCall
 ;   CALC REVERSE DIRECTION
     LD A, (fruit + NEXT_DIR)
     XOR A, $02
@@ -1104,10 +1118,10 @@ fruitPathFindingAI:
 */
 fruitPFTargetHelper0:   ; $AA5E
 ;   UPDATE POWER DOT TARGET STATE
-    LD A, (fruitPathPtr + 1)
+    LD A, (fruitPDotState)
     INC A
     AND A, $07
-    LD (fruitPathPtr + 1), A
+    LD (fruitPDotState), A
 ;   USE LOWER 3 BITS AS OFFSET (POWER DOT SELECTOR)
     LD HL, fruitPowerDotTable
     addToHL_M
@@ -1129,7 +1143,7 @@ fruitPFTargetHelper0:   ; $AA5E
     LD (fruit + TARGET_X), HL
 ;   TARGET TYPE IS "NOT AT TARGET"
     XOR A
-    LD (fruitPathPtr), A
+    LD (fruitTargetType), A
     RET
 
 
@@ -1138,7 +1152,7 @@ fruitPFTargetHelper0:   ; $AA5E
 */
 fruitPFTargetHelper1:   ; $AA87
 ;   EXECUTE ROUTINE BASED ON UPPER NIBBLE OF POWER DOT TARGET STATE
-    LD A, (fruitPathPtr + 1)
+    LD A, (fruitPDotState)
     AND A, $F0
     RRCA
     RRCA
@@ -1174,11 +1188,11 @@ fruitPFTargetHelper1:   ; $AA87
     CP A, $1C
     RET NC
 ;   SET BIT 4 OF POWER DOT TARGET STATE (INCREMENT STATE)
-    LD A, (fruitPathPtr + 1)
+    LD A, (fruitPDotState)
     AND A, $07
     LD E, A
     OR A, $10
-    LD (fruitPathPtr + 1), A
+    LD (fruitPDotState), A
 ;   USE LOWER 3 BITS AS OFFSET (POWER DOT SELECTOR)
     LD HL, fruitPowerDotTable
     LD D, $00
@@ -1210,16 +1224,16 @@ fruitPFTargetHelper1:   ; $AA87
     CP A, $0E
     RET NC
 ;   SET BIT 5 OF POWER DOT TARGET STATE (INCREMENT STATE)
-    LD A, (fruitPathPtr + 1)
+    LD A, (fruitPDotState)
     AND A, $0F
     OR A, $20
-    LD (fruitPathPtr + 1), A
+    LD (fruitPDotState), A
     RET
 
 ;   SUB ROUTINE 3   $AAE1
 @subRoutine02:
 ;   JUMP IF TARGET TYPE IS PLAYER
-    LD A, (fruitPathPtr)
+    LD A, (fruitTargetType)
     CP A, $02
     JP Z, setTargetToJR
 ;   CHECK IF TARGET TILE IS STILL A POWER DOT
@@ -1246,7 +1260,7 @@ fruitPFTargetHelper1:   ; $AA87
     XOR A
 .ENDIF
 ;   SET TARGET TYPE
-    LD (fruitPathPtr), A    ; 0 - NOT AT (POWER DOT) TARGET, 1 - AT (POWER DOT) TARGET, 2 - TARGET IS PLAYER
+    LD (fruitTargetType), A    ; 0 - NOT AT (POWER DOT) TARGET, 1 - AT (POWER DOT) TARGET, 2 - TARGET IS PLAYER
     RET
 
 
@@ -1257,19 +1271,23 @@ fruitPFTargetHelper1:   ; $AA87
 ;   TRYS TO FIND A NEW POWER DOT TARGET IF THE CURRENT TARGET ISN'T A POWER DOT ANYMORE
 ;   OUTPUT: NZ - FOUND NEW TARGET, Z - UNABLE TO FIND NEW TARGET
 findNewTarget:
-    LD IYH, $06
+    LD IYH, $06     ; LOOP COUNTER (AMOUNT OF POWER DOTS IN MAZE)
+;   GET ADDRESS OF CURRENT MAZE'S POWER DOT TARGET LIST
     LD HL, jrMazePDotTargets
     CALL jrGetMazeIndex
 -:
+;   GET X/Y TILE POS OF TARGET
     LD E, (HL)
     INC HL
     LD D, (HL)
     INC HL
-    PUSH HL ; SAVE PTR
-    PUSH DE ; SAVE TARGET
+;   SAVE TARGET AND ADDRESS
+    EXX
+;   GET ID OF X/Y TILE POS
     CALL getTileID
-    POP DE  ; RESTORE TARGET
-    POP HL  ; RESTORE PTR
+;   RESTORE TARGET AND ADDRESS
+    EXX
+;   CHECK IF TARGET IS STILL A POWER DOT OR NOT
     OR A    ; TILE ID WILL NEVER BE 1 OR 2. CHECKING FOR EITHER 0 OR 3
     RET NZ  ; NEW TARGET FOUND (IYH != 0, ID != 0)
     DEC IYH
@@ -1278,18 +1296,29 @@ findNewTarget:
 
 
 
-
 setTargetToJR:
 ;   SET TARGET TYPE TO PLAYER
     LD A, $02
-    LD (fruitPathPtr), A
+    LD (fruitTargetType), A
 ;   SET TARGET TILE TO PLAYER'S CURRENT TILE
     LD HL, (pacman + CURR_X)
     LD (fruit + TARGET_X), HL
     RET
 
 
+/*
+    FUNCTIONS TO CHANGE COLLISION MAP && TILE MAP
+*/
 
+/*
+    INFO: CHANGES NORMAL DOT TO MUTATED DOT
+        UPDATES TILE IN COLLISION MAP TO MUTATED DOT 
+        UPDATES TILE IN TILE MAP TO THE CORRECT TILE
+        INCREMENTS MUTATED DOT COUNTER
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL
+*/
 updateCollMapFruitMDot:
 ;   UPDATE MUTATED DOT COUNTER
     LD HL, (currPlayerInfo.jrMDotCount)
@@ -1335,9 +1364,6 @@ updateCollMapFruitMDot:
     LD (fruit + CURR_ID), A
     */
 ;   FALL THROUGH
-
-
-
 updateTileMapFruitMDot:
 ;   GET TILE ID && FLIPPING IN TILEMAP
     LD HL, (fruitTileMapRamPtr)
@@ -1405,6 +1431,15 @@ updateTileMapFruitMDot:
     RET
 
 
+
+/*
+    INFO: REMOVES POWER DOT 
+        UPDATES TILE IN COLLISION MAP TO EMPTY
+        UPDATES TILE IN TILE MAP TO THE CORRECT TILE
+    INPUT: NONE
+    OUTPUT: NONE
+    USES: AF, BC, DE, HL, IX, IY
+*/
 updateCollMapFruitPDot:
 ;   OFFSET = X_TILE + (Y_TILE * 32)
     LD A, (fruit + CURR_Y)
@@ -1430,7 +1465,7 @@ updateCollMapFruitPDot:
 +:
     AND A, (HL)
     LD (HL), A
-
+;   FALL THROUGH
 updateTileMapFruitPDot:
 ;   GET UPPER BYTE OF TILE
     LD HL, (fruitTileMapRamPtr)
@@ -1459,25 +1494,25 @@ updateTileMapFruitPDot:
     INC HL
     PUSH HL ; SAVE PDOT TABLE POINTER
     PUSH DE ; SAVE RAM/COL
-        ; CALCULATE RAM PTR
+    ; CALCULATE ADDRESS FOR WHERE POWER DOT IS IN THE RAM TILEMAP
     EX DE, HL   ; HL: ROW/COL, DE: N/A
     CALL rowColToRamPtr
     PUSH HL
     POP IX      ; IX = BASE RAM PTR
-        ; CALCULATE VRAM PTR
+    ; CALCULATE ADDRESS FOR WHERE POWER DOT IS IN THE VRAM TILEMAP
     POP HL  ; GET BACK RAM/COL
     CALL rowColToVramPtr
     LD (fruitTileBufAddr), HL
-        ; GET BACK PDOT TABLE POINTER
+    ; GET BACK PDOT TABLE POINTER
     POP HL
     ; PREPARE FOR LOOP
     LD DE, fruitTileBuf
     ; HL: MAZE DOT POW TABLE POINTER
     ; DE: TILE BUFFER POINTER
--:
+@loop:
     ; SET VRAM OFFSET OF CURRENT TILE IN LIST
     LD A, (HL)
-    INC HL
+    INC L
     LD (DE), A
     CP A, $52
     JP C, +
@@ -1491,77 +1526,81 @@ updateTileMapFruitPDot:
     PUSH IX
     POP HL      ; HL = BASE RAM PTR
     addToHL_M
-    LD A, (HL)
+    LD A, (HL)  ; LOW BYTE: TILE ID
     PUSH HL
     POP IY      ; IY = (BASE + OFFSET ADDRESS) IN RAM TILEMAP
     INC HL
     LD C, (HL)  ; HIGH BYTE: FLIP FLAGS, ETC
-    ; GET TILE INFO
+    ; CHECK IF TILE IS IN MUTATED RANGE
     LD HL, mazeMutatedTbl
     CP A, (HL)
-    JP NC, @mutatedDot
-@normalDot:
-        ; USE TILE INDEX AS OFFSET INTO RAM TABLE
+    JP NC, @mutatedTile  ; IF SO, POWER DOT IS CONTAINED IN A MUTATED TILE. NEED TO USE A DIFFERENT TABLE
+;
+;   POWER DOT IN A NORMAL TILE PROCESSING
+;
     POP HL      ; RESTORE POW DOT TABLE ADDRESS (POINTING TO QUAD)
     PUSH HL     ; SAVE BACK ONTO STACK (QUAD ADDRESS)
+    ; USE TILE INDEX AS OFFSET INTO RAM TABLE
     ADD A, A    ; MULTIPLY BY 4 (EVERY TILE IS 4 BYTES LONG)
     ADD A, A
     ADD A, (HL) ; ADD QUADRANT NUMBER TO OFFSET (DETERMINES WHICH AREA PAC-MAN INTERACTED WITH)
-        ; ADD OFFSET TO BASE TABLE
     LD H, hibyte(mazeEatenTbl)  ; LOAD BASE TABLE ADDRESS AND SET LOW BYTE TO OFFSET
     LD L, A
-        ; SET INDEX IN BUFFER
-    LD A, (HL)  ; GET VALUE AT OFFSET
-    LD L, A     ; SAVE IN L FOR LATER
-    AND A, $3F  ; REMOVE FLIP BITS
-    INC DE      ; POINT TO LOW BYTE OF TILE IN TILE BUFFER
+    ; SET INDEX IN BUFFER
+    LD A, (HL)      ; GET VALUE AT OFFSET
+    LD L, A         ; SAVE IN L FOR LATER
+    AND A, $3F      ; REMOVE FLIP BITS
+    INC DE          ; POINT TO LOW BYTE OF TILE IN TILE BUFFER
     LD (DE), A      ; STORE AS LOW BYTE
-    LD (IY + 0), A
-        ; SET FLIPPING IN BUFFER
+    LD (IY + 0), A  ; STORE IN RAM TILEMAP AS WELL
+    ; SET FLIPPING IN BUFFER
     LD A, L     ; GET ORIGINAL VALUE
-        ; PUT FLIP FLAGS (BIT 6, 7) IN SAME SPOT AS VRAM (BIT 1, 2)
+    ; PUT FLIP FLAGS (BIT 6, 7) IN SAME SPOT AS VRAM (BIT 1, 2)
     RLCA
     RLCA
     RLCA
-    AND A, $06  ; CLEAR ALL BITS EXCEPT FLIP FLAGS
-    XOR A, C    ; XOR WITH FLIP FLAGS OF CURRENT TILE
-    INC DE      ; POINT TO HIGH BYTE OF TILE IN TILE BUFFER
-    LD (DE), A  ; STORE AS HIGH BYTE
-    LD (IY + 1), A
+    AND A, $06      ; CLEAR ALL BITS EXCEPT FLIP FLAGS
+    XOR A, C        ; XOR WITH FLIP FLAGS OF CURRENT TILE
+    INC DE          ; POINT TO HIGH BYTE OF TILE IN TILE BUFFER
+    LD (DE), A      ; STORE AS HIGH BYTE
+    LD (IY + 1), A  ; STORE IN RAM TILEMAP AS WELL
     JP @prepNextLoop
-@mutatedDot:
-    SUB A, (HL)
-        ; USE TILE INDEX AS OFFSET INTO RAM TABLE
+;
+;   POWER DOT IN A MUTATED TILE PROCESSING
+;
+@mutatedTile:
+    SUB A, (HL) ; REMOVE MUTATED TILE OFFSET FROM TILE ID
     POP HL      ; RESTORE POW DOT TABLE ADDRESS (POINTING TO QUAD)
     PUSH HL     ; SAVE BACK ONTO STACK (QUAD ADDRESS)
+    ; USE TILE INDEX AS OFFSET INTO RAM TABLE
     ADD A, A    ; MULTIPLY BY 4 (EVERY TILE IS 4 BYTES LONG)
     ADD A, A
     ADD A, (HL) ; ADD QUADRANT NUMBER TO OFFSET (DETERMINES WHICH AREA PAC-MAN INTERACTED WITH)
-        ; ADD OFFSET TO BASE TABLE
     LD H, hibyte(mazeEatenMutatedTbl)  ; LOAD BASE TABLE ADDRESS AND SET LOW BYTE TO OFFSET
-    ADD A, A
+    ADD A, A    ; DOUBLE OFFSET (TILES ARE 8 BYTES INSTEAD OF 4)
     JP NC, +
     INC H
 +:
     LD L, A
-        ; SET INDEX IN BUFFER
-    LD A, (HL)
-    INC DE
-    LD (DE), A
-    LD (IY + 0), A
-        ; SET FLIPPING IN BUFFER
-    INC HL
-    LD A, (HL)
-    XOR A, C
-    INC DE
-    LD (DE), A
-    LD (IY + 1), A
+    ; SET INDEX IN BUFFER
+    LD A, (HL)      ; GET NEW TILE ID
+    INC DE          ; POINT TO LOW BYTE OF TILE IN TILE BUFFER
+    LD (DE), A      ; STORE AS LOW BYTE
+    LD (IY + 0), A  ; STORE IN RAM TILEMAP AS WELL
+    ; SET FLIPPING IN BUFFER
+    INC L
+    LD A, (HL)      ; GET NEW TILE FLIPPING
+    AND A, $06      ; REMOVE MUTATED DOT FLAG FROM TABLE FLIP BYTE (ONLY KEEP FLIP BITS)
+    XOR A, C        ; XOR WITH CURRENT FLIP BITS
+    INC DE          ; POINT TO HIGH BYTE OF TILE IN TILE BUFFER
+    LD (DE), A      ; STORE AS HIGH BYTE
+    LD (IY + 1), A  ; STORE IN RAM TILEMAP AS WELL
 @prepNextLoop:
     ; PREPARE FOR NEXT LOOP
     INC DE      ; POINT TO VRAM OFFSET FOR NEXT TILE IN LIST
     POP HL      ; RESTORE QUAD ADDRESS BACK INTO HL
     INC L       ; NOW POINTING TO VRAM OFFSET OF NEXT TILE IN LIST
-    DJNZ -      ; KEEP GOING IF COUNT IS NOT 0
+    DJNZ @loop  ; KEEP GOING IF COUNT IS NOT 0
 ;   SET TILE BUFFER FLAG
     LD A, $01
     LD (fruitTileBufFlag), A

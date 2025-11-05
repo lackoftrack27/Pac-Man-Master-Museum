@@ -205,7 +205,7 @@ drawInMazeFruit:
     CALL convPosToScreen
 ;   DISPLAY EXPLOSION IF FRUIT IS EXPLODING (JR)
     LD A, (fruit + STATE)
-    CP A, $06
+    CP A, FRUIT_EXPLODE
     JP Z, @explosionJR
 ;   ASSUME FRUIT (NOT POINTS) WILL BE DISPLAYED
     LD HL, (fruitTileDefPtr)
