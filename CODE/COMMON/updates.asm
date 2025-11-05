@@ -551,9 +551,6 @@ mazeUpdate:
     INC HL
     LD A, (tileBuffer + 2)
     LD (HL), A
-        ; ADD TO SCORE
-    LD HL, $0010
-    CALL addToScore
     ; GENERAL FINISH
     JP @updateCollision
 ;
@@ -589,17 +586,14 @@ mazeUpdate:
         ; CHECK IF DOT IS MUTATED
     BIT 7, (HL)
     LD A, $01       ; ASSUME DOT ISN'T MUTATED (DOT DELAY)
-    LD HL, $0010    ; DOT SCORE
     JR Z, +         ; IF NOT, SKIP
         ; UPDATE MUTATED DOT COUNTER
     LD HL, (currPlayerInfo.jrMDotCount)
     DEC HL
     LD (currPlayerInfo.jrMDotCount), HL
     LD A, $03       ; MUTATED DOT DELAY
-    LD HL, $0050    ; MUTATED DOT SCORE
 +:
     LD (pacPelletTimer), A  ; SET PAC-MAN'S DOT DELAY TIMER
-    CALL addToScore         ; ADD TO SCORE
         ; SET OFFSET
     XOR A
     LD (tileBuffer), A
@@ -760,9 +754,6 @@ mazeUpdate:
     ; SET POWER DOT'S TIME
     LD HL, (powDotTime)
     LD (mainTimer1), HL
-    ; ADD TO SCORE
-    LD HL, $0050
-    CALL addToScore
     ; RESET FLASH COUNTER AND POINT INDEX
     XOR A
     LD (flashCounter), A
@@ -840,6 +831,14 @@ mazeUpdate:
     CALL updatePlayerDotCount
     ; UPDATE GHOSTS' DOT COUNTERS (IF NECESSARY)
     CALL ghostUpdateDotCounters
+    ; ADD POINTS TO SCORE
+    LD HL, $10  ; ASSUME PLAYER ATE NORMAL DOT (NORMAL DOT POINT VALUE)
+    LD A, (pacPelletTimer)
+    DEC A
+    JR Z, +     ; IF SO, SKIP
+    LD HL, $50  ; POWER DOT && MUTATED DOT POINT VALUE
++:
+    CALL addToScore
     ; PLAY DOT EATEN SFX
     LD HL, ch2SoundControl
     LD A, (plusBitFlags)
