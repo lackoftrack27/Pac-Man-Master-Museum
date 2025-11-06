@@ -6,6 +6,7 @@
 .DEFINE FREE_FRUIT_JR   $00
 .DEFINE LOAD_TEST       $00
 .DEFINE SAFE_DRAW       $00
+.DEFINE LEVEL_SELECT    $00
 
 /*
                         SMS CONSTANTS

@@ -117,6 +117,10 @@ gamePlayInit:
     DEC (HL)
 ;   SETUP PLAYER TILE POINTERS
     CALL setupTilePtrs
+.IF LEVEL_SELECT != $00
+    LD A, $01
+    LD (currPlayerInfo.level), A
+.ENDIF
 ;   UPLOAD TILES FOR LIFE HUD (IF GAME ISN'T JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
