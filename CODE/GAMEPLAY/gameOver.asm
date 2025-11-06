@@ -120,9 +120,6 @@ sStateGameplayTable@gameoverMode:
     ; IF NOT, RESET GAME
     POP HL  ; REMOVE FSM CALLER
     ; TURN OFF SCREEN, KEEP VBLANK ON
-    LD A, $A0
-    OUT (VDPCON_PORT), A
-    LD A, $81
-    OUT (VDPCON_PORT), A
+    CALL turnOffScreenVBlank
     DI      ; DISABLE INTS
     JP resetFromGameOver

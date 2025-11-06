@@ -51,9 +51,6 @@ sStateAttractTable@demoInputCheck:
     POP HL  ; REMOVE FSM CALLER   
     DI      ; DISABLE INTS (REALLY JUST VDP FRAME INTS)
     ; TURN OFF DISPLAY, BUT KEEP FRAME INTS
-    LD A, $A0
-    OUT (VDPCON_PORT), A
-    LD A, $81
-    OUT (VDPCON_PORT), A
+    CALL turnOffScreenVBlank
     ; GENERAL RESET
     JP resetFromDemo

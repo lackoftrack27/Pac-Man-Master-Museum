@@ -29,6 +29,10 @@ waitForVblank:
     OUTPUTS: NONE
     AFFECTS: A
 */
+turnOffScreenVBlank:
+;   TURN OFF SCREEN (KEEP VDP INTS)
+    LD A, $A0
+    JR +
 turnOffVblankInts:
 ;   TURN OFF VBLANK INTERRUPTS (SCREEN ON)
     LD A, $C0   ; BIT 7 SET
@@ -87,7 +91,7 @@ copyToVDP:
     CPI     ; POINT TO NEXT BYTE AND DECREMENT COUNTER
     JP PE, copyToVDP    ; KEEP LOOPING UNTIL BC IS 0
     RET
-    
+
 
 
 
