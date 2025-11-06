@@ -51,6 +51,9 @@ Additional Credits:
 
 
 ## Changelog
+**v3.10**
+- Fixed bug in Jr. Pac-Man where normal pellets sometimes awarded 50 points instead of 10
+- Fixed bug in Jr. Pac-Man where, if a fruit was eaten just before it exploded a power pellet, eating that pellet would sometimes cause the wrong one to disappear
 
 **v3.00**
 - Added Jr. Pac-Man and Jr. Pac-Man Plus
@@ -128,3 +131,4 @@ Additional Credits:
 
 **v0.90**
 - Initial release
+
