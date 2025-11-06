@@ -658,6 +658,7 @@ int main()
             // FOR ALL 4 QUADRANTS
             for (int i = 0; i < 4; i++)
             {
+                unsigned char mDotColorCount = 0;
                 bool foundDot = false;
                 const int *quadPtr = quadPtrs[i];
 
@@ -672,11 +673,11 @@ int main()
                         foundDot = true;
                     else if (hNibble >= CLR_DOT_0 && hNibble <= CLR_DOT_2)
                         foundDot = true;
-                    else if (lNibble == 2 || hNibble == 2)
-                        foundDot = true;
+                    else if (lNibble == 2 && hNibble == 2)
+                        mDotColorCount++;
                 }
                 // IF FOUND, REMOVE DOT AND ADD TO VECTOR
-                if (foundDot == true)
+                if (foundDot == true || mDotColorCount == 2)
                 {
                     tile blanked = blankoutQuad(t, i);
                     eatenMutatedDotTiles.push_back(blanked);
@@ -1039,6 +1040,8 @@ int main()
         // FOR ALL 4 QUADRANTS
         for (int i = 0; i < 4; i++)
         {
+            unsigned char mDotColorCount = 0;
+            bool mDotFlag = false;
             bool foundDot = false;
             bool foundPower = false;
             const int *quadPtr = quadPtrs[i];
@@ -1055,16 +1058,20 @@ int main()
                     foundDot = true;
                 else if (hNibble >= CLR_DOT_0 && hNibble <= CLR_DOT_2)
                     foundDot = true;
-                else if (lNibble == 2 || hNibble == 2)
-                    foundDot = true;
-
+                // MUTATED DOT
+                else if (lNibble == 2 && hNibble == 2)
+                    mDotColorCount++;
                 // POWER DOT
                 if (lNibble >= CLR_POW_0)
                     foundPower = true;
                 else if (hNibble >= CLR_POW_0)
                     foundPower = true;
+            }
 
-                
+            if (mDotColorCount == 2)
+            {
+                foundDot = true;
+                mDotFlag = true;
             }
 
             tile blanked;
@@ -1106,6 +1113,8 @@ int main()
                     unsigned char val = 0x00;
                     if (h) val |= 0x02;
                     if (v) val |= 0x04;
+                    if (mDotFlag) val |= 0x80;
+
                     outBytes[dotMatch[i] * 2 + 1] = val;
                 } 
                 else 
@@ -1113,6 +1122,10 @@ int main()
                     std::cerr << "COULDN'T FIND MATCH!\nMUTATED DOT EATEN";
                     return 1;
                 }
+            }
+            else 
+            {
+                outBytes[dotMatch[i] * 2] = 0xFF;
             }
         }
         fwrite(outBytes, 1, 8, eatMDotFile);
