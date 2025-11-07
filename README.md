@@ -55,6 +55,8 @@ Additional Credits:
 - Fixed bug in Jr. Pac-Man where normal pellets sometimes awarded 50 points instead of 10
 - Fixed bug in Jr. Pac-Man where, if a fruit was eaten just before it exploded a power pellet, eating that pellet would sometimes cause the wrong one to disappear
 - Fixed bug in Jr. Pac-Man where ghost scatter mode wasn't properly random for Blinky, Pinky, and Inky
+- Added more definition to the cherry, strawberry, apple, and pear fruit sprites for smooth style
+- Added more definition to the balloon and Yum-Yum sprites for smooth style
 
 **v3.00**
 - Added Jr. Pac-Man and Jr. Pac-Man Plus
