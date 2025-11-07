@@ -467,15 +467,12 @@ showNamco:
 
 ;   SUB STATE 0E
 introActorSetup:
-;   RESET GHOST POINT STUFF
-    LD A, $FF
-    LD (ghostPointIndex), A
+;   RESET SOME VARS
     XOR A
-    LD (fruit + Y_WHOLE), A
-    LD (ghostPointSprNum), A
-    LD (ghostPointXpos), A
-    LD A, $94
-    LD (ghostPointYpos), A
+    LD (fruit + Y_WHOLE), A     ; DO SPRITE CYCLING ONLY AMONG GHOSTS
+    LD (ghostPointSprNum), A    ; NO POINTS ON SCREEN
+    DEC A   ; $FF
+    LD (ghostPointIndex), A     ; POINT INDEX (PRE-INCREMENT)
 ;   ACTOR SETUP
     LD IX, blinky
     XOR A
@@ -662,9 +659,8 @@ eatGhosts:
     LD (eatSubState), A
     ; GHOST IS NOW DEAD
     LD (IX + ALIVE_FLAG), A
-    ; SET GHOST POINTS X POSITION
-    LD A, (IX + X_WHOLE)
-    LD (ghostPointXpos), A
+    ; GHOST IS NOW INVISIBLE
+    LD (IX + INVISIBLE_FLAG), $01
     ; SET EAT TIMER
     LD A, ATT00_TIMER_LEN
     LD (mainTimer0), A
