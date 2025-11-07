@@ -501,9 +501,11 @@ getRandCorner:
 
 /*
     INFO: SELECTS A RANDOM DIRECTION (JR.PAC-MAN ONLY)
-    USES: AF, H, R
+    USES: AF, HL, R
 */
 getRandTargetJr:
+;   REMOVE TARGET ALGORITHM CALL
+    POP HL
 ;   GET 'RANDOM' NUMBER
     LD A, R
 ;   AND WITH $3F
