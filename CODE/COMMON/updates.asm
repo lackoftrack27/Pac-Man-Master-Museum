@@ -544,7 +544,7 @@ mazeUpdate:
     LD (tileBufferCount), A
         ; SET PAC-MAN'S DOT DELAY TIMER
     LD (pacPelletTimer), A
-        ; UPDATE TILEMAP IN VRAM
+        ; UPDATE RAM TILEMAP
     LD HL, (tileMapRamPtr)
     LD A, (tileBuffer + 1)
     LD (HL), A
@@ -600,7 +600,7 @@ mazeUpdate:
         ; SET COUNT
     INC A   ; $01
     LD (tileBufferCount), A
-        ; UPDATE TILEMAP IN VRAM
+        ; UPDATE RAM TILEMAP
     LD HL, (tileMapRamPtr)
     LD A, (tileBuffer + 1)
     LD (HL), A
