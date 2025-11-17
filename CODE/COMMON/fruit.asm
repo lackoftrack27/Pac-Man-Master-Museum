@@ -97,11 +97,17 @@ checkEatenFruit:
     ADD A, $03
     CP A, $06
     RET NC  ; IF NOT WITHIN RANGE, EXIT
-;   CENTER Y POS WITHIN MAZE WALLS (FOR SCORE)
+;   CENTER POSITION FOR SCORE
+    ; CENTER Y POS WITHIN MAZE WALLS
     LD A, E
     AND A, ~$07 ; ROUND DOWN TO CLOSEST MULTIPLE OF 8
     ADD A, $04  ; ALIGN WITHIN MAZE WALLS   
     LD (fruit + Y_WHOLE), A
+    ; CENTER X POS
+    LD A, (fruit + X_WHOLE)
+    AND A, ~$07
+    ADD A, $04
+    LD (fruit + X_WHOLE), A
 ;   FINISH UP (SCORE, TIMER, ETC)
     JP checkEatenFruit@ateFruit
 ;   ----------------------------------
@@ -126,11 +132,17 @@ checkEatenFruit:
     ADD A, $04
     CP A, $08
     RET NC  ; IF NOT WITHIN RANGE, EXIT
-;   CENTER Y POS WITHIN MAZE WALLS (FOR SCORE)
+;   CENTER POSITION FOR SCORE
+    ; CENTER Y POS WITHIN MAZE WALLS
     LD A, E
     AND A, ~$07 ; ROUND DOWN TO CLOSEST MULTIPLE OF 8
     ADD A, $04  ; ALIGN WITHIN MAZE WALLS   
     LD (fruit + Y_WHOLE), A
+    ; CENTER X POS
+    LD A, (fruit + X_WHOLE)
+    AND A, ~$07
+    ADD A, $04
+    LD (fruit + X_WHOLE), A
 ;   FINISH UP (SCORE, TIMER, ETC)
     JP checkEatenFruit@ateFruit
 
