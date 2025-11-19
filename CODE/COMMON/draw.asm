@@ -87,8 +87,7 @@ generalGamePlayDraw:
     OR A
     CALL NZ, drawGhostPoints
 ;   POWER PELLET PALETTE CYCLING (DONE LAST TO HIDE CRAM DOTS)
-    JP drawPowDots
-
+    ; FALL THROUGH
 
 
 /*
