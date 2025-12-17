@@ -228,9 +228,8 @@ pacStateTable@update@normalMode:
 */ 
     OR A
     JP NZ, +
-    LD HL, (pacman + Y_WHOLE)   ; 62 (14 + 48) [UP]
-    DEC HL
-    LD (pacman + Y_WHOLE), HL
+    LD HL, pacman + Y_WHOLE     ; 45 [UP]
+    DEC (HL)
     JP @@@@perAxisUpdate
 +:
     DEC A
@@ -242,9 +241,8 @@ pacStateTable@update@normalMode:
 +:
     DEC A
     JP NZ, +
-    LD HL, (pacman + Y_WHOLE)   ; 90 [DOWN]
-    INC HL
-    LD (pacman + Y_WHOLE), HL
+    LD HL, pacman + Y_WHOLE     ; 73 [DOWN]
+    INC (HL)
     JP @@@@perAxisUpdate
 +:
     LD HL, (pacman + X_WHOLE)   ; 80 [RIGHT]

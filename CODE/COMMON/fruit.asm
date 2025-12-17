@@ -743,26 +743,24 @@ fruitStateUpdate:
     LD A, (fruit.currDir)
     OR A
     JP NZ, +
-    LD HL, (fruit + Y_WHOLE)   ; 62 (14 + 48) [UP]
-    DEC HL
-    LD (fruit + Y_WHOLE), HL
+    LD HL, fruit + Y_WHOLE      ; 45 [UP]
+    DEC (HL)
     JP @updatePtrs
 +:
     DEC A
     JP NZ, +
-    LD HL, (fruit + X_WHOLE)   ; 76 [LEFT]
+    LD HL, (fruit + X_WHOLE)    ; 76 [LEFT]
     INC HL
     LD (fruit + X_WHOLE), HL
     JP @updatePtrs
 +:
     DEC A
     JP NZ, +
-    LD HL, (fruit + Y_WHOLE)   ; 90 [DOWN]
-    INC HL
-    LD (fruit + Y_WHOLE), HL
+    LD HL, fruit + Y_WHOLE      ; 73 [DOWN]
+    INC (HL)
     JP @updatePtrs
 +:
-    LD HL, (fruit + X_WHOLE)   ; 80 [RIGHT]
+    LD HL, (fruit + X_WHOLE)    ; 80 [RIGHT]
     DEC HL
     LD (fruit + X_WHOLE), HL
 @updatePtrs:

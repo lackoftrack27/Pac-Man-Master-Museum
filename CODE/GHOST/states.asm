@@ -131,36 +131,27 @@ ghostStateTable@update@scatter:
     LD A, (IX + CURR_DIR)
     OR A
     JP NZ, +
-    LD L, (IX + Y_WHOLE)        ; 125 [UP]
-    LD H, (IX + Y_WHOLE + 1)
-    DEC HL
-    LD (IX + Y_WHOLE), L
-    LD (IX + Y_WHOLE + 1), H
+    DEC (IX + Y_WHOLE)          ; 66 [UP]
     JP actorUpdate
 +:
     DEC A
     JP NZ, +
-    LD L, (IX + X_WHOLE)        ; 139 [LEFT]
-    LD H, (IX + X_WHOLE + 1)
-    INC HL
-    LD (IX + X_WHOLE), L
-    LD (IX + X_WHOLE + 1), H
+    INC (IX + X_WHOLE)          ; 80 [LEFT]
+    JP NZ, actorUpdate
+    INC (IX + X_WHOLE + 1)      ; 113 [LEFT, OVERFLOW]
     JP actorUpdate
 +:
     DEC A
     JP NZ, +
-    LD L, (IX + Y_WHOLE)        ; 152 [DOWN]
-    LD H, (IX + Y_WHOLE + 1)
-    INC HL
-    LD (IX + Y_WHOLE), L
-    LD (IX + Y_WHOLE + 1), H
+    INC (IX + Y_WHOLE)          ; 94 [DOWN]
     JP actorUpdate
 +:
-    LD L, (IX + X_WHOLE)        ; 152 [RIGHT]
-    LD H, (IX + X_WHOLE + 1)
-    DEC HL
-    LD (IX + X_WHOLE), L
-    LD (IX + X_WHOLE + 1), H
+    XOR A
+    OR A, (IX + X_WHOLE)
+    JP NZ, +
+    DEC (IX + X_WHOLE + 1)      ; 150 [RIGHT, UNDERFLOW]
++:
+    DEC (IX + X_WHOLE)          ; 127 [RIGHT]
 /*
 ------------------------------------------------
     [SCATTER MODE] UPDATE - UPDATE TILES
