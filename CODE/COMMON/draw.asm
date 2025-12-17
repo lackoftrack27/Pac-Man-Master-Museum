@@ -1231,30 +1231,25 @@ drawGameOverTilemap:
     INFO: DRAWS A NEW COLUMN IN VRAM TILEMAP WHEN NEEDED (JR.PAC)
     INPUT: NONE
     OUTPUT: NONE
-    USES: AF, BC, DE, HL
+    USES: AF, BC, DE, HL, BC', DE', HL'
 */
 drawNewColumn:
 ;   RESET FLAG
     XOR A
     LD (updateColFlag), A
 ;   SET VDP ADDRESS
-    LD C, VDPCON_PORT
     LD HL, (NAMETABLE + $40) | VRAMWRITE    ; SCROLL 23 ROWS
     LD A, (jrColumnToUpdate)
     ADD A, A
         ; ADD COLUMN TO ADDRESS
     addToHL_M
-    OUT (C), L
-    OUT (C), H
-    DEC C
+    LD DE, $40
+    LD C, VDPCON_PORT
+    EXX
 ;   SET STARTING TILEMAP ADDRESS
-    EX DE, HL		; HL: N/A, DE: VDP ADDR
-    LD A, (jrOldScrollReal)
-    LD B, A
+    LD HL, jrOldScrollReal
     LD A, (jrScrollReal)
-    SUB A, B
-    OR A
-    LD B, 46
+    SUB A, (HL)
     LD A, (jrLeftMostTile) 
     JP P, +
     ADD A, $1F  ; POINT TO COLUMN ON OTHER SIDE OF VISIBLE SCREEN
@@ -1262,35 +1257,22 @@ drawNewColumn:
     ADD A, A
     LD HL, mazeGroup1.tileMap
     addToHL_M
+    LD DE, $50
+    LD C, VDPDATA_PORT
 ;   --------------
 ;   DRAW COLUMN FROM TILEMAP
 ;   --------------
--:
-.REPEAT 11  ; LOOPS TWICE
-    ; WRITE TILEMAP DATA
+unrolledColWrites:
+.REPEAT 23
+    EXX         ; HL - VDP ADDRESS, DE - ADDRESS OFFSET, C - VDP CONTROL PORT
+    OUT (C), L
+    OUT (C), H
+    ADD HL, DE
+    EXX         ; HL' - *VDP DATA, DE' - ADDRESS OFFSET, C' - VDP DATA PORT
     OUTI
     OUTI
-    ; UPDATE VDP ADDRESS FOR NEXT ROW
-    EX DE, HL		; HL: VDP ADDR, DE: TILEMAP ADDR
-    LD A, $40
-        ; ADD $40 TO ADDRESS
-    addToHL_M
-        ; WRITE TO VDP
-    LD A, L     
-    OUT (VDPCON_PORT), A    
-    LD A, H
-    OUT (VDPCON_PORT), A
-    ; UPDATE TILEMAP ADDRESS FOR NEXT ROW
-    EX DE, HL		; HL: TILEMAP ADDR, DE: VDP ADDR
-    LD A, $50
-        ; ADD $50 TO ADDRESS
-    addToHL_M
+    ADD HL, DE
 .ENDR
-    DEC B
-    JP NZ, -
-    ; WRITE TILEMAP DATA
-    OUTI
-    OUTI
     RET
 
 
@@ -1298,30 +1280,25 @@ drawNewColumn:
     INFO: SAME AS ABOVE, BUT FOR CUTSCENES
     INPUT: NONE
     OUTPUT: NONE
-    USES: AF, BC, DE, HL
+    USES: AF, BC, DE, HL, BC', DE', HL'
 */
 drawNewColumnCutscene:
 ;   RESET FLAG
     XOR A
     LD (updateColFlag), A
 ;   SET VDP ADDRESS
-    LD C, VDPCON_PORT
     LD HL, NAMETABLE | VRAMWRITE    ; SCROLL 24 ROWS
     LD A, (jrColumnToUpdate)
     ADD A, A
         ; ADD COLUMN TO ADDRESS
     addToHL_M
-    OUT (C), L
-    OUT (C), H
-    DEC C
+    LD DE, $40
+    LD C, VDPCON_PORT
+    EXX
 ;   SET STARTING TILEMAP ADDRESS
-    EX DE, HL		; HL: N/A, DE: VDP ADDR
-    LD A, (jrOldScrollReal)
-    LD B, A
+    LD HL, jrOldScrollReal
     LD A, (jrScrollReal)
-    SUB A, B
-    OR A
-    LD B, 50    ; (12 * 2) * 2 + 2
+    SUB A, (HL)
     LD A, (jrLeftMostTile) 
     JP P, +
     ADD A, $1F  ; POINT TO COLUMN ON OTHER SIDE OF VISIBLE SCREEN
@@ -1329,30 +1306,17 @@ drawNewColumnCutscene:
     ADD A, A
     LD HL, mazeGroup1
     addToHL_M
+    LD DE, $50
+    LD C, VDPDATA_PORT
 ;   --------------
 ;   DRAW COLUMN FROM TILEMAP
 ;   --------------
--:
-.REPEAT 12  ; LOOPS TWICE
-    ; WRITE TILEMAP DATA
+    EXX         ; HL - VDP ADDRESS, DE - ADDRESS OFFSET, C - VDP CONTROL PORT
+    OUT (C), L
+    OUT (C), H
+    ADD HL, DE
+    EXX         ; 'HL - *VDP DATA, 'DE - ADDRESS OFFSET, 'C - VDP DATA PORT
     OUTI
     OUTI
-    ; UPDATE VDP ADDRESS FOR NEXT ROW
-    EX DE, HL		; HL: VDP ADDR, DE: TILEMAP ADDR
-    LD A, $40
-        ; ADD $40 TO ADDRESS
-    addToHL_M
-        ; WRITE TO VDP
-    LD A, L     
-    OUT (VDPCON_PORT), A    
-    LD A, H
-    OUT (VDPCON_PORT), A
-    ; UPDATE TILEMAP ADDRESS FOR NEXT ROW
-    EX DE, HL		; HL: TILEMAP ADDR, DE: VDP ADDR
-    LD A, $50
-        ; ADD $50 TO ADDRESS
-    addToHL_M
-.ENDR
-    DEC B
-    JP NZ, -
-    RET
+    ADD HL, DE
+    JP unrolledColWrites
