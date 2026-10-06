@@ -1,8 +1,6 @@
-/*
-------------------------------------------------
-                PAC-MAN DATA
-------------------------------------------------
-*/
+; ------------------------------------------------
+;                 PAC-MAN DATA
+; ------------------------------------------------
 
 ;   PAC-MAN [SMOOTH, NON-PLUS] TILE TABLE
 pacSNTileTbl:
@@ -149,34 +147,3 @@ pacANDeathTileTbl:
     .DW pacDTileA10 pacDTileA22 pacDTileA0F pacDTileA0F
     .DW pacDTileA11 pacDTileA23 pacDTileA12 pacDTileA24
     .DW pacDTileA0F pacDTileA0F pacDTileA0F pacDTileA0F
-
-
-
-;   FRAMES TIMES
-pacmanDeathTimes:
-    .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $0F $55
-
-/*
-    MACRO AND LIST FOR PAC-MAN TILES [BIG - CUTSCENE 1]
-*/
-.MACRO pacBigSprDefs ARGS, VAL
-@open:
-    .DB VAL, VAL+$06, VAL+$0C, VAL+$01, VAL+$07, VAL+$0D, VAL+$02, BLANK_TILE, VAL+$0E
-@half:
-    .DB VAL, VAL+$06, VAL+$0C, VAL+$03, VAL+$08, VAL+$0F, VAL+$04, VAL+$09, VAL+$10
-@closed:
-    .DB VAL, VAL+$06, VAL+$0C, VAL+$03, VAL+$0A, VAL+$0F, VAL+$05, VAL+$0B, VAL+$11
-.ENDM
-
-pacBigTileDefs:
-    pacBigSprDefs (SPRITE_ADDR + PAC_CUT_VRAM) / TILE_SIZE
-
-pacBigSpriteTable:
-;   00 - 03
-    .DW pacBigTileDefs@half     ; 00
-;   04 - 07
-    .DW pacBigTileDefs@open     ; 02
-;   08 - 0B
-    .DW pacBigTileDefs@half     ; 04
-;   0C - 0F
-    .DW pacBigTileDefs@closed   ; 06

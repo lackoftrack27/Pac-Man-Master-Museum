@@ -1,8 +1,7 @@
-/*
-----------------------------------------------
-        CUTSCENE MODE DATA FOR PAC-MAN
-----------------------------------------------
-*/
+; ----------------------------------------------
+;         CUTSCENE MODE DATA FOR PAC-MAN
+; ----------------------------------------------
+
 ;   --------------
 ;   GFX TILE LISTS
 ;   --------------
@@ -35,11 +34,11 @@
 pacCutGhostDefs         (SPRITE_ADDR + GHOST_CUT_VRAM) / TILE_SIZE
 
 
-/*
-----------------------------------------------
-        CUTSCENE MODE DATA FOR MS.PAC-MAN
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;         CUTSCENE MODE DATA FOR MS.PAC-MAN
+; ----------------------------------------------
+
 
 ;   --------------
 ;   MACROS FOR TILE LISTS
@@ -307,47 +306,47 @@ msSceneCharacters:
 @jrPac:
     .DB $2E $FF
 
-/*
-    $8671: ; EMPTY SPRITE
 
-    $8614: ; PAC-MAN FACING RIGHT
-    $861D: ; PAC-MAN FACING LEFT
-    $8626: ; PAC-MAN FACING UP
-    $862F: ; PAC-MAN FACING UP (FLIPPED HORIZONTAL???) [NOT USED!!!]
+    ; $8671: ; EMPTY SPRITE
 
-    $8638: ; MS. PAC FACING RIGHT
-    $8641: ; MS. PAC FACING LEFT
-    $864A: ; MS. PAC FACING UP
-    $8653: ; MS. PAC FACING DOWN [NOT USED!!!]
+    ; $8614: ; PAC-MAN FACING RIGHT
+    ; $861D: ; PAC-MAN FACING LEFT
+    ; $8626: ; PAC-MAN FACING UP
+    ; $862F: ; PAC-MAN FACING UP (FLIPPED HORIZONTAL???) [NOT USED!!!]
 
-    $865C: ; PINKY FACING RIGHT
-    $8663: ; PINKY FACING LEFT
-    $866A: ; PINKY FACING UP [NOT USED!!!]
+    ; $8638: ; MS. PAC FACING RIGHT
+    ; $8641: ; MS. PAC FACING LEFT
+    ; $864A: ; MS. PAC FACING UP
+    ; $8653: ; MS. PAC FACING DOWN [NOT USED!!!]
 
-    $865C: ; INKY FACING RIGHT
-    $8663: ; INKY FACING LEFT
-    $866A: ; INKY FACING UP [NOT USED!!!]
+    ; $865C: ; PINKY FACING RIGHT
+    ; $8663: ; PINKY FACING LEFT
+    ; $866A: ; PINKY FACING UP [NOT USED!!!]
 
-    $8675: ; ACT SIGN CLACKER HALF 1
-    $867F: ; ACT SIGN CLACKER HALF 2
+    ; $865C: ; INKY FACING RIGHT
+    ; $8663: ; INKY FACING LEFT
+    ; $866A: ; INKY FACING UP [NOT USED!!!]
 
-    $8689: ; ACT SIGN HALF 1
-    $868B: ; ACT SIGN HALF 2
+    ; $8675: ; ACT SIGN CLACKER HALF 1
+    ; $867F: ; ACT SIGN CLACKER HALF 2
 
-    $8673: ; HEART
+    ; $8689: ; ACT SIGN HALF 1
+    ; $868B: ; ACT SIGN HALF 2
 
-    $868D: ; STORK
-    $868F: ; STORK FLAPPING
-    $8698: ; STORK SACK
-    $869A: ; JR PAC
-*/
+    ; $8673: ; HEART
+
+    ; $868D: ; STORK
+    ; $868F: ; STORK FLAPPING
+    ; $8698: ; STORK SACK
+    ; $869A: ; JR PAC
 
 
-/*
-----------------------------------------------
-        CUTSCENE MODE DATA FOR JR.PAC-MAN
-----------------------------------------------
-*/
+
+
+; ----------------------------------------------
+;         CUTSCENE MODE DATA FOR JR.PAC-MAN
+; ----------------------------------------------
+
 ;   $05 - $0A
 jrSceneJrTileTbl:
 @jrPacSN: ; HALF, OPEN, HALF, CLOSED
@@ -531,11 +530,11 @@ jrSceneCharacters:
 
 
 
-/*
-----------------------------------------------
-            CUTSCENE COMMAND DATA
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;             CUTSCENE COMMAND DATA
+; ----------------------------------------------
+
 ;   CUTSCENE DATA MACROS
 .MACRO MOVE ARGS xSpd ySpd  ; TOP NIBBLE: SIGNED PIXEL, LOW NIBBLE: SUB-PIXEL
     .DB $F0, xSpd, ySpd

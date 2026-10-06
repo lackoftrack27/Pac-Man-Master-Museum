@@ -1,16 +1,12 @@
-/*
-------------------------------------------------
-                PAC-MAN ROUTINES
-------------------------------------------------
-*/
+; ------------------------------------------------
+;                 PAC-MAN ROUTINES
+; ------------------------------------------------
 
 
-/*
-    INFO: CALCULATES NEXT DIRECTION PAC-MAN TAKES IN DEMO
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, HL, IX
-*/
+    ; INFO: CALCULATES NEXT DIRECTION PAC-MAN TAKES IN DEMO
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, HL, IX
 pacmanDemoPF:
 ;   SETUP PATHFINDING (COLLISION FOR NEXT TILES)
     LD IX, pacman
@@ -41,12 +37,10 @@ pacmanDemoPF:
     JP ghostPathFindingAI@normalPathFinding
 
 
-/*
-    INFO: RESETS PAC-MAN RELATED VARS FOR LEVEL START
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL, IX
-*/
+    ; INFO: RESETS PAC-MAN RELATED VARS FOR LEVEL START
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL, IX
 pacmanReset:
 ;   PAC-MAN SPRITE TABLE NUMBER
     LD A, $01
@@ -80,12 +74,10 @@ pacmanReset:
 
 
 
-/*
-    INFO: STREAM IN UNCOMPRESSED TILES FOR PLAYER SPRITE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+    ; INFO: STREAM IN UNCOMPRESSED TILES FOR PLAYER SPRITE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
 pacTileStreaming:
 ;   [182]
 ;   -----

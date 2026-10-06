@@ -1,8 +1,7 @@
-/*
-----------------------------------------------
-        DEFINES FOR GHOSTS (TEMP RAM)
-----------------------------------------------
-*/
+; ----------------------------------------------
+;         DEFINES FOR GHOSTS (TEMP RAM)
+; ----------------------------------------------
+
 ;       PATHFINDING
 .DEFINE     lowestDist      workArea + $3A   ; 2 BYTES
 .DEFINE     idAddress       workArea + $3C   ; 2 BYTES
@@ -13,11 +12,11 @@
 .DEFINE     PATHFIND_TILES_PTR  pfWorkTiles - (_sizeof_actor - _sizeof_pfWorkTiles)
 
 
-/*
-------------------------------------------------
-                GHOST STATE TABLE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;                 GHOST STATE TABLE
+; ------------------------------------------------
+
 ghostStateTable:
     @update:
         .dw @@scatter      ; 00 - ghostOutHomeUpdate
@@ -36,11 +35,11 @@ ghostStateTable:
 
 
 
-/*
-------------------------------------------------
-                GHOST CODE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;                 GHOST CODE
+; ------------------------------------------------
+
 .INCLUDE "states.asm"
 .INCLUDE "pathfind.asm"
 .INCLUDE "trans.asm"

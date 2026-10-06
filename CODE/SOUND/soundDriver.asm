@@ -1,8 +1,6 @@
-/*
-------------------------------------------------
-                SOUND DRIVER CODE
-------------------------------------------------
-*/
+; ------------------------------------------------
+;                 SOUND DRIVER CODE
+; ------------------------------------------------
 ;   CHANNEL CONTROL BITS
 .DEFINE CHANCON_REST        1
 .DEFINE CHANCON_LITERAL     3
@@ -68,12 +66,10 @@
 
 
 
-/*
-    INFO: MAIN SOUND UPDATE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IY
-*/
+    ; INFO: MAIN SOUND UPDATE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IY
 sndProcess:
 ;   DON'T UPDATE WHEN IN ATTRACT MODE (EXCEPT FOR TITLE AND OPTIONS)
     LD HL, (mainGameMode)   ; L: MAIN, H: SUB
@@ -127,11 +123,9 @@ sndProcess:
 
 
 
-/*
-------------------------------------------------
-            TRACK UPDATE FUNCTION
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             TRACK UPDATE FUNCTION
+; ------------------------------------------------
 trackUpdate:
 ;   LOAD TRACK POINTER
     LD E, (IY + POINTER_00)
@@ -139,11 +133,9 @@ trackUpdate:
 ;   CHECK IF NOTE DURATION IS 0 AFTER DECREMENT
     DEC (IY + DUR_COUNTER)
     JP NZ, @noteGoing     ; IF NOT, A NOTE IS CURRENTLY PLAYING
-/*
-    ---------
-    A NOTE IS NOT CURRENTLY PLAYING...
-    ---------
-*/
+    ; ---------
+    ; A NOTE IS NOT CURRENTLY PLAYING...
+    ; ---------
     RES CHANCON_NOATTACK, (IY + CHAN_CONTROL)  ; CLEAR NO-ATTACK BIT
 ;
 ;   GET NEXT BYTE
@@ -292,11 +284,9 @@ trackUpdate:
     LD C, CHAN2_BITS
 ;   PREPARE FOR NEXT TRACK
     JP @prepareNext
-/*
-    ---------
-    A NOTE IS CURRENTLY PLAYING...
-    ---------
-*/
+    ; ---------
+    ; A NOTE IS CURRENTLY PLAYING...
+    ; ---------
 @noteGoing:
 ;   CHECK IF TRACK IS USING A ENVELOPE
     LD A, (IY + ENVELOPE)
@@ -402,11 +392,9 @@ trackUpdate:
     RET
 
 
-/*
-------------------------------------------------
-        FUNCTIONS USED BY TRACK UPDATE
-------------------------------------------------
-*/
+; ------------------------------------------------
+;         FUNCTIONS USED BY TRACK UPDATE
+; ------------------------------------------------
 setFreq:
 ;   CHECK IF NOTE IS REST
     SUB A, $81
@@ -482,11 +470,9 @@ finishTrackUpdate:
 
 
 
-/*
-------------------------------------------------
-            COORDINATION FLAG PROCESS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             COORDINATION FLAG PROCESS
+; ------------------------------------------------
 processCF:
 ;   PUSH RETURN ADDRESS
     LD HL, cfTable@return
@@ -623,18 +609,14 @@ cfTable:
 
 
 
-/*
-------------------------------------------------
-                AUX FUNCTIONS
-------------------------------------------------
-*/
-/*
-    INFO: PLAYS A SFX GIVEN ITS ID AND TRACK TO PLAY ON
-    INPUT:  A - SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
-            B -TRACK    [0 -> 3]
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IY
-*/
+; ------------------------------------------------
+;                 AUX FUNCTIONS
+; ------------------------------------------------
+    ; INFO: PLAYS A SFX GIVEN ITS ID AND TRACK TO PLAY ON
+    ; INPUT:  A - SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
+    ;         B -TRACK    [0 -> 3]
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IY
 sndPlaySFX:
 ;   SET BANK
     PUSH AF
@@ -722,12 +704,10 @@ sndPlaySFX:
 
 
 
-/*
-    INFO: PLAYS MUSIC TRACK GIVEN ITS ID
-    INPUT:  A - SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IY
-*/
+    ; INFO: PLAYS MUSIC TRACK GIVEN ITS ID
+    ; INPUT:  A - SOUND NUMBER [81 -> XX] (80 IS CONSIDERED STOP)
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IY
 sndPlayMusic:
 ;   SET BANK
     PUSH AF
@@ -801,12 +781,10 @@ sndPlayMusic:
 
 
 
-/*
-    INFO: CLEARS TRACK'S PLAYING FLAG AND WRITES MAX ATTENUATION TO ITS CHANNEL
-    INPUT: B - TRACK NUMBER
-    OUTPUT: NONE
-    USES: AF, BC, DE, IY
-*/
+    ; INFO: CLEARS TRACK'S PLAYING FLAG AND WRITES MAX ATTENUATION TO ITS CHANNEL
+    ; INPUT: B - TRACK NUMBER
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, IY
 sndStopChannel:
 ;   GET TRACK POINTER
     LD IY, chan0
@@ -843,12 +821,10 @@ sndStopChannel:
 
 
 
-/*
-    INFO: RESETS ALL SOUND VARIABLES AND REGISTERS
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+    ; INFO: RESETS ALL SOUND VARIABLES AND REGISTERS
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
 sndInit:
 ;   CLEAR ALL SOUND VARIABLES
     XOR A
@@ -860,12 +836,10 @@ sndInit:
 ;   FALL THROUGH
 
 
-/*
-    INFO: CLEARS PLAYING FLAGS FOR ALL TRACKS AND WRITES MAX ATTENUATION TO ALL CHANNELS
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, B, DE, HL
-*/
+    ; INFO: CLEARS PLAYING FLAGS FOR ALL TRACKS AND WRITES MAX ATTENUATION TO ALL CHANNELS
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, B, DE, HL
 sndStopAll:
 ;   CLEAR PLAYING FLAGS 
     XOR A

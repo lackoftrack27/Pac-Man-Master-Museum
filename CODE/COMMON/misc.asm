@@ -1,15 +1,13 @@
-/*
-------------------------------------------------
-                UNSORTED FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;                 UNSORTED FUNCTIONS
+; ------------------------------------------------
 
-/*
-    INFO: ADD TASK TO LIST (USED ONLY FOR PATHFINDING)
-    INPUT: A - TASK ID
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: ADD TASK TO LIST (USED ONLY FOR PATHFINDING)
+    ; INPUT: A - TASK ID
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 addTask:
 ;   STORE TASK ID, INCREMENT TASK LIST POINTER
     LD HL, (taskListEnd)
@@ -18,21 +16,21 @@ addTask:
     LD (taskListEnd), HL
     RET
 
-/*
-    INFO: INDIRECT CALL TO ADDRESS IN HL
-    INPUT: HL - ADDRESS OF ROUTINE TO CALL
-    OUTPUT: NONE
-    USES: HL
-*/
+
+    ; INFO: INDIRECT CALL TO ADDRESS IN HL
+    ; INPUT: HL - ADDRESS OF ROUTINE TO CALL
+    ; OUTPUT: NONE
+    ; USES: HL
+
 indirectHLCall:
     JP (HL)
 
-/*
-    INFO: DETERMINE WHAT BG PALETTE TO USE BASED ON GAME AND CURRENT LEVEL
-    INPUT: NONE
-    OUTPUT: HL - BG PALETTE PTR
-    USES: AF, HL
-*/
+
+    ; INFO: DETERMINE WHAT BG PALETTE TO USE BASED ON GAME AND CURRENT LEVEL
+    ; INPUT: NONE
+    ; OUTPUT: HL - BG PALETTE PTR
+    ; USES: AF, HL
+
 getBgPalPtr:
 ;   LOAD DIFFERENT PALETTES DEPENDING ON GAME...
     LD A, (plusBitFlags)
@@ -117,12 +115,12 @@ getBgPalPtr:
 
 
 
-/*
-    INFO: WRITE MAZE PALETTE TO RAM BUFFER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE
-*/
+
+    ; INFO: WRITE MAZE PALETTE TO RAM BUFFER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE
+
 cpyMazePalToRam:
 ;   LOAD BG PALETTE TO RAM
     CALL getBgPalPtr
@@ -144,12 +142,12 @@ cpyMazePalToRam:
 
 
 
-/*
-    INFO: SETUP TILE POINTERS FOR PLAYER OBJECT (LOOK AT pacmanData.asm)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL
-*/
+
+    ; INFO: SETUP TILE POINTERS FOR PLAYER OBJECT (LOOK AT pacmanData.asm)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL
+
 setupTilePtrs:
 ;   PLAYER TILE DEFINITION TABLE SETUP
     LD HL, playerTileTblList
@@ -176,12 +174,12 @@ setupTilePtrs:
     RET
 
 
-/*
-    INFO: DETERMINE WHAT INDEX TO USE (GIVEN A TABLE) GIVEN THE CURRENT LEVEL
-    INPUT: HL - TABLE WE WANT AN INDEX FOR
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: DETERMINE WHAT INDEX TO USE (GIVEN A TABLE) GIVEN THE CURRENT LEVEL
+    ; INPUT: HL - TABLE WE WANT AN INDEX FOR
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 getMazeIndex:
 ;   CHECK IF LEVEL IS GREATER IS 13 OR GREATER
     LD A, (currPlayerInfo.level)
@@ -209,13 +207,13 @@ getMazeIndex:
 
 
 
-/*
-    [JR VARIANT]
-    INFO: DETERMINE WHAT INDEX TO USE (GIVEN A TABLE) GIVEN THE CURRENT LEVEL
-    INPUT: HL - TABLE WE WANT AN INDEX FOR
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; [JR VARIANT]
+    ; INFO: DETERMINE WHAT INDEX TO USE (GIVEN A TABLE) GIVEN THE CURRENT LEVEL
+    ; INPUT: HL - TABLE WE WANT AN INDEX FOR
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 jrGetMazeIndex:
 ;   CHECK IF LEVEL IS GREATER IS 14 OR GREATER
     LD A, (currPlayerInfo.level)
@@ -242,18 +240,18 @@ jrGetMazeIndex:
     .DB 1 0 3 2 5 4 6 2 5 4 6 2 5 4
 
 
-/*
-------------------------------------------------
-                PLUS FUNCTIONS
-------------------------------------------------
-*/
 
-/*
-    INFO: RANDOMNESS FOR WHEN PLAYER EATS POWER DOT [PLUS]
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+; ------------------------------------------------
+;                 PLUS FUNCTIONS
+; ------------------------------------------------
+
+
+
+    ; INFO: RANDOMNESS FOR WHEN PLAYER EATS POWER DOT [PLUS]
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
+
 plus_powerDotRNG:
 ;   CHECK IF GAME IS IN DEMO
     LD A, (mainGameMode)
@@ -307,12 +305,12 @@ plus_powerDotRNG:
     RET
 
 
-/*
-    INFO: FOR WHEN PLAYER EATS A FRUIT [PLUS]
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL, IX
-*/
+
+    ; INFO: FOR WHEN PLAYER EATS A FRUIT [PLUS]
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL, IX
+
 plus_fruitSuper:
 ;   RESET GHOST FLASH COUNTER
     XOR A
@@ -343,18 +341,18 @@ plus_fruitSuper:
     RET
 
 
-/*
-------------------------------------------------
-                SRAM FUNCTIONS
-------------------------------------------------
-*/
 
-/*
-    INFO: CHECK TO SEE IF SRAM HAS BEEN INITIALIZED. IF NOT, IT INITIALIZES IT
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+; ------------------------------------------------
+;                 SRAM FUNCTIONS
+; ------------------------------------------------
+
+
+
+    ; INFO: CHECK TO SEE IF SRAM HAS BEEN INITIALIZED. IF NOT, IT INITIALIZES IT
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 initSRAM:
 ;   CHECK IF SRAM IS PRESENT
     ; ENABLE SRAM
@@ -401,12 +399,12 @@ initSRAM:
     RET
 
 
-/*
-    INFO: LOAD HIGH SCORE FROM SRAM IF AVAILABLE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: LOAD HIGH SCORE FROM SRAM IF AVAILABLE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 loadScorefromSRAM:
 ;   EXIT IF SRAM ISN'T PRESENT
     LD A, (sramFlag)
@@ -421,12 +419,12 @@ loadScorefromSRAM:
 
 
 
-/*
-    INFO: SAVE HIGH SCORE TO SRAM IF AVAILABLE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: SAVE HIGH SCORE TO SRAM IF AVAILABLE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 saveScoreToSRAM:
 ;   EXIT IF SRAM ISN'T PRESENT
     LD A, (sramFlag)
@@ -456,13 +454,13 @@ saveScoreToSRAM:
     JR initSRAM@end
 
 
-/*
-    [HELPER]
-    INFO: GETS HIGH SCORE FROM SRAM ACCORDING TO GAME MODE/TYPE
-    INPUT: NONE
-    OUTPUT: DE - HIGH SCORE (LOW WORD), A - HIGH SCORE (UPPER BYTE), HL - SRAM SCORE PTR + 2
-    USES: AF, BC, DE, HL
-*/
+
+    ; [HELPER]
+    ; INFO: GETS HIGH SCORE FROM SRAM ACCORDING TO GAME MODE/TYPE
+    ; INPUT: NONE
+    ; OUTPUT: DE - HIGH SCORE (LOW WORD), A - HIGH SCORE (UPPER BYTE), HL - SRAM SCORE PTR + 2
+    ; USES: AF, BC, DE, HL
+
 getSRAMScore:
 ;   ENABLE SRAM
     LD A, $01 << SRAM_EN

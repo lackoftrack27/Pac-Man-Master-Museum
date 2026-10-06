@@ -1,8 +1,6 @@
-/*
-------------------------------------------------
-            STATE TRANSITION ROUTINES
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             STATE TRANSITION ROUTINES
+; ------------------------------------------------
 pacGameTrans_normal:
 ;   PAC-MAN IS IN NORMAL STATE
     LD A, PAC_NORMAL

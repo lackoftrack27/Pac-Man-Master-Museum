@@ -1,6 +1,6 @@
-/*
-                        BUILD DEBUG
-*/
+; -------------------------------------------------
+;                   BUILD DEBUG
+; -------------------------------------------------
 .DEFINE RACK_ADV        $00
 .DEFINE INVINCIBLE      $00
 .DEFINE FREE_FRUIT_JR   $00
@@ -8,9 +8,9 @@
 .DEFINE SAFE_DRAW       $00
 .DEFINE LEVEL_SELECT    $00
 
-/*
-                        SMS CONSTANTS
-*/
+; -------------------------------------------------
+;                   SMS CONSTANTS
+; -------------------------------------------------
 .DEFINE CONTROLPORT1    $DC
 .DEFINE CONTROLPORT2    $DD
 .DEFINE IO_CONTROL      $3F
@@ -79,9 +79,9 @@
 .ENDE
 
 
-/*
-                    STATE MACHINE CONSTANTS
-*/
+; -------------------------------------------------
+;               STATE MACHINE CONSTANTS
+; -------------------------------------------------
 
 ;   MAIN GAME MODE STATES
 .ENUM $00
@@ -136,9 +136,9 @@
 
 
 
-/*
-                    ATTRACT SUB-STATES CONSTANTS
-*/
+; -------------------------------------------------
+;           ATTRACT SUB-STATES CONSTANTS
+; -------------------------------------------------
     .DEFINE TITLE_TIMER_LEN     600     ; 10 SECONDS
     .DEFINE ATT00_TIMER_LEN     60      ; 1 SECOND
     .DEFINE ATT01_TIMER_LEN     30      ; 0.5 SECOND
@@ -147,9 +147,9 @@
     .DEFINE ATT_GHO_SPEED01     $FF70
     .DEFINE ATT_PAC_SPEED01     $FEE0
 
-/*
-                    GAMEPLAY SUB-STATES CONSTANTS
-*/
+; -------------------------------------------------
+;           GAMEPLAY SUB-STATES CONSTANTS
+; -------------------------------------------------
     .DEFINE READY00_TIMER_LEN   $8A     ; 2 SECONDS AND 18 FRAMES
     .DEFINE READY01_TIMER_LEN   $78     ; 2 SECONDS
     .DEFINE EAT_TIMER_LEN       $78     ; 1 SECOND (TIMER IS UPDATED TWICE PER FRAME)
@@ -167,9 +167,9 @@
     .DEFINE READY01_TIMER_LEN_JR    $90 ; 2 SECONDS AND 24 FRAMES
 
 
-/*
-                    CUTSCENE SUB-STATES CONSTANTS
-*/
+; -------------------------------------------------
+;           CUTSCENE SUB-STATES CONSTANTS
+; -------------------------------------------------
     .DEFINE CUT00_TIMER_LEN     60  ; 1 SECOND
     .DEFINE CUT01_TIMER_LEN     30  ; .5 SECOND
     .DEFINE CUT02_TIMER_LEN     120 ; 2 SECONDS
@@ -182,9 +182,9 @@
     .DEFINE CUT_GHO_SPEED02     48
     .DEFINE CUT_GHO_SPEED03     $FEB0   ; -336
 
-/*
-                    DIRECTIONS
-*/
+; -------------------------------------------------
+;                   DIRECTIONS
+; -------------------------------------------------
 .ENUM $00
     DIR_UP       DB
     DIR_LEFT     DB
@@ -220,9 +220,9 @@
     P2_TH           DB
 .ENDE
 
-/*
-                    BANKS
-*/
+; -------------------------------------------------
+;                       BANKS
+; -------------------------------------------------
 
 .DEFINE CODE_BANK           $00
 .DEFINE HEADER_BANK         $01
@@ -245,9 +245,9 @@
 .DEFINE RNG_PAC_BANK        $08
 .DEFINE RNG_JR_BANK         $09
 
-/*
-                    GAME
-*/
+; -------------------------------------------------
+;                       GAME
+; -------------------------------------------------
 
 .DEFINE RESET_WORD_0    $1980
 .DEFINE RESET_WORD_1    $4843   ; "HC"
@@ -346,9 +346,9 @@
     INVISIBLE_FLAG  DB
 .ENDE  
 
-/*
-            SPRITE PALETTE INDEXES
-*/
+; -------------------------------------------------
+;           SPRITE PALETTE INDEXES
+; -------------------------------------------------
 
 .ENUM $00
     BGPAL_TRANS     DB
@@ -373,18 +373,18 @@
 .DEFINE CLR_YELLOW  $0F
 .DEFINE CLR_CYAN    $3C
 
-/*
-                    TILE/SPRITE POINTS
-*/
+; -------------------------------------------------
+;               TILE/SPRITE POINTS
+; -------------------------------------------------
 .DEFINE MIDTILE_X       $02
 .DEFINE MIDTILE_Y       $03
 .DEFINE MIDSPRITE_X     $05
 .DEFINE MIDSPRITE_Y     $06
 .DEFINE X_OFFSET        $04
 
-/*
-                    VISUAL OFFSETS
-*/
+; -------------------------------------------------
+;               VISUAL OFFSETS
+; -------------------------------------------------
 .DEFINE HIGHSCORE_TEXT_ROW0 (25 * $02) + ($02 * $40)
 .DEFINE HIGHSCORE_TEXT_ROW1 (26 * $02) + ($03 * $40)
 .DEFINE XUP_TEXT            (25 * $02) + ($06 * $40)
@@ -399,9 +399,9 @@
 .DEFINE NUM_TEXT_JR         (04 * $02) + ($00 * $40)
 
 
-/*
-                VRAM TILE OFFSETS
-*/
+; -------------------------------------------------
+;               VRAM TILE OFFSETS
+; -------------------------------------------------
 .DEFINE BLANK_TILE      SPRITE_ADDR / TILE_SIZE
 .DEFINE MASK_TILE       $FF
 
@@ -410,7 +410,7 @@
 .DEFINE GHOST_VRAM      PAC_VRAM    + (04 * TILE_SIZE);+ (40 * TILE_SIZE)
 .DEFINE SCARED_VRAM     GHOST_VRAM  + (48 * TILE_SIZE)
 .DEFINE EYES_VRAM       SCARED_VRAM + (16 * TILE_SIZE)
-.DEFINE FSCORE_VRAM     GHOST_VRAM  + (132 * TILE_SIZE) //GHOST_VRAM  + (72 * TILE_SIZE)
+.DEFINE FSCORE_VRAM     GHOST_VRAM  + (132 * TILE_SIZE)
 
 .DEFINE GSCORE_VRAM     FSCORE_VRAM + (12 * TILE_SIZE)
 .DEFINE DEATH_VRAM      GHOST_VRAM
@@ -435,9 +435,9 @@
 .DEFINE JR_HUD_VRAM             $3C00
 
 
-/*
-                    PAC-MAN CONSTANTS
-*/
+; -------------------------------------------------
+;               PAC-MAN CONSTANTS
+; -------------------------------------------------
 ;   STATES
 .ENUM $00
     PAC_NORMAL  DB
@@ -447,9 +447,9 @@
 .ENDE
 
 
-/*
-                GHOST CONSTANTS
-*/
+; -------------------------------------------------
+;               GHOST CONSTANTS
+; -------------------------------------------------
 ;   STATES
 .ENUM $00
     GHOST_SCATTER   DB
@@ -461,14 +461,14 @@
 .ENDE
 
 
-/*
-    CUTSCENE ANIMATION
-*/
+; -------------------------------------------------
+;               CUTSCENE ANIMATION
+; -------------------------------------------------
 .DEFINE PROG_AMOUNT     $07
 
-/*
-    SOUND CONSTS
-*/
+; -------------------------------------------------
+;                   SOUND CONSTS
+; -------------------------------------------------
 .ENUM $00
     VOLUME DB
     NOTE DB

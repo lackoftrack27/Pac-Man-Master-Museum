@@ -1,16 +1,14 @@
-/*
-------------------------------------------------
-                ASSET FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;                 ASSET FUNCTIONS
+; ------------------------------------------------
 
 
-/*
-    INFO: LOAD SPRITE TILES AND PALETTE DEPENDING ON PLUS AND STYLE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: LOAD SPRITE TILES AND PALETTE DEPENDING ON PLUS AND STYLE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 loadTileAssets:
 ;   SET VDP ADDRESS FOR PALETTE WRITE
     LD HL, SPR_CRAM_SIZE | CRAMWRITE
@@ -256,12 +254,12 @@ loadTileAssets:
 
 
 
-/*
-    INFO: LOAD MAZE DATA
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL
-*/
+
+    ; INFO: LOAD MAZE DATA
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL
+
 loadMaze:
 ;   SET BANK FOR MAZE OTHER DATA
     LD A, MAZE_OTHER_BANK
@@ -413,12 +411,12 @@ loadMaze:
     RET
 
 
-/*
-    INFO: LOAD HUD TILES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL
-*/
+
+    ; INFO: LOAD HUD TILES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL
+
 loadHudTiles:
 ;   LOAD HUD TEXT TILES
     LD DE, (BACKGROUND_ADDR + HUDTEXT_VRAM) | VRAMWRITE

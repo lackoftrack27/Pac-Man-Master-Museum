@@ -1,16 +1,12 @@
-/*
-------------------------------------------
-            MATH FUNCTIONS
-------------------------------------------
-*/
+; ------------------------------------------
+;             MATH FUNCTIONS
+; ------------------------------------------
 
 
-/*
-    INFO: MULTIPLIES A UNSIGNED 8-BIT NUMBER BY 6
-    INPUT: A - FACTOR
-    OUTPUT: A - PRODUCT
-    USES: AF, B
-*/
+    ; INFO: MULTIPLIES A UNSIGNED 8-BIT NUMBER BY 6
+    ; INPUT: A - FACTOR
+    ; OUTPUT: A - PRODUCT
+    ; USES: AF, B
 multiplyBy6:
 ;   A * 06 (04 + 02)
     ADD A, A
@@ -20,12 +16,10 @@ multiplyBy6:
     RET
 
 
-/*
-    INFO: SAME THING AS ABOVE EXCEPT 16-BIT
-    INPUT: HL - FACTOR
-    OUTPUT: HL - PRODUCT
-    USES: DE, HL
-*/
+    ; INFO: SAME THING AS ABOVE EXCEPT 16-BIT
+    ; INPUT: HL - FACTOR
+    ; OUTPUT: HL - PRODUCT
+    ; USES: DE, HL
 multBy6_16:
 ;   HL * 06 (04 + 02)
     ADD HL, HL
@@ -36,58 +30,52 @@ multBy6_16:
     RET
 
 
-/*
-    INFO: MULTIPLIES TWO 8-BIT NUMBERS
-    INPUT: H - FACTOR, E - FACTOR
-    OUTPUT: HL - PRODUCT
-    USES: F, HL, DE
-*/
-/*
-multiply8Bit:
-;   INIT. LOOP
-    LD D, $00   ; CLEAR D AND L
-    LD L, D
-    SLA H
-    JR NC, +
-    LD L, E
-+
-    ADD HL, HL
-    JR NC, +
-    ADD HL, DE
-+:
-    ADD HL, HL
-    JR NC, +
-    ADD HL, DE
-+:
-    ADD HL, HL
-    JR NC, +
-    ADD HL, DE
-+:
-    ADD HL, HL
-    JR NC, +
-    ADD HL, DE
-+:
-    ADD HL, HL
-    JR NC, +
-    ADD HL, DE
-+:
-    ADD HL, HL
-    JR NC, +
-    ADD HL, DE
-+:
-    ADD HL, HL
-    RET NC
-    ADD HL, DE
-    RET
-*/
+    ; INFO: MULTIPLIES TWO 8-BIT NUMBERS
+    ; INPUT: H - FACTOR, E - FACTOR
+    ; OUTPUT: HL - PRODUCT
+    ; USES: F, HL, DE
+; multiply8Bit:
+; ;   INIT. LOOP
+;     LD D, $00   ; CLEAR D AND L
+;     LD L, D
+;     SLA H
+;     JR NC, +
+;     LD L, E
+; +
+;     ADD HL, HL
+;     JR NC, +
+;     ADD HL, DE
+; +:
+;     ADD HL, HL
+;     JR NC, +
+;     ADD HL, DE
+; +:
+;     ADD HL, HL
+;     JR NC, +
+;     ADD HL, DE
+; +:
+;     ADD HL, HL
+;     JR NC, +
+;     ADD HL, DE
+; +:
+;     ADD HL, HL
+;     JR NC, +
+;     ADD HL, DE
+; +:
+;     ADD HL, HL
+;     JR NC, +
+;     ADD HL, DE
+; +:
+;     ADD HL, HL
+;     RET NC
+;     ADD HL, DE
+;     RET
 
 
-/*
-    INFO: RANDOM NUMBER GENERATOR (ORIGINAL GAME'S ALGORITHM)
-    INPUT: NONE
-    OUTPUT: A - RANDOM NUMBER
-    USES: AF, DE, HL
-*/
+    ; INFO: RANDOM NUMBER GENERATOR (ORIGINAL GAME'S ALGORITHM)
+    ; INPUT: NONE
+    ; OUTPUT: A - RANDOM NUMBER
+    ; USES: AF, DE, HL
 randNumGen:
 ;   CALCULATE RNG INDEX
     ; GET RNG INDEX

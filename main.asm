@@ -7,25 +7,19 @@
 .INCLUDE "ramLayout.inc"
 .INCLUDE "macros.asm"
 
-/*
-----------------------------------------------------------
-                SDSC TAG AND SMS HEADER
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 SDSC TAG AND SMS HEADER
+; ----------------------------------------------------------
 .SDSCTAG 3.10, sdscName, sdscDesc, sdscAuth
 
-/*
-----------------------------------------------------------
-                        SET BANK
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                         SET BANK
+; ----------------------------------------------------------
 .BANK CODE_BANK SLOT 0
 
-/*
-----------------------------------------------------------
-                        BOOT VECTOR
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                         BOOT VECTOR
+; ----------------------------------------------------------
 .ORG $0000
 .SECTION "Boot Vector" FORCE
 boot:
@@ -37,12 +31,10 @@ boot:
 
 
 
-/*
-----------------------------------------------------------
-                    RESETS THE GAME
-----------------------------------------------------------
-    SELF-EXPLANATORY
-*/
+; ----------------------------------------------------------
+;                     RESETS THE GAME
+; ----------------------------------------------------------
+;   SELF-EXPLANATORY
 .ORG $0008
 .SECTION "Reset Game" FORCE
 resetGame:
@@ -52,15 +44,13 @@ resetGame:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                    ADD A TO HL
-----------------------------------------------------------
-    GIVEN A VALUE IN BOTH A AND HL, THE VALUE IN A WILL BE ADDED TO HL
-    INPUT: HL - VALUE, A - VALUE
-    OUTPUT: HL - HL + A, A - (HL + A)
-    USES: HL, A
-*/
+; ----------------------------------------------------------
+;                     ADD A TO HL
+; ----------------------------------------------------------
+;     GIVEN A VALUE IN BOTH A AND HL, THE VALUE IN A WILL BE ADDED TO HL
+;     INPUT: HL - VALUE, A - VALUE
+;     OUTPUT: HL - HL + A, A - (HL + A)
+;     USES: HL, A
 .ORG $0010
 .SECTION "ADD A TO HL" FORCE
 addToHL:
@@ -75,15 +65,13 @@ addToHL:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                    GET DATA AT HL
-----------------------------------------------------------
-    GIVEN HL, HL WILL BE REPLACE WITH (HL)
-    INPUT: HL - VALUE,
-    OUTPUT: HL - (VALUE)
-    USES: HL, A
-*/
+; ----------------------------------------------------------
+;                     GET DATA AT HL
+; ----------------------------------------------------------
+;     GIVEN HL, HL WILL BE REPLACE WITH (HL)
+;     INPUT: HL - VALUE,
+;     OUTPUT: HL - (VALUE)
+;     USES: HL, A
 .ORG $0018
 .SECTION "GET DATA AT HL" FORCE
 getDataAtHL:
@@ -96,15 +84,13 @@ getDataAtHL:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                SET VDP ADDRESS FUNCTION
-----------------------------------------------------------
-    GIVEN AN ADDRESS, SETS VDP ADDRESS TO IT
-    INPUT: HL
-    OUTPUT: NONE
-    USES: A
-*/
+; ----------------------------------------------------------
+;                 SET VDP ADDRESS FUNCTION
+; ----------------------------------------------------------
+;     GIVEN AN ADDRESS, SETS VDP ADDRESS TO IT
+;     INPUT: HL
+;     OUTPUT: NONE
+;     USES: A
 .ORG $0020
 .SECTION "Set VDP Address Function" FORCE
 setVDPAddress:
@@ -117,15 +103,13 @@ setVDPAddress:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                    JUMP TABLE EXECUTION
-----------------------------------------------------------
-    INFO: JUMPS TO AN ADDRESS GIVEN A TABLE ADDRESS AND OFFSET
-    INPUT: HL - TABLE ADDRESS, A - OFFSET
-    OUTPUT: NONE
-    USES: HL, AF
-*/
+; ----------------------------------------------------------
+;                     JUMP TABLE EXECUTION
+; ----------------------------------------------------------
+;     INFO: JUMPS TO AN ADDRESS GIVEN A TABLE ADDRESS AND OFFSET
+;     INPUT: HL - TABLE ADDRESS, A - OFFSET
+;     OUTPUT: NONE
+;     USES: HL, AF
 .ORG $0028
 .SECTION "Jump Table Execution" FORCE
 jumpTableExec:
@@ -140,11 +124,9 @@ jumpTableExec:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                VDP VECTOR (VBLANK/HBLANK)
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 VDP VECTOR (VBLANK/HBLANK)
+; ----------------------------------------------------------
 .ORG $0038
 .SECTION "VDP Vector" FORCE
 vdpIntHandler:
@@ -184,11 +166,9 @@ vdpIntHandler:
     RET
 .ENDS
 
-/*
-----------------------------------------------------------
-                    PAUSE VECTOR
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     PAUSE VECTOR
+; ----------------------------------------------------------
 .ORG $0066
 .SECTION "pauseVector" FORCE
 pauseVector:
@@ -215,11 +195,9 @@ pauseVector:
 
 
 
-/*
-----------------------------------------------------------
-                    MAIN PROGRAM START
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MAIN PROGRAM START
+; ----------------------------------------------------------
 .SECTION "Main Init. and Loop" FORCE
 main:
 ;   TURN OFF SCREEN (AND DISABLE VDP INTS)
@@ -263,11 +241,11 @@ main:
     LD HL, mapperInitValues
     LD BC, _sizeof_mapperInitValues
     LDIR
-/*
-----------------------------------------------------------
-                    GAME INITIALIZATION
-----------------------------------------------------------
-*/
+    ; FALL THROUGH
+
+; ----------------------------------------------------------
+;                     GAME INITIALIZATION
+; ----------------------------------------------------------
 ;   CHECK FOR MD CONTROLLER IN PORT 1
     LD HL, mdControlFlag
     LD (HL), $00    ; CLEAR FLAG (ASSUME NO MD CONTROLLER)
@@ -377,11 +355,9 @@ resetFromDemo:
     EI
 
 
-/*
-----------------------------------------------------------
-                    MAIN GAME LOOP
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MAIN GAME LOOP
+; ----------------------------------------------------------
 mainGameLoop:
 ;   WAIT FOR VBLANK
     HALT
@@ -492,11 +468,9 @@ mainGameLoop:
     JP mainGameLoop
 .ENDS
 
-/*
-----------------------------------------------------------
-                    PAUSE "MODE"
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     PAUSE "MODE"
+; ----------------------------------------------------------
 .SECTION "Pause Mode and Related Functions" FORCE
 pauseMode:
 ;   CHECK IF BIT 1 OF PAUSE REQUEST IS SET (IF BUTTON WAS PRESSED DURING PAUSE)
@@ -573,10 +547,8 @@ pauseMode:
     OUT (VDPDATA_PORT), A
     JP mainGameLoop
 
-/*
-    FOR DETECTING START BUTTON PRESS ON MD CONTROLLER
-    IGR BUTTON COMBO CHECKER
-*/
+;   FOR DETECTING START BUTTON PRESS ON MD CONTROLLER
+;   IGR BUTTON COMBO CHECKER
 checkMDPause:
 ;   CHECK IF STATE IS GAMEPLAY
     LD A, (mainGameMode)
@@ -610,11 +582,10 @@ checkMDPause:
     ; RESET GAME
     JP resetGame
 .ENDS
-/*
-----------------------------------------------------------
-                LINE INTERRUPT HANDLER
-----------------------------------------------------------
-*/
+
+; ----------------------------------------------------------
+;                 LINE INTERRUPT HANDLER
+; ----------------------------------------------------------
 .SECTION "LINE INTERRUPT HANDLER" FORCE
 lineIntHandler:
 ;   DON'T NEED TO SET SCROLL AGAIN UNTIL NEXT VBLANK
@@ -634,55 +605,45 @@ lineIntHandler:
     JP vdpIntHandler@end
 .ENDS
 
-/*
-----------------------------------------------------------
-                    MAIN STATE TABLE
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MAIN STATE TABLE
+; ----------------------------------------------------------
 .SECTION "mainStateTable" FORCE
-    mStateTable:
-        .DW sStateAttractTable
-        .DW sStateGameplayTable
-        .DW sStateCutsceneTable
+mStateTable:
+    .DW sStateAttractTable
+    .DW sStateGameplayTable
+    .DW sStateCutsceneTable
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                ATTRACT SUB STATE CODE
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 ATTRACT SUB STATE CODE
+; ----------------------------------------------------------
 .INCDIR "CODE/ATTRACT"
 .SECTION "Attract Sub States" FORCE
     .INCLUDE "attractStateTable.asm"
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                GAMEPLAY SUB STATE CODE
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 GAMEPLAY SUB STATE CODE
+; ----------------------------------------------------------
 .INCDIR "CODE/GAMEPLAY"
 .SECTION "Gameplay Sub States" FORCE
     .INCLUDE "gameplayStateTable.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-                CUTSCENE SUB STATE CODE
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 CUTSCENE SUB STATE CODE
+; ----------------------------------------------------------
 .INCDIR "CODE/CUTSCENE"
 .SECTION "Cutscene Sub States" FORCE
     .INCLUDE "cutsceneStateTable.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-            COMMON FUNCTIONS USED BY GAME
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;             COMMON FUNCTIONS USED BY GAME
+; ----------------------------------------------------------
 .INCDIR "CODE/COMMON"
 .SECTION "Common Game Functions" FORCE
     .INCLUDE "updates.asm"
@@ -695,100 +656,80 @@ lineIntHandler:
     .INCLUDE "assetLoading.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-                GENERAL SPRITE FUNCTIONS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 GENERAL SPRITE FUNCTIONS
+; ----------------------------------------------------------
 .INCDIR "CODE"
 .SECTION "General Sprite Functions" FORCE
     .INCLUDE "sprite.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-                GENERAL ACTOR FUNCTIONS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 GENERAL ACTOR FUNCTIONS
+; ----------------------------------------------------------
 .SECTION "General Actor Code" FORCE
     .INCLUDE "actor.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-            FUNCTIONS FOR PAC-MAN (PLAYER)
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;             FUNCTIONS FOR PAC-MAN (PLAYER)
+; ----------------------------------------------------------
 .INCDIR "CODE/PACMAN"
 .SECTION "Pac-Man (Player) Code" FORCE
     .INCLUDE "pacman.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-                FUNCTIONS FOR GHOSTS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 FUNCTIONS FOR GHOSTS
+; ----------------------------------------------------------
 .INCDIR "CODE/GHOST"
 .SECTION "Ghost Code" FORCE
     .INCLUDE "ghost.asm" 
 .ENDS
 
-/*
-----------------------------------------------------------
-                SMS HELPER FUNCTIONS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 SMS HELPER FUNCTIONS
+; ----------------------------------------------------------
 .INCDIR "CODE"
 .SECTION "SMS-Related Helper Code" FORCE
     .INCLUDE "smsFunctions.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-                    MATH FUNCTIONS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MATH FUNCTIONS
+; ----------------------------------------------------------
 .SECTION "Math Code" FORCE
     .INCLUDE "math.asm"
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                DECOMPRESSION (ZX7)
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 DECOMPRESSION (ZX7)
+; ----------------------------------------------------------
 .SECTION "Decompression Algorithm" FORCE
     .INCLUDE "decomp.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-                    SOUND DRIVER
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     SOUND DRIVER
+; ----------------------------------------------------------
 .INCDIR "CODE/SOUND"
 .SECTION "Sound Code" FORCE
     .INCLUDE "soundDriver.asm"
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                ATTRACT SUB STATE DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 ATTRACT SUB STATE DATA
+; ----------------------------------------------------------
 .INCDIR "CODE/ATTRACT"
 .SECTION "Attract Mode Data" FREE
     .INCLUDE "attractData.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-                CUTSCENE SUB STATE DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 CUTSCENE SUB STATE DATA
+; ----------------------------------------------------------
 .INCDIR "CODE/CUTSCENE"
 .SECTION "Cutscene Mode Data" FREE
     .INCLUDE "cutsceneData.asm"
@@ -799,59 +740,84 @@ lineIntHandler:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;       DATA FOR PAC-MAN (PLAYER) AND GENERAL ACTOR
+; ----------------------------------------------------------
 .INCDIR "CODE/PACMAN"
 .SECTION "Actor Data" FORCE
     .INCLUDE "actorData.asm"
 .ENDS
 
-.SECTION "Pac-Man (Player) Data" FREE
+.SECTION "Pac-Man (Player) Data - Death Frame Times" FREE
+pacmanDeathTimes:
+    .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $0F $55
+jrDeathTimes:
+    .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $07 $5D
+.ENDS
+
+.SECTION "Pac-Man (Player) Data - Sprite Defs for Big Pac-Man" FREE
+;   MACRO AND LIST FOR PAC-MAN TILES [BIG - CUTSCENE 1]
+.MACRO pacBigSprDefs ARGS, VAL
+@open:
+    .DB VAL, VAL+$06, VAL+$0C, VAL+$01, VAL+$07, VAL+$0D, VAL+$02, BLANK_TILE, VAL+$0E
+@half:
+    .DB VAL, VAL+$06, VAL+$0C, VAL+$03, VAL+$08, VAL+$0F, VAL+$04, VAL+$09, VAL+$10
+@closed:
+    .DB VAL, VAL+$06, VAL+$0C, VAL+$03, VAL+$0A, VAL+$0F, VAL+$05, VAL+$0B, VAL+$11
+.ENDM
+
+pacBigTileDefs:
+    pacBigSprDefs (SPRITE_ADDR + PAC_CUT_VRAM) / TILE_SIZE
+
+pacBigSpriteTable:
+;   00 - 03
+    .DW pacBigTileDefs@half     ; 00
+;   04 - 07
+    .DW pacBigTileDefs@open     ; 02
+;   08 - 0B
+    .DW pacBigTileDefs@half     ; 04
+;   0C - 0F
+    .DW pacBigTileDefs@closed   ; 06
+.ENDS
+
+;   
+.SECTION "Pac-Man (Player) Data - Sprite Defs" FREE
     .INCLUDE "pacmanData.asm"
 .ENDS
 
-.SECTION "Ms.Pac-Man (Player) Data" FREE
+.SECTION "Ms.Pac-Man (Player) Data - Sprite Defs" BANK UNCOMP_BANK SLOT 2 FREE
     .INCLUDE "msPacData.asm"
 .ENDS
 
-.SECTION "Jr.Pac-Man (Player) Data" FREE
+.SECTION "Jr.Pac-Man (Player) Data - Sprite Defs" BANK UNCOMP_BANK SLOT 2 FREE
     .INCLUDE "jrPacData.asm"
 .ENDS
 
-.SECTION "Otto (Player) Data" FREE
+.SECTION "Otto (Player) Data - Sprite Defs" FREE
     .INCLUDE "ottoData.asm"
 .ENDS
 
-/*
-----------------------------------------------------------
-            DATA FOR GHOSTS [BANK2 OR CODEBANK]
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;             DATA FOR GHOSTS [BANK2 OR CODEBANK]
+; ----------------------------------------------------------
 .INCDIR "CODE/GHOST"
 .SECTION "Ghost Data" FREE
     .INCLUDE "ghostData.asm" 
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                    SOUND DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     SOUND DATA
+; ----------------------------------------------------------
 .INCDIR "CODE/SOUND"
 .SECTION "Sound Data" BANK SOUND_BANK SLOT 2 FREE
     .INCLUDE "soundData.asm"
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                    SDSC HEADER TAGS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     SDSC HEADER TAGS
+; ----------------------------------------------------------
 .SECTION "SDSC TAGS" FREE
 sdscName:
     .DB "Pac-Man Master Museum", 0
@@ -861,11 +827,9 @@ sdscAuth:
     .DB "LackofTrack", 0
 .ENDS
 
-/*
-----------------------------------------------------------
-                VDP AND MAPPER DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 VDP AND MAPPER DATA
+; ----------------------------------------------------------
 .SECTION "VDP AND MAPPER DATA" FREE
 ;   MAPPER INIT. DATA
 mapperInitValues:
@@ -907,25 +871,24 @@ vdpInitData:
     .db $8A         ; FOR REG 0A (LINE COUNTER)
 
 
-/*
-    BACKGROUND PALETTE LISTING
-    $00 - TRANSPARENT (BLACK)
-    $01 - MAZE 0 (WALLS)
-    $02 - MAZE 1 (INSIDE)
-    $03 - MAZE 2 (SHADING)
-    $04 - MAZE 3 (SHADING)
-    $05 - MAZE 4 (SHADING)
-    $06 - MAZE 5 (GHOST GATE)
-    $07 - DOT 0
-    $08 - DOT 1
-    $09 - DOT 2
-    $0A - POWER DOT 0
-    $0B - POWER DOT 1
-    $0C - POWER DOT 2
-    $0D - POWER DOT 3
-    $0E - HUD TEXT (WHITE)
-    $0F - SPRITE MASK (BLACK)
-*/
+    ; BACKGROUND PALETTE LISTING
+    ; $00 - TRANSPARENT (BLACK)
+    ; $01 - MAZE 0 (WALLS)
+    ; $02 - MAZE 1 (INSIDE)
+    ; $03 - MAZE 2 (SHADING)
+    ; $04 - MAZE 3 (SHADING)
+    ; $05 - MAZE 4 (SHADING)
+    ; $06 - MAZE 5 (GHOST GATE)
+    ; $07 - DOT 0
+    ; $08 - DOT 1
+    ; $09 - DOT 2
+    ; $0A - POWER DOT 0
+    ; $0B - POWER DOT 1
+    ; $0C - POWER DOT 2
+    ; $0D - POWER DOT 3
+    ; $0E - HUD TEXT (WHITE)
+    ; $0F - SPRITE MASK (BLACK)
+
 ;   MAZE BACKGROUND PALETTES
 bgPalPac:
     .DB $00 $30 $00 $20 $20 $00 $3B $2B $00 $00 $16 $2B $2B $2B $3F $00
@@ -1006,15 +969,13 @@ sprPalData:
 
 
 
-/*
-----------------------------------------------------------
-                        TILEMAPS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                         TILEMAPS
+; ----------------------------------------------------------
 .SECTION "VARIOUS TILEMAPS" FREE
-/*
-    HUD TILEMAPS
-*/
+
+
+;   ----- HUD TILEMAPS -----
 hudTileMaps:
 @highScore:
 ;   "HIGH "
@@ -1050,9 +1011,8 @@ hudTileMaps:
 hudLifeTileDefs:
     .DW $19DC $19DE $19DD $19DF
 
-/*
-    TABLE FOR POSITIONS OF LIVES IN HUD
-*/
+
+;   ----- TABLE FOR POSITIONS OF LIVES IN HUD -----
 lifePositionTable:
 ;   TERMINATION WORDS FOR TABLE
     .DW $FFFF
@@ -1084,9 +1044,7 @@ lifePositionTable:
     .DW NAMETABLE + (27 * 2) + (20 * 64) | VRAMWRITE
 
 
-/*
-    TABLE FOR POSITIONS OF FRUIT IN HUD
-*/
+;   ----- TABLE FOR POSITIONS OF FRUIT IN HUD -----
 fruitPositionTable:
 ;   TERMINATION WORDS FOR TABLE
     .DW $FFFF
@@ -1128,11 +1086,9 @@ fruitPositionTable:
     .DW NAMETABLE + (29 * 2) + (12 * 64) | VRAMWRITE
 .ENDS
 
-/*
-----------------------------------------------------------
-                SQUARED VALUES TABLE
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 SQUARED VALUES TABLE
+; ----------------------------------------------------------
 .SECTION "SQUARED VALUES TABLE" FORCE ORG $7E00
 squareTable:
     .DW $0000 $0001 $0004 $0009 $0010 $0019 $0024 $0031 $0040 $0051 $0064 $0079 $0090 $00A9 $00C4 $00E1 
@@ -1144,11 +1100,10 @@ squareTable:
     .DW $2400 $24C1 $2584 $2649 $2710 $27D9 $28A4 $2971 $2A40 $2B11 $2BE4 $2CB9 $2D90 $2E69 $2F44 $3021 
     .DW $3100 $31E1 $32C4 $33A9 $3490 $3579 $3664 $3751 $3840 $3931 $3A24 $3B19 $3C10 $3D09 $3E04 $3F01
 .ENDS
-/*
-----------------------------------------------------------
-                COLOR CALCULATION TABLES
-----------------------------------------------------------
-*/
+
+; ----------------------------------------------------------
+;                 COLOR CALCULATION TABLES
+; ----------------------------------------------------------
 ;   $E0
 .SECTION "COLOR TABLES FOR POWER DOTS" FORCE ORG $7F00
 colorDecTable:  ; $00
@@ -1169,9 +1124,8 @@ colorDecTable:  ; $00
     .DB $00 $00 $00 $01 $04 $04 $04 $05 
     .DB $10 $10 $10 $11 $10 $10 $10 $11 
     .DB $10 $10 $10 $11 $14 $14 $14 $15
-/*
-    COLOR TABLE FOR POWER DOT PALETTE CYCLING
-*/
+
+;   COLOR TABLE FOR POWER DOT PALETTE CYCLING
 powDotPalTable: ; $80
     .DB $02 $01 $00 $00
     .DB $03 $02 $01 $00
@@ -1184,22 +1138,18 @@ powDotPalTable: ; $80
     .DB $02 $01 $00 $00
 
 
-/*
-    MULT TABLE FOR X * 29 (FOR JR.PAC)
-*/
+;   MULT TABLE FOR X * 29 (FOR JR.PAC)
 mult29Table:
     .DW $0000 $001D $003A $0057 $0074 $0091 $00AE $00CB $00E8 $0105 $0122 $013F $015C $0179 $0196 $01B3 
     .DW $01D0 $01ED $020A $0227 $0244 $0261 $027E $029B $02B8 $02D5 $02F2 $030F $032C $0349 ;$0366 $0383 
 .ENDS
 
-/*
-----------------------------------------------------------
-                    COMMON TABLES
-----------------------------------------------------------
-*/
-/*
-    PLAYER ANIMATION TABLES
-*/
+
+; ----------------------------------------------------------
+;                     COMMON TABLES
+; ----------------------------------------------------------
+
+;   ----- PLAYER ANIMATION TABLES -----
 .SECTION "PLAYER ANIMATION TABLES" FORCE ORG $7DE0
 normAniTbl:
     .DB $00 $00 $08 $08 $10 $10 $18 $18 $00 $00 $08 $08 $10 $10 $18 $18
@@ -1208,9 +1158,7 @@ slowAniTbl: ; FOR OTTO MOVING VERTICALLY
 .ENDS
 
 .SECTION "COMMON TABLES" FREE
-/*
-    GHOST POINTS TILE INDEXES
-*/
+;   ----- GHOST POINTS TILE INDEXES -----
 .MACRO ghostPointsDefs   ARGS VAL
     .DB VAL, VAL+$05        ; 200
     .DB VAL+$01, VAL+$05    ; 400
@@ -1222,9 +1170,7 @@ ghostPointTileDefs:
     ghostPointsDefs (SPRITE_ADDR + GSCORE_VRAM) / TILE_SIZE
 
 
-/*
-    GHOST POINTS SCORE TABLE
-*/
+;   ----- GHOST POINTS SCORE TABLE -----
 ghostScoreTable:
     .DW $0200   ; 200
     .DW $0400   ; 400
@@ -1233,9 +1179,7 @@ ghostScoreTable:
     .DW $3200   ; 3200
 
 
-/*
-    FRUIT AND SCORE INDEX (PAC-MAN ONLY)
-*/
+;   ----- FRUIT AND SCORE INDEX (PAC-MAN ONLY) -----
 fruitTable:
     .DB $00 $00
     .DB $01 $01
@@ -1259,9 +1203,7 @@ fruitTable:
     .DB $07 $07
 
 
-/*
-    FRUIT TILE INDEXES
-*/
+;   ----- FRUIT TILE INDEXES -----
 .MACRO fruitSprDef  ARGS VAL
     .DB VAL, VAL+$10, VAL+$01, VAL+$11
 .ENDM
@@ -1301,9 +1243,7 @@ msFruitTileDefsHUD:
 
 
 
-/*
-    FRUIT POINT TILE INDEXES
-*/
+;   ----- FRUIT POINT TILE INDEXES -----
 .MACRO fruitPointsDefs  ARGS, VAL
     .DB VAL, BLANK_TILE, VAL+$04, BLANK_TILE      ; 100
     .DB VAL+$01, BLANK_TILE, VAL+$04, BLANK_TILE  ; 300
@@ -1332,9 +1272,7 @@ msFruitPointTileDefs:
     msFruitPointsDefs   (SPRITE_ADDR + FSCORE_VRAM) / TILE_SIZE
 
 
-/*
-    EXPLOSION SPRITE TILE DEFINITION
-*/
+;   ----- EXPLOSION SPRITE TILE DEFINITION -----
 explosionSprDefs:
     .DB $C0 $CC $C1 $CD ; 0
     .DB $C2 $CE $C3 $CF ; 1
@@ -1355,9 +1293,7 @@ explosionSprDefs:
 
 
 
-/*
-    FRUIT SCORE TABLE (BCD)
-*/
+;   ----- FRUIT SCORE TABLE (BCD) -----
 fruitScoreTable:
     .DW $0100
     .DW $0300
@@ -1378,9 +1314,7 @@ msFruitScoreTable:
     .DW $5000
 
 
-/*
-    LEVEL TABLES FOR DIFFICULTY MODES
-*/
+;   ----- LEVEL TABLES FOR DIFFICULTY MODES -----
 levelTableNormal:
     .DB $00 $01 $02 $03 $04 $05 $06 $07 $08 $09 $0a $0b $0c $0d $0e $0f $10 $11 $12 $13 $14
 @jrTbl:
@@ -1391,16 +1325,14 @@ levelTableHard:
     .DB $02 $04 $06 $07 $08 $09 $0A $0B $0C $0D $0E $0F $10 $11 $14 $0F $10 $11 $12 $13 $14
 
 
-/*
-    [LEVEL DIFFICULTY TABLE]
-    EACH LINE REPRESENTS A LEVEL
-    BYTE 0: SPEED PATTERN INDEX
-    BYTE 1: FRUIT TIME INDEX (ONLY IN PLUS MODE)
-    BYTE 2: GHOST DOT COUNT INDEX
-    BYTE 3: BLINKY SPEED UP INDEX
-    BYTE 4: POWER DOT TIME INDEX
-    BYTE 5: DOT EXPIRE INDEX
-*/
+    ; [LEVEL DIFFICULTY TABLE]
+    ; EACH LINE REPRESENTS A LEVEL
+    ; BYTE 0: SPEED PATTERN INDEX
+    ; BYTE 1: FRUIT TIME INDEX (ONLY IN PLUS MODE)
+    ; BYTE 2: GHOST DOT COUNT INDEX
+    ; BYTE 3: BLINKY SPEED UP INDEX
+    ; BYTE 4: POWER DOT TIME INDEX
+    ; BYTE 5: DOT EXPIRE INDEX
 difficultyTable:
     .DB $03 $01 $01 $00 $02 $00
     .DB $04 $01 $02 $01 $03 $00
@@ -1575,11 +1507,9 @@ dotExpireTable:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                    MS. PAC-MAN TABLES
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MS. PAC-MAN TABLES
+; ----------------------------------------------------------
 .SECTION "MS. PAC-MAN TABLES" FREE
 
 ; MS. PAC-MAN PALETTE TABLE
@@ -1910,11 +1840,9 @@ fruitBounceFrames:
     .DW B_Z, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_D, B_U, B_U, B_Z, B_U
 .ENDS
 
-/*
-----------------------------------------------------------
-                    JR. PAC-MAN TABLES
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     JR. PAC-MAN TABLES
+; ----------------------------------------------------------
 .SECTION "JR. PAC-MAN TABLES" FREE
 ; JR.PAC-MAN PALETTE TABLE
 jrPalTable:
@@ -2091,25 +2019,21 @@ jrMazePDotTargets:
 .ENDS
 
 
-/*
-    SCROLL TABLES
-*/
+;   ----- SCROLL TABLES -----
 .SECTION "JR.PAC SCROLL TABLES" BANK JR_TABLES_BANK SLOT 2 FORCE ORG $3900
-    /*
-    SCROLL VALUE -> LEFT MOST TILE: y = -(x >> 3) + 4
-    $00 - $07: $04
-    $08 - $0F: $03
-    $10 - $17: $02
-    $18 - $1F: $01
-    $20 - $27: $00
-    $28 - $2F: $FF
+    ; SCROLL VALUE -> LEFT MOST TILE: y = -(x >> 3) + 4
+    ; $00 - $07: $04
+    ; $08 - $0F: $03
+    ; $10 - $17: $02
+    ; $18 - $1F: $01
+    ; $20 - $27: $00
+    ; $28 - $2F: $FF
 
-    $FF - $F8: $05
-    $F7 - $F0: $06
-    $EF - $E8: $07
-    $E7 - $E0: $08
-    $DF - $D8: $09
-    */
+    ; $FF - $F8: $05
+    ; $F7 - $F0: $06
+    ; $EF - $E8: $07
+    ; $E7 - $E0: $08
+    ; $DF - $D8: $09
 jrLeftTileTable:
 ;   H: $39, $100
     .DB $04, $04, $04, $04, $04, $04, $04, $04, $03, $03, $03, $03, $03, $03, $03, $03
@@ -2201,11 +2125,9 @@ jrRealScrollTable:
 
 
 
-/*
-----------------------------------------------------------
-                    IN GAME HUD DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     IN GAME HUD DATA
+; ----------------------------------------------------------
 .INCDIR "ASSETS"
 .SECTION "HUD GFX DATA" BANK ACTOR2_GFX_BANK SLOT 2 FREE
     hudTextTiles:
@@ -2228,11 +2150,9 @@ jrRealScrollTable:
 .ENDS
 
 
-/*
-----------------------------------------------------------
-                ATTRACT MODE GFX DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 ATTRACT MODE GFX DATA
+; ----------------------------------------------------------
 .INCDIR "ASSETS/ATTRACT"
 .SECTION "ATTRACT MODE GFX DATA" BANK SOUND_BANK SLOT 2 FREE
 ;   TITLE
@@ -2263,11 +2183,9 @@ jrRealScrollTable:
 
 
 
-/*
-----------------------------------------------------------
-                    MAZE TILEMAP DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MAZE TILEMAP DATA
+; ----------------------------------------------------------
 .SECTION "MAZE TILEMAP DATA" BANK MAZE_TILEMAP_BANK SLOT 2 FREE
 ;   MAZE 0
 .INCDIR "ASSETS/MAZE0"
@@ -2319,11 +2237,9 @@ jrRealScrollTable:
         .INCBIN "MAP_MAZE.ZX7"
 .ENDS
 
-/*
-----------------------------------------------------------
-                    MAZE TILE DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MAZE TILE DATA
+; ----------------------------------------------------------
 .SECTION "MAZE TILE DATA" BANK MAZE_GFX_BANK SLOT 2 FREE
 ;   MAZE 0
 .INCDIR "ASSETS/MAZE0"
@@ -2375,11 +2291,9 @@ jrRealScrollTable:
         .INCBIN "TILE_MAZE.ZX7"
 .ENDS
 
-/*
-----------------------------------------------------------
-                    MAZE OTHER DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                     MAZE OTHER DATA
+; ----------------------------------------------------------
 .SECTION "MAZE DATA (OTHER THAN TILEMAP && GFX)" BANK MAZE_OTHER_BANK SLOT 2 FREE
 ;   MAZE 0
 .INCDIR "ASSETS/MAZE0"
@@ -2521,11 +2435,9 @@ jrRealScrollTable:
         .INCBIN "MDOT2_MAZE.ZX7"
 .ENDS
 
-/*
-----------------------------------------------------------
-                ACTOR/OBJECT TILE DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 ACTOR/OBJECT TILE DATA
+; ----------------------------------------------------------
 .SECTION "ACTOR GFX DATA [PART 1]" BANK ACTOR_GFX_BANK SLOT 2 FREE
 ;   SMOOTH
 .INCDIR "ASSETS/GAMEPLAY/SMOOTH"
@@ -2616,11 +2528,9 @@ arcadeGFXData:
         .INCBIN "TILE_JRFRUIT_PLUS.ZX7"
 .ENDS
 
-/*
-----------------------------------------------------------
-                JR CUTSCENE BG DATA
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;                 JR CUTSCENE BG DATA
+; ----------------------------------------------------------
 .SECTION "JR CUTSCENE BG TILE DATA [PART 1]" BANK MAZE_GFX_BANK SLOT 2 FREE
     .INCDIR "ASSETS/CUTSCENE"
     jrAttractTiles:
@@ -2653,11 +2563,9 @@ arcadeGFXData:
         .INCBIN "MAP_JRCUT2.ZX7"
 .ENDS
 
-/*
-----------------------------------------------------------
-            ORIGINAL GAME DATA FOR RNG FUNCTION
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;             ORIGINAL GAME DATA FOR RNG FUNCTION
+; ----------------------------------------------------------
 .SECTION "ORIGINAL GAME DATA FOR RNG [PAC/MS.PAC]" BANK RNG_PAC_BANK SLOT 2 FREE
     .INCDIR "ASSETS"
     rngDataOffset:
@@ -2673,11 +2581,9 @@ arcadeGFXData:
 
 
 
-/*
-----------------------------------------------------------
-        UNCOMPRESSED TILE DATA FOR PLAYER ACTORS
-----------------------------------------------------------
-*/
+; ----------------------------------------------------------
+;         UNCOMPRESSED TILE DATA FOR PLAYER ACTORS
+; ----------------------------------------------------------
 .SECTION "ANNA AND BABY OTTO TILES (UNCOMPRESSED)" BANK SOUND_BANK SLOT 2 FREE
     annaTileS13:
     annaTileA14:

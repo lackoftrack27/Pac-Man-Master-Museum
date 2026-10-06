@@ -1,8 +1,7 @@
-/*
--------------------------------------------------------
-            INTRO MODE FOR JR. PAC-MAN
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;             INTRO MODE FOR JR. PAC-MAN
+; -------------------------------------------------------
+
 sStateAttractTable@jrIntroMode:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE

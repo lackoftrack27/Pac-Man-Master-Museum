@@ -1,8 +1,6 @@
-/*
-----------------------------------------------
-        DEFINES FOR ATTRACT MODE (TEMP RAM)
-----------------------------------------------
-*/
+; ----------------------------------------------
+;         DEFINES FOR ATTRACT MODE (TEMP RAM)
+; ----------------------------------------------
 ;       ALL
 .DEFINE     lineMode            workArea
 ;       TITLE
@@ -32,11 +30,11 @@
 .DEFINE     SND_YPOS            $12
 .DEFINE     HELP_YPOS           $15
 
-/*
-----------------------------------------------
-    SUB STATE TABLE FOR ATTRACT MODE
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;     SUB STATE TABLE FOR ATTRACT MODE
+; ----------------------------------------------
+
 sStateAttractTable:
     .dw @titleMode          ; 00
     .dw @demoInputCheck     ; 01 [READY 01]
@@ -51,11 +49,11 @@ sStateAttractTable:
     .dw @introMode          ; 0A    CRAZY OTTO
     .DW @jrIntroMode
 
-/*
-----------------------------------------------
-            ATTRACT MODE CODE
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;             ATTRACT MODE CODE
+; ----------------------------------------------
+
 .INCLUDE "title.asm"
 .INCLUDE "options.asm"
 .INCLUDE "intro.asm"

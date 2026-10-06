@@ -1,8 +1,6 @@
-/*
--------------------------------------------------------
-                CUTSCENE 3 [PAC-MAN]
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;                 CUTSCENE 3 [PAC-MAN]
+; -------------------------------------------------------
 sStateCutsceneTable@pacScene2:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
@@ -30,11 +28,9 @@ sStateCutsceneTable@pacScene2:
     RET
 
 
-/*
----------------------------------------
-        SUB STATE JUMP TABLE
----------------------------------------
-*/
+; ---------------------------------------
+;         SUB STATE JUMP TABLE
+; ---------------------------------------
 scene2SubTable:
     .DW scene2Update0
     .DW scene2Update1
@@ -44,11 +40,9 @@ scene2SubTable:
     .DW scene2Update5
 
 
-/*
----------------------------------------
-        SUB STATE FUNCTIONS
----------------------------------------
-*/
+; ---------------------------------------
+;         SUB STATE FUNCTIONS
+; ---------------------------------------
 scene2Update0:
 ;   CHECK IF PAC-MAN IS AT WANTED TILE
     LD A, (pacman + CURR_X)
@@ -132,12 +126,9 @@ scene2Update5:
     JP switchToGameplay
 
 
-/*
----------------------------------------
-            HELPER FUNCTIONS
----------------------------------------
-*/
-
+; ---------------------------------------
+;             HELPER FUNCTIONS
+; ---------------------------------------
 scene2ActorMovement00:
 ;   CHECK IF PAC-MAN HAS MADE IT TO THE HIDDEN PART OF THE SCREEN
     LD A, (pacman + CURR_X)

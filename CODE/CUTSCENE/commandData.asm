@@ -2,11 +2,11 @@
 cutsceneEnd:
     CUTEND
 
-/*
---------------
-    MS PAC-MAN SCENE 0 DATA
---------------
-*/
+
+; --------------
+;     MS PAC-MAN SCENE 0 DATA
+; --------------
+
 msScene0Prog0:
 ;   DO ACT SIGN CLACKER
     SETPOS  $00 $00
@@ -244,11 +244,11 @@ ottoScene0Prog2:
 
 
 
-/*
---------------
-    MS PAC-MAN SCENE 1 DATA
---------------
-*/
+
+; --------------
+;     MS PAC-MAN SCENE 1 DATA
+; --------------
+
 msScene1Prog0:
 ;   WAIT
     SETN    $5A
@@ -303,17 +303,15 @@ msScene1Prog0:
     LOOP    $90 $00
 
 
-    /*
-;   DO PAC-MAN
-    SETPOS  $FF $B4
-    SETN    $0A
-    PAUSE
-    SETCHAR msSceneCharacters@pacRight
-    ;SETN    $10
-    ;PAUSE
-    SETN    $24
-    LOOP    $90 $00
-    */
+; ;   DO PAC-MAN
+;     SETPOS  $FF $B4
+;     SETN    $0A
+;     PAUSE
+;     SETCHAR msSceneCharacters@pacRight
+;     ;SETN    $10
+;     ;PAUSE
+;     SETN    $24
+;     LOOP    $90 $00
     CUTEND
 
 
@@ -373,17 +371,15 @@ msScene1Prog1:
     SETN    $24
     LOOP    $90 $00
 
-    /*
-;   MS. PAC-MAN
-    SETPOS  $FF $B4
-    SETN    $0A
-    PAUSE
-    SETCHAR msSceneCharacters@msPacRight
-    ;SETN    $10
-    ;PAUSE
-    SETN    $24
-    LOOP    $90 $00
-    */
+; ;   MS. PAC-MAN
+;     SETPOS  $FF $B4
+;     SETN    $0A
+;     PAUSE
+;     SETCHAR msSceneCharacters@msPacRight
+;     ;SETN    $10
+;     ;PAUSE
+;     SETN    $24
+;     LOOP    $90 $00
     SETN    $7F
     PAUSE
     CUTEND
@@ -424,11 +420,9 @@ msScene1Prog3:
 
 
 
-/*
---------------
-    MS PAC-MAN SCENE 2 DATA
---------------
-*/
+; --------------
+;     MS PAC-MAN SCENE 2 DATA
+; --------------
 msScene2Prog1:
 ;   DO STORK HEAD
     SETN    $5A
@@ -544,11 +538,11 @@ msScene2Prog4:
 
 
 
-/*
---------------
-    JR PAC-MAN ATTRACT MODE DATA
---------------
-*/
+
+; --------------
+;     JR PAC-MAN ATTRACT MODE DATA
+; --------------
+
 ;   STORK SACK CONTROL / GROWING JR CONTROL
 jrAttractProg0:
     ; ------
@@ -815,25 +809,25 @@ jrAttractProg3:
 
     SETN    $F0
     PAUSE
-    /*
-    ; MS.PAC-MAN
-    ;SETCHAR jrSceneCharacters@msPacStatic
-    SETCHAR jrSceneCharacters@emptySpr
-    SETN    $28
-    LOOP    $70 $F7 ; BLANK
-    SETCHAR jrSceneCharacters@msPacStatic
-    SETN    $01
-    LOOP    $00 $00
-    SETN    $FF
-    PAUSE
-    SETCHAR jrSceneCharacters@msPacRight
-    SETN    $26
-    PAUSE
-    SETN    $86
-    LOOP    $00 $00
-    SETN    $30
-    PAUSE
-    */
+    
+    ; ; MS.PAC-MAN
+    ; ;SETCHAR jrSceneCharacters@msPacStatic
+    ; SETCHAR jrSceneCharacters@emptySpr
+    ; SETN    $28
+    ; LOOP    $70 $F7 ; BLANK
+    ; SETCHAR jrSceneCharacters@msPacStatic
+    ; SETN    $01
+    ; LOOP    $00 $00
+    ; SETN    $FF
+    ; PAUSE
+    ; SETCHAR jrSceneCharacters@msPacRight
+    ; SETN    $26
+    ; PAUSE
+    ; SETN    $86
+    ; LOOP    $00 $00
+    ; SETN    $30
+    ; PAUSE
+    
     CUTEND
 
 
@@ -943,11 +937,11 @@ jrAttractProg6:
 
 
 
-/*
---------------
-    JR PAC-MAN SCENE 0 DATA
---------------
-*/
+
+; --------------
+;     JR PAC-MAN SCENE 0 DATA
+; --------------
+
 
 ;   JR PAC-MAN CONTROL
 jrScene0Prog0:
@@ -1169,11 +1163,11 @@ jrScene0Prog3:
 
 
 
-/*
---------------
-    JR PAC-MAN SCENE 1 DATA
---------------
-*/
+
+; --------------
+;     JR PAC-MAN SCENE 1 DATA
+; --------------
+
 
 ;   JR PAC-MAN CONTROL
 jrScene1Prog0:
@@ -1472,11 +1466,11 @@ jrScene1Prog5:
 
 
 
-/*
---------------
-    JR PAC-MAN SCENE 2 DATA
---------------
-*/
+
+; --------------
+;     JR PAC-MAN SCENE 2 DATA
+; --------------
+
 
 ;   JR.PAC-MAN CONTROL
 jrScene2Prog0:
@@ -1837,31 +1831,29 @@ jrScene2Prog4:
 
     
     ;SETCHAR jrSceneCharacters@heart
-    /*
-    ; --------
-    CUT_NOP
-    SETN    $01
-    MOVE    $00 $00 ; BLANK
-    DECPTR  $06
-    ; --------
-    SETCHAR jrSceneCharacters@heart
-    SETPOS  $A0 $A0
-    SETN    $40
-    MOVE    $F0 $00
-    SETN    $40
-    MOVE    $00 $F0
-    SETN    $40
-    MOVE    $10 $00
-    SETN    $40
-    MOVE    $00 $10
-    ; --------
-    CUT_NOP
-    SETN    $01
-    MOVE    $00 $00
-    DECPTR  $FF
-    ; --------
-    SETPOS  $00 $00
-    */
+    ; ; --------
+    ; CUT_NOP
+    ; SETN    $01
+    ; MOVE    $00 $00 ; BLANK
+    ; DECPTR  $06
+    ; ; --------
+    ; SETCHAR jrSceneCharacters@heart
+    ; SETPOS  $A0 $A0
+    ; SETN    $40
+    ; MOVE    $F0 $00
+    ; SETN    $40
+    ; MOVE    $00 $F0
+    ; SETN    $40
+    ; MOVE    $10 $00
+    ; SETN    $40
+    ; MOVE    $00 $10
+    ; ; --------
+    ; CUT_NOP
+    ; SETN    $01
+    ; MOVE    $00 $00
+    ; DECPTR  $FF
+    ; ; --------
+    ; SETPOS  $00 $00
     CUTEND
 
 

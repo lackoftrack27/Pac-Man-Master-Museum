@@ -1,16 +1,14 @@
-/*
-------------------------------------------------
-            SOUND RELATED FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             SOUND RELATED FUNCTIONS
+; ------------------------------------------------
 
 
-/*
-    INFO: CONTROLS GHOST SFX (CHANNEL 1)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+
+    ; INFO: CONTROLS GHOST SFX (CHANNEL 1)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
+
 processGhostSFX:
 ;   STORE ADDRESS OF SOUND CONTROL IN HL
     LD HL, ghostSoundControl
@@ -98,12 +96,12 @@ processGhostSFX:
     JP sndPlaySFX
 
 
-/*
-    INFO: CONTROLS TRACK 2 SFX (OR TRACK 0 FOR JR.PAC)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+
+    ; INFO: CONTROLS TRACK 2 SFX (OR TRACK 0 FOR JR.PAC)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
+
 processChan2SFX:
 ;   FIND FIRST SET BIT (MSB TO LSB)
     LD C, A
@@ -201,12 +199,12 @@ processChan2SFX:
 
 
 
-/*
-    INFO: CONTROLS CHANNEL 2 SFX (JR.PAC)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+
+    ; INFO: CONTROLS CHANNEL 2 SFX (JR.PAC)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
+
 processChan2SFXJR:
 ;   FIND FIRST SET BIT (MSB TO LSB)
     LD C, A

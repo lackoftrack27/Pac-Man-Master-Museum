@@ -1,15 +1,11 @@
-/*
-----------------------------------------------
-            GENERAL ACTOR FUNCTIONS
-----------------------------------------------
-*/
+; ----------------------------------------------
+;             GENERAL ACTOR FUNCTIONS
+; ----------------------------------------------
 
-/*
-    INFO: RESETS COMMON ACTOR VARS
-    INPUT: IX: ACTOR BASE ADDRESS
-    OUTPUT: NONE
-    USES: AF, DE, HL, IX
-*/
+    ; INFO: RESETS COMMON ACTOR VARS
+    ; INPUT: IX: ACTOR BASE ADDRESS
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL, IX
 actorReset:
 ;   CLEAR OFFSCREEN FLAG
     XOR A
@@ -48,12 +44,10 @@ actorReset:
 
 
 
-/*
-    INFO: SETS THE NEXT TILE IN THE ACTOR'S NEXT DIRECTION
-    INPUT: IX: ACTOR BASE ADDRESS
-    OUTPUT: NONE
-    USES: IX, AF, DE, HL
-*/
+    ; INFO: SETS THE NEXT TILE IN THE ACTOR'S NEXT DIRECTION
+    ; INPUT: IX: ACTOR BASE ADDRESS
+    ; OUTPUT: NONE
+    ; USES: IX, AF, DE, HL
 setNextTile:
     LD HL, dirVectors
 ;   USE DIRECTION AS OFFSET INTO TABLE
@@ -77,12 +71,10 @@ setNextTile:
     RET
 
 
-/*
-    INFO: CONVERTS ROW AND COLUMN TILE TO A POINTER FOR THE RAM TILEMAP
-    INPUT:  HL: ROW|COL [YX]
-    OUTPUT: HL: RAM PTR
-    USES:   AF, DE, HL
-*/
+    ; INFO: CONVERTS ROW AND COLUMN TILE TO A POINTER FOR THE RAM TILEMAP
+    ; INPUT:  HL: ROW|COL [YX]
+    ; OUTPUT: HL: RAM PTR
+    ; USES:   AF, DE, HL
 rowColToRamPtr:
 ;   MULTIPLY ROW BY DIFFERENT AMOUNT DEPENDING ON GAME
     LD A, (plusBitFlags)
@@ -124,12 +116,10 @@ rowColToRamPtr:
 
 
 
-/*
-    INFO: CONVERTS ROW AND COLUMN TILE TO A POINTER FOR THE VRAM TILEMAP 
-    INPUT:  HL: ROW|COL [YX]
-    OUTPUT: HL: VRAM PTR
-    USES:   AF, DE, HL
-*/
+    ; INFO: CONVERTS ROW AND COLUMN TILE TO A POINTER FOR THE VRAM TILEMAP 
+    ; INPUT:  HL: ROW|COL [YX]
+    ; OUTPUT: HL: VRAM PTR
+    ; USES:   AF, DE, HL
 rowColToVramPtr:
 ;   STORE COLUMN IN DE
     LD D, $00
@@ -190,13 +180,10 @@ rowColToVramPtr:
     RET
 
 
-
-/*
-    INFO: CHECKS IF AN ACTOR IS OFFSCREEN (FOR JR.PAC)
-    INPUT: IX - ACTOR'S PTR, B - 'PROCESS REVERSE FLAG' FLAG
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+    ; INFO: CHECKS IF AN ACTOR IS OFFSCREEN (FOR JR.PAC)
+    ; INPUT: IX - ACTOR'S PTR, B - 'PROCESS REVERSE FLAG' FLAG
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
 actorOffScreenCheck:
 ;   SAVE OFFSCREEN FLAG IN C, THEN CLEAR IT
     LD C, (IX + OFFSCREEN_FLAG)
@@ -247,13 +234,11 @@ actorOffScreenCheck:
 
 
 
-/*
-    CANNOT AFFECT HL!!! OR B???
-    INFO: CONVERTS LOGICAL POSITION TO SCREEN POSITION
-    INPUT: IX
-    OUTPUT: DE
-    USES: AF, C, DE, IX, IYH
-*/
+    ; CANNOT AFFECT HL!!! OR B???
+    ; INFO: CONVERTS LOGICAL POSITION TO SCREEN POSITION
+    ; INPUT: IX
+    ; OUTPUT: DE
+    ; USES: AF, C, DE, IX, IYH
 convPosToScreen:
 ;   CONVERT POSITIONS DIFFERENTLY DEPENDING ON GAME
     LD A, (plusBitFlags)
@@ -320,12 +305,10 @@ convPosToScreen:
 
 
 
-/*
-    INFO: CHECKS IF AN ACTOR IS ABOUT TO WARP
-    INPUT: IX
-    OUTPUT: CARRY FLAG
-    USES: AF, IX
-*/
+    ; INFO: CHECKS IF AN ACTOR IS ABOUT TO WARP
+    ; INPUT: IX
+    ; OUTPUT: CARRY FLAG
+    ; USES: AF, IX
 actorWarpCheck:
     LD A, (IX + NEXT_X)
     CP A, $1D
@@ -350,12 +333,10 @@ actorWarpCheck:
 
 
 
-/*
-    INFO: UPDATES ACTOR'S CURRENT TILE USING X/Y PIXEL POS
-    INPUT: IX
-    OUTPUT: NONE
-    USES: AF, IX
-*/
+    ; INFO: UPDATES ACTOR'S CURRENT TILE USING X/Y PIXEL POS
+    ; INPUT: IX
+    ; OUTPUT: NONE
+    ; USES: AF, IX
 updateCurrTile:
 ;   CURRENT Y
     LD A, (IX + Y_WHOLE)
@@ -379,12 +360,10 @@ updateCurrTile:
 
 
 
-/*
-    INFO: UPDATES AN ACTOR'S COLLSION TILES
-    INPUT: IX - ACTOR BASE ADDRESS
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+    ; INFO: UPDATES AN ACTOR'S COLLSION TILES
+    ; INPUT: IX - ACTOR BASE ADDRESS
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
 actorUpdate:
 ;   RESET HIGH BYTES IF GAME IS NON SCROLLING
     LD A, (plusBitFlags)
@@ -415,12 +394,10 @@ actorUpdate:
 ;   FALL THROUGH
 
 
-/*
-    INFO: UPDATES AN ACTOR'S COLLISION TILES FROM A COLLSION MAP
-    INPUTS: IX - Actor's Base Address
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+    ; INFO: UPDATES AN ACTOR'S COLLISION TILES FROM A COLLSION MAP
+    ; INPUTS: IX - Actor's Base Address
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
 updateCollTiles:
 ;   TILE X/Y VALUES
     LD E, (IX + CURR_X) ; STORE CURRENT X TILE IN E
@@ -573,12 +550,10 @@ updateCollTiles:
     RET
 
 
-/*
-    INFO: RETURNS TILE ID GIVEN TILE X/Y
-    INPUT: DE - TILE Y/X
-    OUTPUT: A - TILE IDX
-    USES: AF, BC, DE, HL
-*/
+    ; INFO: RETURNS TILE ID GIVEN TILE X/Y
+    ; INPUT: DE - TILE Y/X
+    ; OUTPUT: A - TILE IDX
+    ; USES: AF, BC, DE, HL
 getTileID:
 ;   GET ID VALUES FROM COLLSION MAP
     LD A, D

@@ -1,16 +1,14 @@
-/*
-------------------------------------------------
-            STATE UPDATE ROUTINES
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             STATE UPDATE ROUTINES
+; ------------------------------------------------
 
 
 
-/*
-------------------------------------------------
-            NORMAL MODE UPDATE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;             NORMAL MODE UPDATE
+; ------------------------------------------------
+
 pacStateTable@update@normalMode:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
@@ -25,11 +23,11 @@ pacStateTable@update@normalMode:
     XOR A
     LD (pacman.newStateFlag), A
 @@@update:
-/*
-------------------------------------------------
-    UPDATE - DOT COUNTER CHECK
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     UPDATE - DOT COUNTER CHECK
+; ------------------------------------------------
+
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_GAMEPLAY
@@ -45,11 +43,11 @@ pacStateTable@update@normalMode:
     JR NZ, @@@@speedPatCheck    ; IF SO, CONTINUE WITH UPDATE
     DEC (HL)    ; DECREMENT TIMER
     RET         ; BUT, DON'T UPDATE
-/*
-------------------------------------------------
-    UPDATE - SPEED PATTERN CHECK
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     UPDATE - SPEED PATTERN CHECK
+; ------------------------------------------------
+
 @@@@speedPatCheck:
     LD HL, (spdPatternPtr)
     actorSpdPatternUpdate
@@ -57,21 +55,21 @@ pacStateTable@update@normalMode:
     INC HL
     INC HL
     INC (HL)
-/*
-------------------------------------------------
-    UPDATE - PREPARATION
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     UPDATE - PREPARATION
+; ------------------------------------------------
+
 @@@@prepUpdate:
     LD IX, pacman   ; SET ACTOR POINTER
 ;   SAVE DOT COUNT FOR DOT EXPIRE COUNTER
     LD A, (currPlayerInfo.dotCount)
     LD (dotExpireCounter), A
-/*
-------------------------------------------------
-    UPDATE - "CHECK IF IN DEMO"
------------------------------------------------- 
-*/
+
+; ------------------------------------------------
+;     UPDATE - "CHECK IF IN DEMO"
+; ------------------------------------------------ 
+
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_GAMEPLAY
@@ -114,11 +112,11 @@ pacStateTable@update@normalMode:
     JR @@@@prepareVector
 
 
-/*
-------------------------------------------------
-    UPDATE - TUNNEL CHECK
------------------------------------------------- 
-*/
+
+; ------------------------------------------------
+;     UPDATE - TUNNEL CHECK
+; ------------------------------------------------ 
+
 @@@@tunnelCheck:
 ;   SKIP IF GAME IS JR.PAC
     LD A, (plusBitFlags)
@@ -139,11 +137,11 @@ pacStateTable@update@normalMode:
     CP A, DIR_RIGHT
     JR Z, @@@@prepareAxis
     JP @@@@prepareVector
-/*
-------------------------------------------------
-    UPDATE - MAZE COLLISION
------------------------------------------------- 
-*/
+
+; ------------------------------------------------
+;     UPDATE - MAZE COLLISION
+; ------------------------------------------------ 
+
 @@@@getCollision:
 ;   SAVE CURRENT DIRECTION IN D
     LD A, (pacman.currDir)
@@ -169,12 +167,12 @@ pacStateTable@update@normalMode:
     DEC E
     INC E
     JR Z, @@@@chkCenterOfTile   ; IF NOT, CHECK IF PAC-MAN IS AT CENTER OF TILE
-/*
-------------------------------------------------
-    UPDATE - CHECK IF CURRENT DIRECTION IS VALID 
-    (NEEDED IF PAC-MAN'S WANTED DIRECTION ISN'T)
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     UPDATE - CHECK IF CURRENT DIRECTION IS VALID 
+;     (NEEDED IF PAC-MAN'S WANTED DIRECTION ISN'T)
+; ------------------------------------------------
+
 @@@@chkCurrDirTile:
 ;   CHECK IF TILE IN CURRENT DIRECTION IS UNWALKABLE
     ; CONVERT DIRECTION TO OFFSET
@@ -208,11 +206,11 @@ pacStateTable@update@normalMode:
 ;   CHECK IF INPUT WAS APPLIED (IS 1?)
     DEC E
     JR Z, @@@@prepareVector ; IF SO, SKIP...
-/*
-------------------------------------------------
-    UPDATE - PREPARE FOR MOVEMENT
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     UPDATE - PREPARE FOR MOVEMENT
+; ------------------------------------------------
+
 @@@@prepareAxis:    ; $1940
 ;   SET DIRECTION TO WANTED DIRECTION
     LD A, (pacman.nextDir)
@@ -221,11 +219,11 @@ pacStateTable@update@normalMode:
 ;   GET MOVEMENT BYTES FROM TABLE
     LD A, (pacman.currDir)
     LD B, A     ; SAVE DIRECTION
-/*
-------------------------------------------------
-    UPDATE - APPLY MAIN AXIS MOVEMENT TO PAC-MAN
-------------------------------------------------
-*/ 
+
+; ------------------------------------------------
+;     UPDATE - APPLY MAIN AXIS MOVEMENT TO PAC-MAN
+; ------------------------------------------------
+ 
     OR A
     JP NZ, +
     LD HL, pacman + Y_WHOLE     ; 45 [UP]
@@ -248,11 +246,11 @@ pacStateTable@update@normalMode:
     LD HL, (pacman + X_WHOLE)   ; 80 [RIGHT]
     DEC HL
     LD (pacman + X_WHOLE), HL
-/*
-------------------------------------------------
-    UPDATE - APPLY PERPENDICULAR AXIS MOVEMENT TO PAC-MAN
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     UPDATE - APPLY PERPENDICULAR AXIS MOVEMENT TO PAC-MAN
+; ------------------------------------------------
+
 @@@@perAxisUpdate:
 ;   ASSUME PAC-MAN'S PERPENDICULAR AXIS IS X
     LD HL, pacman.xPos
@@ -283,11 +281,11 @@ pacStateTable@update@normalMode:
     LD (HL), B
     DEC HL
     LD (HL), C
-/*
-------------------------------------------------
-    UPDATE - UPDATE TILES, PTRS, ETC
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     UPDATE - UPDATE TILES, PTRS, ETC
+; ------------------------------------------------
+
 @@@@updateCenters:
 ;   UPDATE ACTOR'S COLLISION TILES, CENTERS, ETC...
     CALL actorUpdate
@@ -499,11 +497,11 @@ pacStateTable@update@normalMode:
 
 
 
-/*
-------------------------------------------------
-            SUPER MODE UPDATE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;             SUPER MODE UPDATE
+; ------------------------------------------------
+
 pacStateTable@update@superMode:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
@@ -518,11 +516,11 @@ pacStateTable@update@superMode:
 
 
 
-/*
-------------------------------------------------
-                DEAD MODE UPDATE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;                 DEAD MODE UPDATE
+; ------------------------------------------------
+
 pacStateTable@update@deadMode:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
@@ -558,20 +556,20 @@ pacStateTable@update@deadMode:
 
 
 
-/*
-------------------------------------------------
-            STATE DRAW ROUTINES
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;             STATE DRAW ROUTINES
+; ------------------------------------------------
 
 
 
 
-/*
-------------------------------------------------
-NORMAL, SUPER, DEAD MODE DRAW [TILE STREAMING]
-------------------------------------------------
-*/
+
+
+; ------------------------------------------------
+; NORMAL, SUPER, DEAD MODE DRAW [TILE STREAMING]
+; ------------------------------------------------
+
 pacStateTable@draw@normalMode:
 pacStateTable@draw@superMode:
 pacStateTable@draw@deadMode:
@@ -619,11 +617,11 @@ displayPacMan:
     LD HL, playerTileList   ; FIXED TILE LIST
     JP display4TileSprite
 
-/*
-------------------------------------------------
-    BIG MODE DRAW [PAC-MAN CUTSCENE 1 ONLY]
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     BIG MODE DRAW [PAC-MAN CUTSCENE 1 ONLY]
+; ------------------------------------------------
+
 pacStateTable@draw@bigMode:
 ;   CALCULATE TABLE INDEX
     ; MODULUS POSITION BY 16

@@ -1,8 +1,8 @@
-/*
-----------------------------------------------
-        DEFINES FOR CUTSCENE MODE (TEMP RAM)
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;         DEFINES FOR CUTSCENE MODE (TEMP RAM)
+; ----------------------------------------------
+
 ;       PAC-MAN
 .DEFINE     cutsceneSubState        workArea
 .DEFINE     nakedFrameCounter       workArea + $01
@@ -19,11 +19,11 @@
 
 
 
-/*
----------------------------------------------------
-        SUB STATE TABLE FOR CUTSCENE MODE
----------------------------------------------------
-*/
+
+; ---------------------------------------------------
+;         SUB STATE TABLE FOR CUTSCENE MODE
+; ---------------------------------------------------
+
 sStateCutsceneTable:
     .DW @pacScene0      ; 00
     .DW @pacScene1      ; 01
@@ -38,11 +38,11 @@ sStateCutsceneTable:
     .DW @jrScene2       ; 0A
 
 
-/*
-----------------------------------------------
-            CUTSCENE MODE CODE
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;             CUTSCENE MODE CODE
+; ----------------------------------------------
+
 .INCLUDE "pacScene0.asm"
 .INCLUDE "pacScene1.asm"
 .INCLUDE "pacScene2.asm"

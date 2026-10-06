@@ -1,8 +1,7 @@
-/*
--------------------------------------------------------
-                    TITLE MODE
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;                     TITLE MODE
+; -------------------------------------------------------
+
 sStateAttractTable@titleMode:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
@@ -172,9 +171,9 @@ sStateAttractTable@titleMode:
     
 
 
-/*
-    "OPTIONS" PROCESSING
-*/
+
+;   ----- "OPTIONS" PROCESSING -----
+
 @@@optionsLine:
 ;   CHECK IF UP IS PRESSED
     BIT P1_DIR_UP, (HL)
@@ -200,9 +199,9 @@ sStateAttractTable@titleMode:
 
 
 
-/*
-    "1 PLAYER" PROCESSING
-*/
+
+;   ----- "1 PLAYER" PROCESSING -----
+
 @@@onePlayerLine:
 ;   CHECK IF DOWN IS PRESSED
     BIT P1_DIR_DOWN, (HL)
@@ -229,9 +228,9 @@ sStateAttractTable@titleMode:
 
 
 
-/*
-    "2 PLAYERS" PROCESSING
-*/
+
+;   ----- "2 PLAYERS" PROCESSING -----
+
 @@@twoPlayerLine:
 ;   CHECK IF DOWN IS PRESSED
     BIT P1_DIR_DOWN, (HL)

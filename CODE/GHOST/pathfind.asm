@@ -1,8 +1,7 @@
-/*
---------------------------------------------
-        TASK TABLE AND FUNCTIONS
---------------------------------------------
-*/
+; --------------------------------------------
+;         TASK TABLE AND FUNCTIONS
+; --------------------------------------------
+
 taskListTable:
     .DW blinkyPF    ; 0
     .DW pinkyPF     ; 1
@@ -27,11 +26,11 @@ clydePF:
 
 
 
-/*
---------------------------------------------
-            GHOST TARGET TABLE
---------------------------------------------
-*/
+
+; --------------------------------------------
+;             GHOST TARGET TABLE
+; --------------------------------------------
+
 ghostTargetTable:
     .DW blinkyTarget    ; 0
     .DW pinkyTarget     ; 1
@@ -40,11 +39,11 @@ ghostTargetTable:
 
 
 
-/*
---------------------------------------------
-        GHOST PATHFINDING ALGORITHM
---------------------------------------------
-*/
+
+; --------------------------------------------
+;         GHOST PATHFINDING ALGORITHM
+; --------------------------------------------
+
 ghostPathFindingAI:
 ;   PREPARE FOR PATHFINDING
     CALL setupPathFinding
@@ -70,11 +69,11 @@ ghostPathFindingAI:
     LD HL, ghostTargetTable
     LD A, (IX + ID)
     RST jumpTableExec
-/*
---------------------------------------------
-    SCATTER/CHASE/GO HOME PATHFINDING
---------------------------------------------
-*/
+
+; --------------------------------------------
+;     SCATTER/CHASE/GO HOME PATHFINDING
+; --------------------------------------------
+
 @normalPathFinding:
     ; (workArea + 58): LOWEST
     ; (workArea + 60): ID ADDRESS 
@@ -167,11 +166,11 @@ ghostPathFindingAI:
     JP P, -     ; KEEP GOING IF NO OVERFLOW
 ;   SET NEW DIRECTION
     JP @setNewDirection
-/*
---------------------------------------------
-            SCARED PATHFINDING
---------------------------------------------
-*/
+
+; --------------------------------------------
+;             SCARED PATHFINDING
+; --------------------------------------------
+
 @scaredPathfind:
     ; (workArea + 60): ID ADDRESS 
     ; (workArea + 62): NEW DIRECTION
@@ -211,11 +210,11 @@ ghostPathFindingAI:
     DEC A
     AND A, $03
     JP -
-/*
---------------------------------------------
-            CONFIRM NEW DIRECTION
---------------------------------------------
-*/
+
+; --------------------------------------------
+;             CONFIRM NEW DIRECTION
+; --------------------------------------------
+
 ;   GO HERE AFTER DIRECTION HAS BEEN DETERMINED
 @setNewDirection:
     ; SET NEXT DIRECTION
@@ -228,11 +227,11 @@ ghostPathFindingAI:
 
 
 
-/*
---------------------------------------------
-        BLINKY TARGET DETERMINATION
---------------------------------------------
-*/
+
+; --------------------------------------------
+;         BLINKY TARGET DETERMINATION
+; --------------------------------------------
+
 blinkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
@@ -265,11 +264,11 @@ blinkyTarget:
 
 
 
-/*
---------------------------------------------
-        PINKY TARGET DETERMINATION
---------------------------------------------
-*/
+
+; --------------------------------------------
+;         PINKY TARGET DETERMINATION
+; --------------------------------------------
+
 pinkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
@@ -321,11 +320,11 @@ pinkyTarget:
 
 
 
-/*
---------------------------------------------
-        INKY TARGET DETERMINATION
---------------------------------------------
-*/
+
+; --------------------------------------------
+;         INKY TARGET DETERMINATION
+; --------------------------------------------
+
 inkyTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
@@ -387,11 +386,11 @@ inkyTarget:
 
 
 
-/*
---------------------------------------------
-        CLYDE TARGET DETERMINATION
---------------------------------------------
-*/
+
+; --------------------------------------------
+;         CLYDE TARGET DETERMINATION
+; --------------------------------------------
+
 clydeTarget:
 ;   CHECK IF IN CHASE
     LD A, (scatterChaseIndex)
@@ -461,11 +460,11 @@ clydeTarget:
 
 
 
-/*
---------------------------------------------
-    SETUP PATHFIND TILES IN WORKAREA
---------------------------------------------
-*/
+
+; --------------------------------------------
+;     SETUP PATHFIND TILES IN WORKAREA
+; --------------------------------------------
+
 setupPathFinding:
 ;   COPY NEXT TILE TO CURRENT TILE IN WORKAREA
     LD L, (IX + NEXT_X)
@@ -481,10 +480,10 @@ setupPathFinding:
     RET 
 
 
-/*
-    INFO: SELECTS A RANDOM CORNER AS TARGET GIVEN THE CURRENT MAZE (MS.PAC-MAN ONLY)
-    USES: AF, HL, R
-*/
+
+    ; INFO: SELECTS A RANDOM CORNER AS TARGET GIVEN THE CURRENT MAZE (MS.PAC-MAN ONLY)
+    ; USES: AF, HL, R
+
 getRandCorner:
 ;   GET MAZE INDEX
     LD HL, mazeTargetTable
@@ -499,10 +498,10 @@ getRandCorner:
 
 
 
-/*
-    INFO: SELECTS A RANDOM DIRECTION (JR.PAC-MAN ONLY)
-    USES: AF, HL, R
-*/
+
+    ; INFO: SELECTS A RANDOM DIRECTION (JR.PAC-MAN ONLY)
+    ; USES: AF, HL, R
+
 getRandTargetJr:
 ;   REMOVE TARGET ALGORITHM CALL
     POP HL

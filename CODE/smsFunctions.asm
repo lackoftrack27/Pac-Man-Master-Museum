@@ -1,17 +1,13 @@
-/*
-------------------------------------------
-            SMS FUNCTIONS
-------------------------------------------
-*/
+; ------------------------------------------
+;             SMS FUNCTIONS
+; ------------------------------------------
 
 
 
-/*
-    INFO: WAITS FOR VBLANK
-    INPUTS: NONE
-    OUTPUTS: NONE
-    AFFECTS: A
-*/
+    ; INFO: WAITS FOR VBLANK
+    ; INPUTS: NONE
+    ; OUTPUTS: NONE
+    ; AFFECTS: A
 waitForVblank:
 ;   CLEAR VBLANK STATUS
     IN A, (VDPCON_PORT)
@@ -23,12 +19,10 @@ waitForVblank:
     RET
 
 
-/*
-    INFO: FUNCTIONS TO TURN THE DISPLAY ON OR OFF
-    INPUTS: NONE
-    OUTPUTS: NONE
-    AFFECTS: A
-*/
+    ; INFO: FUNCTIONS TO TURN THE DISPLAY ON OR OFF
+    ; INPUTS: NONE
+    ; OUTPUTS: NONE
+    ; AFFECTS: A
 turnOffScreenVBlank:
 ;   TURN OFF SCREEN (KEEP VDP INTS)
     LD A, $A0
@@ -53,12 +47,10 @@ turnOnScreen:
 
 
 
-/*
-    INFO: FUNCTIONS TO TURN LINE INTERRUPTS ON OR OFF (OFF ALSO CLEARS V COUNTER)
-    INPUTS: NONE
-    OUTPUTS: NONE
-    AFFECTS: A
-*/
+    ; INFO: FUNCTIONS TO TURN LINE INTERRUPTS ON OR OFF (OFF ALSO CLEARS V COUNTER)
+    ; INPUTS: NONE
+    ; OUTPUTS: NONE
+    ; AFFECTS: A
 turnOffLineInts:
 ;   CLEAR V COUNTER
     LD A, $FF
@@ -79,12 +71,10 @@ turnOnLineInts:
 
 
 
-/*
-    INFO: Copies data to the VDP
-    INPUT: hl = data address, bc = data length
-    OUTPUT: NONE
-    USES: AF, HL, BC
-*/
+    ; INFO: Copies data to the VDP
+    ; INPUT: hl = data address, bc = data length
+    ; OUTPUT: NONE
+    ; USES: AF, HL, BC
 copyToVDP:
     LD A, (HL)      ; WRITE BYTE TO VDP
     OUT (VDPDATA_PORT), A
@@ -96,12 +86,10 @@ copyToVDP:
 
 
 
-/*
-    INFO: Reads data from the VDP
-    INPUT: hl = data address, bc = data length
-    OUTPUT: NONE
-    USES: AF, HL, BC
-*/
+    ; INFO: Reads data from the VDP
+    ; INPUT: hl = data address, bc = data length
+    ; OUTPUT: NONE
+    ; USES: AF, HL, BC
 copyFromVDP:
     IN A, (VDPDATA_PORT)    ; COPY BYTE FROM VDP TO DATA
     LD (HL), A

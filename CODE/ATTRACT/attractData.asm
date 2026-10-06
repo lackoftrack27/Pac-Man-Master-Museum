@@ -1,8 +1,7 @@
-/*
-----------------------------------------------
-        ATTRACT MODE DATA [TITLE SCREEN]
-----------------------------------------------
-*/
+; ----------------------------------------------
+;         ATTRACT MODE DATA [TITLE SCREEN]
+; ----------------------------------------------
+
 ;   SPRITE INDEX
 titleArrowTable:
     .DB $01 + (SPRITE_ADDR / TILE_SIZE), $02 + (SPRITE_ADDR / TILE_SIZE)
@@ -52,11 +51,11 @@ titleCharTblArcade:
     .DW ottoANTileTbl@titlePtr          ; OPEN
     .DW ottoANTileTbl@titlePtr + $18    ; HALF 1
 
-/*
-----------------------------------------------
-        ATTRACT MODE DATA [OPTIONS]
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;         ATTRACT MODE DATA [OPTIONS]
+; ----------------------------------------------
+
 ;   ALL UPPER BYTES ARE $01 (UPPER 256 TILES)
 
 ;   TILE LISTS FOR OPTIONS TEXT
@@ -98,11 +97,11 @@ optionTileMaps:
     .DB $05 $10 $0E $0E $0B $17 ; SMOOTH
     .DB $11 $0F $09 $11 $07 $04 ; ARCADE
 
-/*
-----------------------------------------------
-            ATTRACT MODE DATA [PAC-MAN]
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;             ATTRACT MODE DATA [PAC-MAN]
+; ----------------------------------------------
+
 ;   ALL UPPER BYTES ARE $09 (UPPER 256 TILES)
 
 ;   CHARACTER / NICKNAME        @ [07, 01]      16
@@ -219,11 +218,11 @@ introNewtonText:
 introGencompText:
     .DB $B2 $B3 $B4 $B5 $B6 $B7 $B8
 
-/*
-----------------------------------------------
-        ATTRACT MODE DATA [MS. PAC-MAN]
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;         ATTRACT MODE DATA [MS. PAC-MAN]
+; ----------------------------------------------
+
 ;   INITIAL PALLETE FOR MARQUEE
 marqueePalStart:
     .DB $3F $03 $03 $03 $03 $03 $03 $03 $03 $03 $15 $2A
@@ -319,11 +318,11 @@ msIntroMarquee:
     .DB $82 $83 $84 $85 $86 $87 $88 $89 $8A $8B $83 $84 $85 $8C
 
 
-/*
-----------------------------------------------
-        ATTRACT MODE DATA [JR. PAC-MAN]
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;         ATTRACT MODE DATA [JR. PAC-MAN]
+; ----------------------------------------------
+
 
 jrIntroBlinkyTxt:   ; 21, 13        9
     .DB $9F $A0 $A1 $A2 $A3 $A4 $A5 $A6 $A7

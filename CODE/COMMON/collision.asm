@@ -1,15 +1,13 @@
-/*
-------------------------------------------------
-        COLLISION RELEATED FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;         COLLISION RELEATED FUNCTIONS
+; ------------------------------------------------
 
-/*
-    INFO: CHECKS IF PAC-MAN INTERSECTS WITH ANY OF THE 4 GHOSTS (USING TILE POSITIONS)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES:  AF, BC, DE, HL, IX
-*/
+
+    ; INFO: CHECKS IF PAC-MAN INTERSECTS WITH ANY OF THE 4 GHOSTS (USING TILE POSITIONS)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES:  AF, BC, DE, HL, IX
+
 globalCollCheckTile:
 ;   VAR SETUP
     LD IX, clyde
@@ -65,12 +63,12 @@ globalCollCheckTile:
 
 
 
-/*
-    INFO: DETERMINES WHAT TO DO WHEN PAC-MAN HAS COLLIDED WITH A GHOST
-    INPUT: NONE
-    OUTPUT: NONE
-    USES:  AF, HL, IX
-*/
+
+    ; INFO: DETERMINES WHAT TO DO WHEN PAC-MAN HAS COLLIDED WITH A GHOST
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES:  AF, HL, IX
+
 interactDetermination:
 ;   SET GHOST POINTS SPR_NUM TO ID+1
     LD A, (IX + ID)
@@ -100,12 +98,12 @@ interactDetermination:
     RET
 
 
-/*
-    INFO: CHECKS IF PAC-MAN INTERSECTS WITH ANY OF THE 4 GHOSTS (USING PIXEL POSITIONS)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES:  AF, BC, DE, HL, IX, IY
-*/
+
+    ; INFO: CHECKS IF PAC-MAN INTERSECTS WITH ANY OF THE 4 GHOSTS (USING PIXEL POSITIONS)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES:  AF, BC, DE, HL, IX, IY
+
 globalCollCheckPixel:
 ;   CHECK IF A COLLISION WAS DETECTED BY THE 1ST COLLISION FUNCTION
     LD A, (ghostPointSprNum)

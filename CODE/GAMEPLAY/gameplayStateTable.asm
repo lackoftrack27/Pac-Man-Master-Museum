@@ -1,8 +1,7 @@
-/*
-----------------------------------------------
-    DEFINES FOR GAMEPLAY MODE (TEMP RAM)
-----------------------------------------------
-*/
+; ----------------------------------------------
+;     DEFINES FOR GAMEPLAY MODE (TEMP RAM)
+; ----------------------------------------------
+
 ;       PAC/MS.PAC
 .DEFINE     playerSprBuffer     workArea + $00      ; $80 BYTES
 ;       JR.PAC
@@ -11,11 +10,11 @@
 
 
 
-/*
-----------------------------------------------
-    SUB STATE TABLE FOR GAMEPLAY MODE
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;     SUB STATE TABLE FOR GAMEPLAY MODE
+; ----------------------------------------------
+
 sStateGameplayTable:
     .dw @ready00Mode    ; 00
     .dw @ready01Mode    ; 01
@@ -31,11 +30,11 @@ sStateGameplayTable:
 
 
 
-/*
-----------------------------------------------
-            GAMEPLAY MODE CODE
-----------------------------------------------
-*/
+
+; ----------------------------------------------
+;             GAMEPLAY MODE CODE
+; ----------------------------------------------
+
 
 .INCLUDE "ready.asm"
 .INCLUDE "normal.asm"
@@ -45,17 +44,17 @@ sStateGameplayTable:
 
 
 
-/*
--------------------------------------------
-    GAMEPLAY INITIALIZATION FUNCTION
--------------------------------------------
-*/
+
+; -------------------------------------------
+;     GAMEPLAY INITIALIZATION FUNCTION
+; -------------------------------------------
+
 gamePlayInit:
-/*
-----------------------------------------------------------
-        FIRST TIME INITIALIZATION FOR GAMEPLAY MODE
-----------------------------------------------------------
-*/
+
+; ----------------------------------------------------------
+;         FIRST TIME INITIALIZATION FOR GAMEPLAY MODE
+; ----------------------------------------------------------
+
 ;   TURN OFF DISPLAY
     CALL turnOffScreen
 ;   LOAD HUD TEXT TILES....
@@ -147,11 +146,11 @@ gamePlayInit:
     LD L, A
     ; WRITE TILES TO VRAM
     CALL pacTileStreaming@writeToVRAM
-/*
-----------------------------------------------------------
-            RESET FUNCTION FOR GAMEPLAY MODE  
-----------------------------------------------------------
-*/
+
+; ----------------------------------------------------------
+;             RESET FUNCTION FOR GAMEPLAY MODE  
+; ----------------------------------------------------------
+
 generalResetFunc:
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen

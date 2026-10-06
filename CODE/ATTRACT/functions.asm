@@ -1,15 +1,13 @@
-/*
-----------------------------------------------
-        COMMON FUNCTIONS FOR ATTRACT
-----------------------------------------------
-*/
+; ----------------------------------------------
+;         COMMON FUNCTIONS FOR ATTRACT
+; ----------------------------------------------
 
-/*
-    INFO: GET JUST PRESSED INPUTS FROM CONTROLLER 1
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: GET JUST PRESSED INPUTS FROM CONTROLLER 1
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 getPressedInputs:
 ;   GET ADDRESS OF CONTROLLER 1'S DATA (UP,DOWN,LEFT,RIGHT,B,C)
     LD HL, controlPort1
@@ -25,12 +23,12 @@ getPressedInputs:
     RET
 
 
-/*
-    INFO: SAME THING AS ABOVE, BUT FOR MD BUTTONS (A, START)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: SAME THING AS ABOVE, BUT FOR MD BUTTONS (A, START)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 getPressedInputsMD:
 ;   GET ADDRESS OF CONTROLLER 1'S DATA (A, START)
     LD HL, controlPort1MD
@@ -46,12 +44,12 @@ getPressedInputsMD:
     RET
 
 
-/*
-    INFO: REMOVE "PLUS" LOGO ON SCREEN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: REMOVE "PLUS" LOGO ON SCREEN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 plus_clrNametableArea:
 ;   ROW 0
     LD HL, NAMETABLE + (12 * 2) + (08 * $40) | VRAMWRITE
@@ -73,12 +71,12 @@ plus_clrNametableArea:
     RET
 
 
-/*
-    INFO: ADD "PLUS" LOGO ON SCREEN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: ADD "PLUS" LOGO ON SCREEN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 plus_setNametableArea:
 ;   ROW 0
     LD HL, NAMETABLE + (12 * 2) + (08 * $40) | VRAMWRITE
@@ -102,12 +100,12 @@ plus_setNametableArea:
     RET
 
 
-/*
-    INFO: TOGGLE BETWEEN PAC-MAN AND MS. PAC-MAN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: TOGGLE BETWEEN PAC-MAN AND MS. PAC-MAN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 titleToggleModes:
 ;   TOGGLE MODES (GAME)
 @left:
@@ -181,12 +179,12 @@ titleToggleModes:
 ;   FALL THROUGH
 
 
-/*
-    INFO: RENEW INACTIVITY TIMER (10 SECONDS)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: HL
-*/
+
+    ; INFO: RENEW INACTIVITY TIMER (10 SECONDS)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: HL
+
 setInactivityTimer:
 ;   RESET INACTIVITY TIMER
     LD HL, TITLE_TIMER_LEN
@@ -195,12 +193,12 @@ setInactivityTimer:
 
 
 
-/*
-    INFO: PLAY CREDIT SFX, WAIT UNTIL IT FINISHES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: PLAY CREDIT SFX, WAIT UNTIL IT FINISHES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 playCreditSnd:
 ;   PLAY CREDIT SFX
     LD B, $02       ; CHANNEL 2
@@ -223,12 +221,12 @@ playCreditSnd:
 ;   ELSE, SWITCH TO GAME (FALL THROUGH)
 
 
-/*
-    INFO: PREPARATION FOR GAMEPLAY MODE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: PREPARATION FOR GAMEPLAY MODE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 attractExit:
 ;   SET TO FIRST READY MODE, SET MAIN STATE TO GAMEPLAY
     LD HL, GAMEPLAY_READY00 * $100 + M_STATE_GAMEPLAY
@@ -240,12 +238,12 @@ attractExit:
     JP gamePlayInit
 
 
-/*
-    INFO: PREPARATION FOR DEMO MODE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: HL
-*/
+
+    ; INFO: PREPARATION FOR DEMO MODE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: HL
+
 demoPrep:
     ; GO INTO DEMO MODE
     LD HL, $01 * $100 + ATTRACT_READY01
@@ -255,12 +253,12 @@ demoPrep:
 
 
 
-/*
-    INFO: DISPLAY TEXT (BACKGROUND PALETTE)
-    INPUT: HL - ADDRESS OF TEXT TILEMAP DATA
-    OUTPUT: NONE
-    USES: AF
-*/
+
+    ; INFO: DISPLAY TEXT (BACKGROUND PALETTE)
+    ; INPUT: HL - ADDRESS OF TEXT TILEMAP DATA
+    ; OUTPUT: NONE
+    ; USES: AF
+
 introDisplayText:
     LD A, $01
 -:
@@ -269,12 +267,12 @@ introDisplayText:
     JR NZ, -
     RET
 
-/*
-    INFO: DISPLAY TEXT (SPRITE PALETTE)
-    INPUT: HL - ADDRESS OF TEXT TILEMAP DATA
-    OUTPUT: NONE
-    USES: AF
-*/
+
+    ; INFO: DISPLAY TEXT (SPRITE PALETTE)
+    ; INPUT: HL - ADDRESS OF TEXT TILEMAP DATA
+    ; OUTPUT: NONE
+    ; USES: AF
+
 msIntroDisplayText:
     LD A, $09
 -:
@@ -284,12 +282,12 @@ msIntroDisplayText:
     RET
 
 
-/*
-    INFO: ERASE TEXT (REALLY JUST BLANK OUT TILEMAP)
-    INPUT: HL - ADDRESS OF TEXT TILEMAP DATA
-    OUTPUT: NONE
-    USES: AF
-*/
+
+    ; INFO: ERASE TEXT (REALLY JUST BLANK OUT TILEMAP)
+    ; INPUT: HL - ADDRESS OF TEXT TILEMAP DATA
+    ; OUTPUT: NONE
+    ; USES: AF
+
 introClearText:
     XOR A
     OUT (VDPDATA_PORT), A
@@ -300,12 +298,12 @@ introClearText:
 
 
 
-/*
-    INFO: DISPLAY OPTION TEXT (ON TILEMAP)
-    INPUT: A - INDEX, BC - OPTION TYPE ADDR, DE - TEXT ADDRESS, HL - VDP ADDRESS
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DISPLAY OPTION TEXT (ON TILEMAP)
+    ; INPUT: A - INDEX, BC - OPTION TYPE ADDR, DE - TEXT ADDRESS, HL - VDP ADDRESS
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 drawOptionText:
     PUSH AF ; SAVE INDEX
     PUSH BC ; SAVE OPTION TYPE ADDR
@@ -329,12 +327,12 @@ drawOptionText:
     JP introDisplayText
 
 
-/*
-    INFO: GENERAL SETUP FOR INTRO MODE [PART 1]
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: GENERAL SETUP FOR INTRO MODE [PART 1]
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 generalIntroSetup00:
 ;   CLEAR FLAG
     XOR A
@@ -397,12 +395,12 @@ generalIntroSetup00:
     JP loadTileAssets
 
 
-/*
-    INFO: GENERAL SETUP FOR INTRO MODE [PART 2]
-    INPUT: NONE
-    OUTPUT: NONE
-    USES:
-*/
+
+    ; INFO: GENERAL SETUP FOR INTRO MODE [PART 2]
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES:
+
 generalIntroSetup01:
 ;   SET POWER PELLET COLOR BUFFER
     CALL powDotCyclingUpdate@refresh

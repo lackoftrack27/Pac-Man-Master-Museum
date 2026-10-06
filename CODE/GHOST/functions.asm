@@ -1,9 +1,9 @@
 
-/*
-------------------------------------------------
-        RESET FUNCTIONS FOR GHOSTS
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;         RESET FUNCTIONS FOR GHOSTS
+; ------------------------------------------------
+
 blinkyReset:
 ;   SPRITE TABLE START
     LD A, 05
@@ -113,11 +113,11 @@ ghostReset:
 
 
 
-/*
-------------------------------------------------
-            GHOST DISPLAY FUNCTIONS
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;             GHOST DISPLAY FUNCTIONS
+; ------------------------------------------------
+
 displayGhostNormal:
 ;   GET NEXT DIRECTION
     LD A, (IX + NEXT_DIR)
@@ -200,19 +200,19 @@ displayGhostEyes:
 
 
 
-/*
-------------------------------------------------
-                OTHER FUNCTIONS
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;                 OTHER FUNCTIONS
+; ------------------------------------------------
 
 
-/*
-    INFO: DIFFICULTY FLAG HANDLER ("CRUISE ELROY")
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, HL
-*/
+
+
+    ; INFO: DIFFICULTY FLAG HANDLER ("CRUISE ELROY")
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, HL
+
 updateDiffFlags:
 ;   CHECK IF CLYDE IS OUT OF HOME
     LD A, (clyde.state)
@@ -259,11 +259,10 @@ updateDiffFlags:
     RET
 
 
-/*
-    0 - SCATTER / NORMAL SPEED
-    1 - CHASE   / FASTER SPEED
-    2 - CHASE   / FASTEST SPEED
-    CHECK IF CLYDE IS OUT: RETURN IF NOT
-    CHECK FLAG 1: IF SET, SKIP DOT CHECK. ELSE, IF DOT COUNT IS MET, SET FLAG AND FALL THROUGH. ELSE, END
-    CHECK FLAG 2: IF SET, END. ELSE, IF DOT COUNT IS MET, SET FLAG. ELSE, END
-*/
+
+    ; 0 - SCATTER / NORMAL SPEED
+    ; 1 - CHASE   / FASTER SPEED
+    ; 2 - CHASE   / FASTEST SPEED
+    ; CHECK IF CLYDE IS OUT: RETURN IF NOT
+    ; CHECK FLAG 1: IF SET, SKIP DOT CHECK. ELSE, IF DOT COUNT IS MET, SET FLAG AND FALL THROUGH. ELSE, END
+    ; CHECK FLAG 2: IF SET, END. ELSE, IF DOT COUNT IS MET, SET FLAG. ELSE, END

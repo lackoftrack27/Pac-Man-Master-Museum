@@ -1,8 +1,8 @@
-/*
--------------------------------------------------------
-                LEVEL COMPLETE 00 MODE
--------------------------------------------------------
-*/
+
+; -------------------------------------------------------
+;                 LEVEL COMPLETE 00 MODE
+; -------------------------------------------------------
+
 sStateGameplayTable@comp00Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
@@ -39,11 +39,11 @@ sStateGameplayTable@comp00Mode:
 
 
 
-/*
--------------------------------------------------------
-                LEVEL COMPLETE 01 MODE
--------------------------------------------------------
-*/
+
+; -------------------------------------------------------
+;                 LEVEL COMPLETE 01 MODE
+; -------------------------------------------------------
+
 sStateGameplayTable@comp01Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
@@ -191,9 +191,9 @@ sStateGameplayTable@comp01Mode:
 
 
 
-/*
-    HELPER FUNCTION
-*/
+
+;   ----- HELPER FUNCTION -----
+
 colorWallsWhite:
     LD A, $3F
     OUT (VDPDATA_PORT), A   ; WHITE WALLS

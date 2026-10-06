@@ -1,8 +1,6 @@
-/*
-------------------------------------------------
-                ACTOR DATA
-------------------------------------------------
-*/
+; ------------------------------------------------
+;                 ACTOR DATA
+; ------------------------------------------------
         ;XXYY
 dirVectors:
     .DW $00FF   ; UP
@@ -18,9 +16,7 @@ playerTwoTileList:
     .DB $5D $5E $5F $60
 
 
-/*
-    POINTER TABLE FOR PLAYER TILE DEFS
-*/
+;   ----- POINTER TABLE FOR PLAYER TILE DEFS -----
 playerTileTblList:
     ; SMOOTH
     .DW pacSNTileTbl
@@ -57,9 +53,7 @@ playerTileTblList:
     ;.DW $0000   ; INVALID
     ;.DW $0000   ; INVALID
 
-/*
-    POINTER TABLE FOR DEATH TILE DEFS
-*/
+;   ----- POINTER TABLE FOR DEATH TILE DEFS -----
 deathTileTblList:
     ; SMOOTH
     .DW pacSNDeathTileTbl
@@ -97,9 +91,7 @@ deathTileTblList:
     ;.DW $0000   ; INVALID
 
 
-/*
-    POINTER TABLE FOR HUD TILE DEFS
-*/
+;   ----- POINTER TABLE FOR HUD TILE DEFS -----
 hudTileTblList:
     ; SMOOTH
     .DW pacSNTileTbl@hudPtr

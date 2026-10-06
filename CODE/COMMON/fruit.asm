@@ -1,16 +1,14 @@
-/*
-------------------------------------------------
-            FRUIT RELEATED FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             FRUIT RELEATED FUNCTIONS
+; ------------------------------------------------
 
 
-/*
-    INFO: RESETS SOME FRUIT VARIABLES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: RESETS SOME FRUIT VARIABLES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 fruitReset:
     XOR A
     LD H, A
@@ -25,12 +23,12 @@ fruitReset:
     RET
 
 
-/*
-    INFO: CHECK IF PAC-MAN IS EATING A FRUIT
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: CHECK IF PAC-MAN IS EATING A FRUIT
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 checkEatenFruit:
 ;   EACH GAME CHECKS DIFFERENTLY
     LD A, (plusBitFlags)
@@ -149,12 +147,12 @@ checkEatenFruit:
 
 
 
-/*
-    INFO: UPDATES FRUIT IN MAZE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: UPDATES FRUIT IN MAZE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 fruitUpdate:
     LD HL, currPlayerInfo.fruitStatus
 ;   UPDATE FRUIT TIMER IF IT ISN'T 0
@@ -349,12 +347,12 @@ msFruitUpdate:
     LD (fruit + Y_WHOLE), A
     RET
 
-/*
-    INFO: PREPARE NEXT PATH FOR FRUIT TO TAKE (MS. PAC-MAN ONLY)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, B, DE, HL, R
-*/
+
+    ; INFO: PREPARE NEXT PATH FOR FRUIT TO TAKE (MS. PAC-MAN ONLY)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, B, DE, HL, R
+
 prepNextFruitPath:
 ;   CHECK IF FRUIT HAS FINISHED PATH (IS NOW OFFSCREEN)
     LD HL, currPlayerInfo.fruitStatus
@@ -502,12 +500,12 @@ jrFruitUpdate:
 
 
 
-/*
-    INFO: PREPARE TO RELEASE FRUIT IN LEVEL
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL, R
-*/
+
+    ; INFO: PREPARE TO RELEASE FRUIT IN LEVEL
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL, R
+
 prepareFruit:
 ;   CLEAR OFFSCREEN FLAG
     XOR A
@@ -614,11 +612,11 @@ prepareFruit:
 
 
 
-/*
-------------------------------------------------
-            JR.PAC-MAN'S FRUIT STATES
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;             JR.PAC-MAN'S FRUIT STATES
+; ------------------------------------------------
+
 ;   STATE DEFINES
 .ENUM $00
     FRUIT_NOTHING   DB
@@ -1026,9 +1024,9 @@ fruitStateExplode:
 
 
 
-/*
-    HELPER ROUTINES FOR GENERAL UPDATE STATE
-*/
+
+;   ----- HELPER ROUTINES FOR GENERAL UPDATE STATE ----
+
 
 ;   TARGET SETTER...
 fruitHelper00:
@@ -1084,11 +1082,11 @@ fruitSetTile:
     RET
 
 
-/*
-------------------------------------------------
-        JR.PAC-MAN'S FRUIT PATHFINDING
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;         JR.PAC-MAN'S FRUIT PATHFINDING
+; ------------------------------------------------
+
     ; HELPER0 USES LOWER NIBBLE
     ; HELPER1 USES UPPER NIBBLE
     ; NIBBLE REPRESENTS POWER DOT INDEX
@@ -1123,9 +1121,9 @@ fruitPathFindingAI:
     JP ghostPathFindingAI@normalPathFinding
 
 
-/*
-    TARGET INITIALIZER (ONLY CALLED ON 1ST PATHFIND?)
-*/
+
+;   ----- TARGET INITIALIZER (ONLY CALLED ON 1ST PATHFIND?) -----
+
 fruitPFTargetHelper0:   ; $AA5E
 ;   UPDATE POWER DOT TARGET STATE
     LD A, (fruitPDotState)
@@ -1157,9 +1155,9 @@ fruitPFTargetHelper0:   ; $AA5E
     RET
 
 
-/*
-    STANDARD TARGET FINDER/HELPER
-*/
+
+;   ----- STANDARD TARGET FINDER/HELPER -----
+
 fruitPFTargetHelper1:   ; $AA87
 ;   EXECUTE ROUTINE BASED ON UPPER NIBBLE OF POWER DOT TARGET STATE
     LD A, (fruitPDotState)
@@ -1274,9 +1272,9 @@ fruitPFTargetHelper1:   ; $AA87
     RET
 
 
-/*
-    HELPER FUNCTIONS FOR THE TARGET FINDERS/HELPERS
-*/
+
+;   ----- HELPER FUNCTIONS FOR THE TARGET FINDERS/HELPERS -----
+
 
 ;   TRYS TO FIND A NEW POWER DOT TARGET IF THE CURRENT TARGET ISN'T A POWER DOT ANYMORE
 ;   OUTPUT: NZ - FOUND NEW TARGET, Z - UNABLE TO FIND NEW TARGET
@@ -1316,19 +1314,19 @@ setTargetToJR:
     RET
 
 
-/*
-    FUNCTIONS TO CHANGE COLLISION MAP && TILE MAP
-*/
 
-/*
-    INFO: CHANGES NORMAL DOT TO MUTATED DOT
-        UPDATES TILE IN COLLISION MAP TO MUTATED DOT 
-        UPDATES TILE IN TILE MAP TO THE CORRECT TILE
-        INCREMENTS MUTATED DOT COUNTER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+;   ----- FUNCTIONS TO CHANGE COLLISION MAP && TILE MAP -----
+
+
+
+    ; INFO: CHANGES NORMAL DOT TO MUTATED DOT
+    ;     UPDATES TILE IN COLLISION MAP TO MUTATED DOT 
+    ;     UPDATES TILE IN TILE MAP TO THE CORRECT TILE
+    ;     INCREMENTS MUTATED DOT COUNTER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 updateCollMapFruitMDot:
 ;   UPDATE MUTATED DOT COUNTER
     LD HL, (currPlayerInfo.jrMDotCount)
@@ -1358,21 +1356,21 @@ updateCollMapFruitMDot:
 +:
     OR A, (HL)
     LD (HL), A
-    /*
-;   UPDATE COLLISION TILE FOR FRUIT
-    BIT 0, E
-    JP NZ, +    ; JUMP IF ODD
-    ; SET ID TO HIGH NIBBLE
-    AND A, $F0  ; CLEAR LOWER NIBBLE
-    RRCA        ; SHIFT TO LOW
-    RRCA
-    RRCA
-    RRCA
-+:
-    ; REMOVE HIGH NIBBLE (ONLY FOR IF X WAS EVEN)
-    AND A, $0F
-    LD (fruit + CURR_ID), A
-    */
+    
+; ;   UPDATE COLLISION TILE FOR FRUIT
+;     BIT 0, E
+;     JP NZ, +    ; JUMP IF ODD
+;     ; SET ID TO HIGH NIBBLE
+;     AND A, $F0  ; CLEAR LOWER NIBBLE
+;     RRCA        ; SHIFT TO LOW
+;     RRCA
+;     RRCA
+;     RRCA
+; +:
+;     ; REMOVE HIGH NIBBLE (ONLY FOR IF X WAS EVEN)
+;     AND A, $0F
+;     LD (fruit + CURR_ID), A
+    
 ;   FALL THROUGH
 updateTileMapFruitMDot:
 ;   GET TILE ID && FLIPPING IN TILEMAP
@@ -1442,14 +1440,14 @@ updateTileMapFruitMDot:
 
 
 
-/*
-    INFO: REMOVES POWER DOT 
-        UPDATES TILE IN COLLISION MAP TO EMPTY
-        UPDATES TILE IN TILE MAP TO THE CORRECT TILE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX, IY
-*/
+
+    ; INFO: REMOVES POWER DOT 
+    ;     UPDATES TILE IN COLLISION MAP TO EMPTY
+    ;     UPDATES TILE IN TILE MAP TO THE CORRECT TILE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX, IY
+
 updateCollMapFruitPDot:
 ;   OFFSET = X_TILE + (Y_TILE * 32)
     LD A, (fruit + CURR_Y)

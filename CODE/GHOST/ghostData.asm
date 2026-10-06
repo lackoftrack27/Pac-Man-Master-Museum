@@ -1,13 +1,10 @@
-/*
-------------------------------------------------
-                GHOST DATA
-------------------------------------------------
-*/
+; ------------------------------------------------
+;                 GHOST DATA
+; ------------------------------------------------
 
 
-/*
-    MACRO FOR NORMAL GHOST SPRITES
-*/
+
+;   ----- MACRO FOR NORMAL GHOST SPRITES -----
 .MACRO ghostSprDefNormal ARGS, VAL
 ;   UP 0
     .DB VAL+$06, VAL+$08, VAL+$07, VAL+$09
@@ -26,9 +23,8 @@
 ;   RIGHT 1
     .DB VAL, VAL+$0A, VAL+$01, VAL+$0B
 .ENDM
-/*
-    MACRO FOR SCARED GHOST SPRITES
-*/
+
+;   ----- MACRO FOR SCARED GHOST SPRITES -----
 .MACRO ghostSprDefScared    ARGS, VAL
 ;   BLUE 0
     .DB VAL, VAL+$08, VAL+$01, VAL+$09
@@ -39,9 +35,8 @@
 ;   WHITE 1
     .DB VAL+$06, VAL+$0E, VAL+$07, VAL+$0F
 .ENDM
-/*
-    MACRO FOR GHOST EYES SPRITES
-*/
+
+;   ----- MACRO FOR GHOST EYES SPRITES -----
 .MACRO ghostSprDefEyes ARGS, VAL
 ;   UP
     .DB VAL+$06, VAL+$07
@@ -53,9 +48,8 @@
     .DB VAL, VAL+$01
 .ENDM
 
-/*
-    MACRO FOR NORMAL OTTO GHOST SPRITES
-*/
+
+;   ----- MACRO FOR NORMAL OTTO GHOST SPRITES -----
 .MACRO ottoGhostSNSprDef ARGS, VAL
 ;   UP 0
     .DB VAL+$0B, VAL+$1A, VAL+$0C, VAL+$1B
@@ -74,9 +68,8 @@
 ;   RIGHT 1
     .DB VAL+$02, VAL+$11, VAL+$03, VAL+$12
 .ENDM
-/*
-    MACRO FOR SCARED OTTO GHOST SPRITES
-*/
+
+;   ----- MACRO FOR SCARED OTTO GHOST SPRITES -----
 .MACRO ottoGhostScaredSNSprDef    ARGS, VAL
 ;   BLUE 0
     .DB VAL+$78, VAL+$80, VAL+$79, VAL+$81
@@ -89,9 +82,8 @@
 .ENDM
 
 
-/*
-    GHOST TILE DEFINITIONS
-*/
+
+;   ----- GHOST TILE DEFINITIONS -----
 ghostNormalTileDefs:
 @blinky:
     ghostSprDefNormal (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE          ; BLINKY
@@ -107,9 +99,8 @@ ghostEyesTileDefs:
     ghostSprDefEyes (SPRITE_ADDR + EYES_VRAM) / TILE_SIZE
 
 
-/*
-    OTTO GHOST TILE DEFINITIONS
-*/
+
+;   ----- OTTO GHOST TILE DEFINITIONS -----
 ottoGhostSNTileDefs:
 @blinky:
     ottoGhostSNSprDef (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE
@@ -121,10 +112,3 @@ ottoGhostSNTileDefs:
     ottoGhostSNSprDef (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE + $5A
 ottoGhostScaredSNTileDefs:
     ottoGhostScaredSNSprDef (SPRITE_ADDR + GHOST_VRAM) / TILE_SIZE
-
-
-
-
-
-
-

@@ -1,8 +1,6 @@
-/*
--------------------------------------------------------
-                CUTSCENE 1 [PAC-MAN]
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;                 CUTSCENE 1 [PAC-MAN]
+; -------------------------------------------------------
 sStateCutsceneTable@pacScene0:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
@@ -27,11 +25,9 @@ sStateCutsceneTable@pacScene0:
     RET
 
 
-/*
----------------------------------------
-        SUB STATE JUMP TABLE
----------------------------------------
-*/
+; ---------------------------------------
+;         SUB STATE JUMP TABLE
+; ---------------------------------------
 scene0SubTable:
     .DW scene0Update0
     .DW scene0Update1
@@ -42,11 +38,10 @@ scene0SubTable:
     .DW scene0Update6
 
 
-/*
----------------------------------------
-        SUB STATE FUNCTIONS
----------------------------------------
-*/
+
+; ---------------------------------------
+;         SUB STATE FUNCTIONS
+; ---------------------------------------
 scene0Update0:
 ;   CHECK IF PAC-MAN IS ON SCREEN
     LD A, (pacman + CURR_X)
@@ -143,12 +138,10 @@ scene0Update6:
 
 
 
-/*
----------------------------------------
-            HELPER FUNCTIONS
----------------------------------------
-*/
 
+; ---------------------------------------
+;             HELPER FUNCTIONS
+; ---------------------------------------
 cutscenePacMove:
 ;   PAC-MAN
     LD HL, (pacman.subPixel)

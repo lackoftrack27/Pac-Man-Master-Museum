@@ -1,8 +1,7 @@
-/*
--------------------------------------------------------
-            INTRO MODE FOR MS. PAC-MAN
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;             INTRO MODE FOR MS. PAC-MAN
+; -------------------------------------------------------
+
 sStateAttractTable@msIntroMode:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
@@ -181,11 +180,9 @@ sStateAttractTable@msIntroMode:
 
 
 
-/*
------------------------------------------
-    ROUTINE TABLE FOR INTRODUCTION [MS. PAC-MAN]
------------------------------------------
-*/
+; -----------------------------------------
+;     ROUTINE TABLE FOR INTRODUCTION [MS. PAC-MAN]
+; -----------------------------------------
 msIntroSubTable:
     .DW @wait00         ; WAIT 1 SECOND
     .DW @showBlinky
@@ -196,11 +193,9 @@ msIntroSubTable:
     .DW @wait01         ; WAIT 2 SECONDS
 
 
-/*
------------------------------------------
-                ROUTINES
------------------------------------------
-*/
+; -----------------------------------------
+;                 ROUTINES
+; -----------------------------------------
 msIntroSubTable@wait00:
 ;   DECREMENT TIMER
     LD HL, mainTimer0
@@ -362,11 +357,9 @@ msIntroSubTable@wait01:
 
 
 
-/*
----------------------------------------
-            HELPER FUNCTIONS
----------------------------------------
-*/
+; ---------------------------------------
+;             HELPER FUNCTIONS
+; ---------------------------------------
 msIntroDisplayGhostText:
 ; DISPLAY GHOST'S NAME
     ; ROW 0

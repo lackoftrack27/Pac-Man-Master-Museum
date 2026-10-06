@@ -1,8 +1,7 @@
-/*
--------------------------------------------------------
-                    OPTIONS MODE
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;                     OPTIONS MODE
+; -------------------------------------------------------
+
 sStateAttractTable@optionsMode:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
@@ -146,9 +145,9 @@ sStateAttractTable@optionsMode:
     LD DE, sndTestIndex
 
 
-/*
-    "SOUND TEST" PROCESSING  [LINE INDEX: 5]
-*/
+
+;   ----- "SOUND TEST" PROCESSING  [LINE INDEX: 5] -----
+
 @@@sndTestLine:
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
@@ -202,9 +201,9 @@ sStateAttractTable@optionsMode:
     JP sndPlaySFX
 
 
-/*
-    "STYLE" PROCESSING  [LINE INDEX: 4]
-*/
+
+;   ----- "STYLE" PROCESSING  [LINE INDEX: 4] -----
+
 @@@styleLine:
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
@@ -235,9 +234,9 @@ sStateAttractTable@optionsMode:
     JP introDisplayText
 
 
-/*
-    "SPEED" PROCESSING  [LINE INDEX: 3]
-*/
+
+;   ----- "SPEED" PROCESSING  [LINE INDEX: 3] -----
+
 @@@speedLine:
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
@@ -268,9 +267,9 @@ sStateAttractTable@optionsMode:
     JP introDisplayText
 
 
-/*
-    "LIVES" PROCESSING  [LINE INDEX: 0]
-*/
+
+;   ----- "LIVES" PROCESSING  [LINE INDEX: 0] -----
+
 @@@livesLine:
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
@@ -404,9 +403,9 @@ sStateAttractTable@optionsMode:
     
 
 
-/*
-    "DIFFICULTY" PROCESSING [LINE INDEX: 1]
-*/
+
+;   ----- "DIFFICULTY" PROCESSING [LINE INDEX: 1] -----
+
 @@@diffLine:
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
@@ -438,9 +437,9 @@ sStateAttractTable@optionsMode:
 
 
 
-/*
-    "BONUS" PROCESSING  [LINE INDEX: 2]
-*/
+
+;   ----- "BONUS" PROCESSING  [LINE INDEX: 2] -----
+
 @@@bonusLine
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
@@ -587,19 +586,19 @@ sStateAttractTable@optionsMode:
 
 
 
-/*
---------------------------------------
-            HELPER FUNCTIONS
---------------------------------------
-*/
+
+; --------------------------------------
+;             HELPER FUNCTIONS
+; --------------------------------------
 
 
-/*
-    INFO: CHANGES ARROWS' POSITIONS
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+
+    ; INFO: CHANGES ARROWS' POSITIONS
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 changeArrows:
 @lives:
     ; POINT TO "LIVES"
@@ -681,12 +680,12 @@ changeArrows:
     RET
 
 
-/*
-    INFO: UPDATES SOUND ID NUMBER GFX FOR SOUND TEST
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: UPDATES SOUND ID NUMBER GFX FOR SOUND TEST
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 updateSndTestTilemap:
 ;   SET VDP ADDRESS
     LD HL, NAMETABLE + ($15 * $02) + (SND_YPOS * $40) | VRAMWRITE

@@ -1,8 +1,6 @@
-/*
--------------------------------------------------------
-                CUTSCENE 2 [PAC-MAN]
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;                 CUTSCENE 2 [PAC-MAN]
+; -------------------------------------------------------
 sStateCutsceneTable@pacScene1:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
@@ -38,11 +36,10 @@ sStateCutsceneTable@pacScene1:
 
 
 
-/*
----------------------------------------
-        SUB STATE JUMP TABLE
----------------------------------------
-*/
+
+; ---------------------------------------
+;         SUB STATE JUMP TABLE
+; ---------------------------------------
 scene1SubTable:
     .DW scene1Update0
     .DW scene1Update1
@@ -58,11 +55,10 @@ scene1SubTable:
 
 
 
-/*
----------------------------------------
-        SUB STATE FUNCTIONS
----------------------------------------
-*/
+
+; ---------------------------------------
+;         SUB STATE FUNCTIONS
+; ---------------------------------------
 scene1Update0:
 ;   WAIT FOR TIMER
     LD HL, mainTimer0
@@ -213,11 +209,10 @@ scene1Update0A:
 
 
 
-/*
----------------------------------------
-            HELPER FUNCTIONS
----------------------------------------
-*/
+
+; ---------------------------------------
+;             HELPER FUNCTIONS
+; ---------------------------------------
 actorMovement00:
 ;   CHECK IF PAC-MAN HAS MADE IT TO THE HIDDEN PART OF THE SCREEN
     LD A, (pacman + CURR_X)

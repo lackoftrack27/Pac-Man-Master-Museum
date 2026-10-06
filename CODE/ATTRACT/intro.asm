@@ -1,8 +1,7 @@
-/*
--------------------------------------------------------
-                INTRO MODE FOR PAC-MAN
--------------------------------------------------------
-*/
+; -------------------------------------------------------
+;                 INTRO MODE FOR PAC-MAN
+; -------------------------------------------------------
+
 sStateAttractTable@introMode:
 @@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
@@ -119,11 +118,11 @@ sStateAttractTable@introMode:
     JP resetFromDemo
 
 
-/*
------------------------------------------
-    ROUTINE TABLE FOR INTRODUCTION
------------------------------------------
-*/
+
+; -----------------------------------------
+;     ROUTINE TABLE FOR INTRODUCTION
+; -----------------------------------------
+
 introSubTable:
     .DW showBlinky
     .DW showShadowText
@@ -145,11 +144,11 @@ introSubTable:
     .DW eatGhosts
 
 
-/*
------------------------------------------
-                ROUTINES
------------------------------------------
-*/
+
+; -----------------------------------------
+;                 ROUTINES
+; -----------------------------------------
+
 
 
 ;   SUB STATE 00

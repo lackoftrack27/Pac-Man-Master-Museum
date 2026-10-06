@@ -1,16 +1,12 @@
-/*
--------------------------------------------------
-                    MACROS
--------------------------------------------------
-*/
+; -------------------------------------------------
+;                     MACROS
+; -------------------------------------------------
 
-/*
-    [MATH]
-    INFO: GIVEN A VALUE IN BOTH A AND HL, THE VALUE IN A WILL BE ADDED TO HL
-    INPUT: HL - VALUE, A - VALUE
-    OUTPUT: HL - HL + A, A - (HL + A)
-    USES: HL, A
-*/
+    ; [MATH]
+    ; INFO: GIVEN A VALUE IN BOTH A AND HL, THE VALUE IN A WILL BE ADDED TO HL
+    ; INPUT: HL - VALUE, A - VALUE
+    ; OUTPUT: HL - HL + A, A - (HL + A)
+    ; USES: HL, A
 .MACRO addToHL_M
     ADD A, L
     LD L, A
@@ -19,13 +15,11 @@
     LD H, A
 .ENDM
 
-/*
-    [MATH]
-    INFO: MULTIPLIES VALUE IN HL BY 29
-    INPUT: HL - VALUE
-    OUTPUT: HL - VALUE * 29
-    USES: AF, HL
-*/
+    ; [MATH]
+    ; INFO: MULTIPLIES VALUE IN HL BY 29
+    ; INPUT: HL - VALUE
+    ; OUTPUT: HL - VALUE * 29
+    ; USES: AF, HL
 .MACRO multBy29
     ; INPUT RANGE IS RELATIVELY SMALL, SO USE A LUT
     LD H, hibyte(mult29Table)
@@ -39,13 +33,11 @@
     LD L, A
 .ENDM
 
-/*
-    [MATH]
-    INFO: MULTIPLIES VALUE IN HL BY 41
-    INPUT: HL - VALUE
-    OUTPUT: HL - VALUE * 41
-    USES: AF, DE, HL
-*/
+    ; [MATH]
+    ; INFO: MULTIPLIES VALUE IN HL BY 41
+    ; INPUT: HL - VALUE
+    ; OUTPUT: HL - VALUE * 41
+    ; USES: AF, DE, HL
 .MACRO multBy41
 ;   HL * 41 (32 + 08 + 01)
     LD E, L
@@ -61,13 +53,11 @@
     ADD HL, DE
 .ENDM
 
-/*
-    [ACTOR]
-    INFO: GIVEN A POINTER TO AN ACTOR'S SPEED PATTERN, UPDATES THE SPEED PATTERN (LEFT SHIFT BY 1)
-    INPUT: HL - SPEED PATTERN POINTER
-    OUTPUT - NONE
-    USES: HL, DE, AF
-*/
+    ; [ACTOR]
+    ; INFO: GIVEN A POINTER TO AN ACTOR'S SPEED PATTERN, UPDATES THE SPEED PATTERN (LEFT SHIFT BY 1)
+    ; INPUT: HL - SPEED PATTERN POINTER
+    ; OUTPUT - NONE
+    ; USES: HL, DE, AF
 .MACRO actorSpdPatternUpdate
 ;      0      1       2      3
 ;   LOW_HW HIGH_HW LOW_LW HIGH_LW

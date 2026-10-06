@@ -1,16 +1,14 @@
-/*
-------------------------------------------------
-            DRAW RELEATED FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             DRAW RELEATED FUNCTIONS
+; ------------------------------------------------
 
 
-/*
-    INFO: DRAW FUNCTION USED FOR GAMEPLAY MODES AND PAC-MAN CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL, IX
-*/
+
+    ; INFO: DRAW FUNCTION USED FOR GAMEPLAY MODES AND PAC-MAN CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL, IX
+
 generalGamePlayDraw:
 ;   UPDATE NEW COLUMN FOR SCROLLING (FLAG MUST BE SET && GAME MUST BE JR)
     LD HL, updateColFlag
@@ -90,12 +88,12 @@ generalGamePlayDraw:
     ; FALL THROUGH
 
 
-/*
-    INFO: UPDATES POWER DOT PALETTE FROM RAM
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: A, BC, HL
-*/
+
+    ; INFO: UPDATES POWER DOT PALETTE FROM RAM
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: A, BC, HL
+
 drawPowDots:
 ;   PREPARE VDP
     LD A, BGPAL_PDOT0
@@ -113,12 +111,12 @@ drawPowDots:
 
 
 
-/*
-    INFO: UPDATES MAZE IF TILE BUFFER ISN'T EMPTY (FROM PAC-MAN)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: UPDATES MAZE IF TILE BUFFER ISN'T EMPTY (FROM PAC-MAN)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 drawMaze:
 ;   LOOP PREP
     LD (HL), $00    ; CLEAR FLAG
@@ -150,12 +148,12 @@ drawMaze:
     RET
 
 
-/*
-    INFO: UPDATES MAZE IF TILE BUFFER ISN'T EMPTY (FROM FRUIT)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: UPDATES MAZE IF TILE BUFFER ISN'T EMPTY (FROM FRUIT)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 drawMazeFruitJr:    
 ;   LOOP PREP FOR FRUIT TILE BUFFER
     LD (HL), $00    ; CLEAR FLAG
@@ -188,12 +186,12 @@ drawMazeFruitJr:
 
 
 
-/*
-    INFO: DRAWS FRUIT SOMEWHERE IN MAZE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL, IX
-*/
+
+    ; INFO: DRAWS FRUIT SOMEWHERE IN MAZE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL, IX
+
 drawInMazeFruit:
     LD IX, fruit
 ;   DON'T DISPLAY IF OFFSCREEN FLAG IS SET
@@ -228,12 +226,12 @@ drawInMazeFruit:
     
 
 
-/*
-    INFO: DRAWS GHOST POINTS
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, IX
-*/
+
+    ; INFO: DRAWS GHOST POINTS
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, IX
+
 drawGhostPoints:
 ;   CONVERT INDEX INTO OFFSET
     LD A, (ghostPointIndex)
@@ -248,12 +246,12 @@ drawGhostPoints:
     JP display2HTileSprite
 
 
-/*
-    INFO: UPDATES COUNTERS FOR GHOST ANIMATION
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: UPDATES COUNTERS FOR GHOST ANIMATION
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 ghostVisCounterUpdate:
 ;   DON'T UPDATE IF IN EAT MODE (FREEZE GHOST ANIMATION)
     LD A, (ghostPointSprNum)
@@ -284,12 +282,12 @@ ghostVisCounterUpdate:
 
 
 
-/*
-    INFO: DETERMINES WHEN GHOSTS START FLASHING
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL
-*/
+
+    ; INFO: DETERMINES WHEN GHOSTS START FLASHING
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL
+
 ghostFlashUpdate:
 ;   CHECK IF SUB GAME MODE IS SUPER 
     LD A, (pacPoweredUp)
@@ -316,12 +314,12 @@ ghostFlashUpdate:
     RET
 
 
-/*
-    INFO: DRAWS "1UP" FOR THE DEMO (NO FLASHING!)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DRAWS "1UP" FOR THE DEMO (NO FLASHING!)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 draw1UPDemo:
     LD C, VDPCON_PORT
 ;   PREPARE VDP ADDRESS
@@ -347,12 +345,12 @@ draw1UPDemo:
     OUT (VDPDATA_PORT), A
     RET
 
-/*
-    INFO: DRAWS "1UP" OR "2UP" DEPENDING ON CURRENT PLAYER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DRAWS "1UP" OR "2UP" DEPENDING ON CURRENT PLAYER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 draw1UP:
 ;   EXIT IF IN ATTRACT MODE
     LD A, (mainGameMode)
@@ -405,12 +403,12 @@ draw1UP:
 
 
 
-/*
-    INFO: DRAWS PLAYER SCORE (AND HIGH SCORE) FROM BUFFER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DRAWS PLAYER SCORE (AND HIGH SCORE) FROM BUFFER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 scoreTileMapDraw:
 ;   SET VDP ADDRESS FOR SCORE
     LD C, VDPCON_PORT
@@ -465,12 +463,12 @@ scoreTileMapDraw:
 
 
 
-/*
-    INFO: DRAWS BOTH "HIGH SCORE" AND "SCORE" TEXT ON LEVEL INIT.
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, HL
-*/
+
+    ; INFO: DRAWS BOTH "HIGH SCORE" AND "SCORE" TEXT ON LEVEL INIT.
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, HL
+
 drawScoresText:
 ;   SKIP IF GAME IS JR PAC
     LD A, (plusBitFlags)
@@ -501,12 +499,12 @@ drawScoresText:
 
 
 
-/*
-    INFO: DRAWS BOTH HIGH SCORE AND PLAYER SCORE ON LEVEL INIT.
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, B, DE, HL
-*/
+
+    ; INFO: DRAWS BOTH HIGH SCORE AND PLAYER SCORE ON LEVEL INIT.
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, B, DE, HL
+
 ;   SCORE TILEMAP INIT. ROUTINE
 scoreTileMapInit:
 ;   DRAW SCORE
@@ -532,12 +530,12 @@ scoreTileMapInit:
 ;   FALL THROUGH
 
 
-/*
-    INFO: DRAWS SCORE NUMBER
-    INPUT: DE - SCORE (BCD) ADDRESS, HL - VRAM ADDRESS TO WRITE TO
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+
+    ; INFO: DRAWS SCORE NUMBER
+    ; INPUT: DE - SCORE (BCD) ADDRESS, HL - VRAM ADDRESS TO WRITE TO
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
+
 drawScoreOld:
 ;   PREPARE
     LD C, VDPDATA_PORT
@@ -618,12 +616,12 @@ drawScoreOld:
 
 
 
-/*
-    INFO: DRAWS FRUIT ON THE SIDE OF THE SCREEN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IXH
-*/
+
+    ; INFO: DRAWS FRUIT ON THE SIDE OF THE SCREEN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IXH
+
 drawFruitHUD:
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
@@ -778,13 +776,13 @@ drawFruitHUD:
 
 
 
-/*
-    INFO: REMOVES A LIFE FROM THE SCREEN
-    ----------------------
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: REMOVES A LIFE FROM THE SCREEN
+    ; ----------------------
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 removeLifeonScreen:
 ;   CONVERT LIFES INTO OFFSET
     LD HL, currPlayerInfo.lives
@@ -843,12 +841,12 @@ removeLifeonScreen:
 
 
 
-/*
-    INFO: ADDS A LIFE TO THE SCREEN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: ADDS A LIFE TO THE SCREEN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 addLifeOnScreen:
     ; SET FLAG TO 2
     LD A, $02
@@ -911,12 +909,12 @@ addLifeOnScreen:
     RET
 
 
-/*
-    INFO: DRAWS THE AMOUNT OF LIVES THE PLAYER HAS TO THE SCREEN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DRAWS THE AMOUNT OF LIVES THE PLAYER HAS TO THE SCREEN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 drawLives:
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
@@ -971,12 +969,12 @@ drawLives:
 
 
 
-/*
-    INFO: DRAWS "READY!"
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DRAWS "READY!"
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 drawReadyTilemap:
 ;   RENDER "READY!" TEXT USING BG TILES IF GAME IS JR
     LD A, (plusBitFlags)
@@ -1036,12 +1034,12 @@ drawReadyTilemap:
     RET
 
 
-/*
-    INFO: DRAWS "PLAYER ONE" OR "PLAYER TWO"
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DRAWS "PLAYER ONE" OR "PLAYER TWO"
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 drawPlayerTilemap:
 ;   RENDER "PLAYER XXX" TEXT USING BG TILES IF GAME IS JR
     LD A, (plusBitFlags)
@@ -1149,12 +1147,12 @@ drawPlayerTilemap:
     RET
 
 
-/*
-    INFO: DRAWS "GAME  OVER"
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DRAWS "GAME  OVER"
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 drawGameOverTilemap:
 ;   RENDER "GAME  OVER" TEXT USING BG TILES IF GAME IS JR
     LD A, (plusBitFlags)
@@ -1227,12 +1225,12 @@ drawGameOverTilemap:
 
 
 
-/*
-    INFO: DRAWS A NEW COLUMN IN VRAM TILEMAP WHEN NEEDED (JR.PAC)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, BC', DE', HL'
-*/
+
+    ; INFO: DRAWS A NEW COLUMN IN VRAM TILEMAP WHEN NEEDED (JR.PAC)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, BC', DE', HL'
+
 drawNewColumn:
 ;   RESET FLAG
     XOR A
@@ -1276,12 +1274,12 @@ unrolledColWrites:
     RET
 
 
-/*
-    INFO: SAME AS ABOVE, BUT FOR CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, BC', DE', HL'
-*/
+
+    ; INFO: SAME AS ABOVE, BUT FOR CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, BC', DE', HL'
+
 drawNewColumnCutscene:
 ;   RESET FLAG
     XOR A

@@ -1,16 +1,14 @@
-/*
-------------------------------------------------
-            GHOST RELATED FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             GHOST RELATED FUNCTIONS
+; ------------------------------------------------
 
 
-/*
-    INFO: DETERMINES WHEN GHOST REVERSE DIRECTION AND CHANGE TARGETING ALGORITHM (SCATTER / CHASE)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX
-*/
+
+    ; INFO: DETERMINES WHEN GHOST REVERSE DIRECTION AND CHANGE TARGETING ALGORITHM (SCATTER / CHASE)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX
+
 scatterChaseCheck:
 ;   CHECK IF NORMAL
     LD A, (pacPoweredUp)
@@ -58,12 +56,12 @@ scatterChaseCheck:
 
 
 
-/*
-    INFO: UPDATES GHOST'S DOT COUNTERS WHICH ARE USED TO DETERMINE WHEN TO LEAVE HOME
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, B, DE, HL
-*/
+
+    ; INFO: UPDATES GHOST'S DOT COUNTERS WHICH ARE USED TO DETERMINE WHEN TO LEAVE HOME
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, B, DE, HL
+
 ghostUpdateDotCounters:
 ;   CHECK IF PAC-MAN HAS DIED IN THIS LEVEL
     LD A, (currPlayerInfo.diedFlag)
@@ -105,12 +103,12 @@ ghostUpdateDotCounters:
 
 
 
-/*
-    INFO: UPDATES DOT EXPIRE TIMER WHICH IS ALSO USED TO DETERMINE WHEN TO LEAVE HOME
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL, IX
-*/
+
+    ; INFO: UPDATES DOT EXPIRE TIMER WHICH IS ALSO USED TO DETERMINE WHEN TO LEAVE HOME
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL, IX
+
 dotExpireUpdate:
 ;   CHECK IF DOTS EATEN MATCHES DOTS EATEN SINCE LAST MOVE
     LD HL, dotExpireCounter
@@ -145,12 +143,12 @@ dotExpireUpdate:
 
 
 
-/*
-    INFO: DETERMINES IF A GHOST CAN LEAVE HOME BASED ON PERSONAL OR GLOBAL DOT COUNTER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DETERMINES IF A GHOST CAN LEAVE HOME BASED ON PERSONAL OR GLOBAL DOT COUNTER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 ghostDotReleaser:
     LD DE, GHOST_GOTOEXIT * $100 + $01
     LD B, GHOST_REST
@@ -249,12 +247,12 @@ ghostDotReleaser:
 
 
 
-/*
-    INFO: UPDATES A GHOST'S STATE AFTER IT HAS BEEN EATEN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL, IX
-*/
+
+    ; INFO: UPDATES A GHOST'S STATE AFTER IT HAS BEEN EATEN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL, IX
+
 ghostUpdateDeadState:
 ;   DETERMINE WHICH GHOST WAS EATEN
     AND A, $7F  ; CLEAR BIT 7
@@ -279,12 +277,12 @@ ghostUpdateDeadState:
 
 
 
-/*
-    INFO: UPDATES GHOSTS IF THEY ARE OUTSIDE OF HOME
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL, IX
-*/
+
+    ; INFO: UPDATES GHOSTS IF THEY ARE OUTSIDE OF HOME
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL, IX
+
 ghostOutHomeUpdate:
 ;   BLINKY
     ; CHECK IF GHOST IS OUTSIDE OF HOME (BUT NOT GOING TO HOME)
@@ -340,12 +338,12 @@ ghostOutHomeUpdate:
 
 
 
-/*
-    INFO: UPDATES GHOSTS IF THEY ARE GOING TO HOME
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL, IX
-*/
+
+    ; INFO: UPDATES GHOSTS IF THEY ARE GOING TO HOME
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL, IX
+
 ghostToHomeUpdate:
 ;   BLINKY
     ; CHECK IF GHOST IS GOING HOME
@@ -397,12 +395,12 @@ ghostToHomeUpdate:
 
 
 
-/*
-    INFO: UPDATES GHOSTS IF THEY ARE INSIDE OF HOME
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, DE, HL, IX
-*/
+
+    ; INFO: UPDATES GHOSTS IF THEY ARE INSIDE OF HOME
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, DE, HL, IX
+
 ghostHomeUpdate:
 ;   DON'T UPDATE DURING EAT
     LD A, (ghostPointSprNum)

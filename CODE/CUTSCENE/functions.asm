@@ -1,16 +1,12 @@
-/*
---------------------------------------------
-    HELPER FUNCTIONS FOR ALL SUBSTATES
---------------------------------------------
-*/
+; --------------------------------------------
+;     HELPER FUNCTIONS FOR ALL SUBSTATES
+; --------------------------------------------
 
 
-/*
-    INFO: COMMON INITIALIZATION FOR CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, E, HL
-*/
+    ; INFO: COMMON INITIALIZATION FOR CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, E, HL
 commonCutsceneInit:
 ;   TURN OFF SCREEN
     CALL turnOffScreen
@@ -53,12 +49,10 @@ commonCutsceneInit:
     RET
 
 
-/*
-    INFO: PREPARE TO SWITCH BACK TO GAMEPLAY STATE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+    ; INFO: PREPARE TO SWITCH BACK TO GAMEPLAY STATE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
 switchToGameplay:
 ;   STOP MUSIC
     CALL sndStopAll
@@ -71,18 +65,14 @@ switchToGameplay:
     JP generalResetFunc    
 
 
-/*
---------------------------------------------
-    HELPER FUNCTIONS FOR PAC-MAN SUBSTATES
---------------------------------------------
-*/
+; --------------------------------------------
+;     HELPER FUNCTIONS FOR PAC-MAN SUBSTATES
+; --------------------------------------------
 
-/*
-    INFO: SETS UP A BUNCH OF STUFF FOR PAC-MAN'S CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+    ; INFO: SETS UP A BUNCH OF STUFF FOR PAC-MAN'S CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
 pacCutsceneInit:
 ;   COMMON CUTSCENE SETUP
     CALL commonCutsceneInit
@@ -179,12 +169,12 @@ pacCutsceneInit:
     JP turnOnScreen
 
 
-/*
-    INFO: SLIGHTLY CHANGES PALETTE FOR CERTAIN CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: SLIGHTLY CHANGES PALETTE FOR CERTAIN CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 ;   USED FOR CUTSCENE 1
 pacCutSetSpritePal0:
 ;   PALETTE SETUP
@@ -207,18 +197,18 @@ pacCutSetSpritePal:
 
 
 
-/*
---------------------------------------------------------
-        CUTSCENE ANIMATION FUNCS FOR MS. PAC
---------------------------------------------------------
-*/
 
-/*
-    INFO: SETS UP CUTSCENES FOR MS.PAC
-    INPUT: HL - PROG TABLE FOR CUTSCENE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+; --------------------------------------------------------
+;         CUTSCENE ANIMATION FUNCS FOR MS. PAC
+; --------------------------------------------------------
+
+
+
+    ; INFO: SETS UP CUTSCENES FOR MS.PAC
+    ; INPUT: HL - PROG TABLE FOR CUTSCENE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 msCutSetup:
 ;   CUTSCENE SUBPROGRAM SETUP
     CALL cutsceneSubPrgSetup
@@ -258,12 +248,12 @@ msCutSetup:
     JP turnOnScreen
 
 
-/*
-    INFO: DISPLAYS ACT TITLE AND NUMBER FOR MS.PAC CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DISPLAYS ACT TITLE AND NUMBER FOR MS.PAC CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 msCutDisplayAct:
 ;   DISPLAY TEXT @ [9, 7]
     LD HL, NAMETABLE + ($09 * $02) + ($07 * $40) | VRAMWRITE
@@ -284,12 +274,12 @@ msCutDisplayAct:
 
 ;   $00, $04, $08, $0C, $10, $14
 ;   $18 - ACT NUMBER
-/*
-    INFO: COMMON DRAW AND UPDATE FOR MS.PAC CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX, IY
-*/
+
+    ; INFO: COMMON DRAW AND UPDATE FOR MS.PAC CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX, IY
+
 msSceneCommonDrawUpdate:
 ;   DRAW 1UP
     CALL draw1UP
@@ -442,17 +432,17 @@ msSceneCommonDrawUpdate:
 ;   FALL THROUGH
 
 
-/*
---------------------------------------------------------
-            CUTSCENE ANIMATION FUNCTIONS
---------------------------------------------------------
-*/
-/*
-    INFO: MAIN CUTSCENE ANIMATION PROCESS
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX, IY
-*/
+
+; --------------------------------------------------------
+;             CUTSCENE ANIMATION FUNCTIONS
+; --------------------------------------------------------
+
+
+    ; INFO: MAIN CUTSCENE ANIMATION PROCESS
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX, IY
+
 cutAniProcess:
 ;   SETUP
     LD A, CUTSCENE_DATA_BANK
@@ -478,10 +468,10 @@ cutAniProcess:
     LD IYH, A
     JP (IY)
 
-/*
-    COMMAND - "LOOP": X, Y
-    $F0
-*/
+
+    ; COMMAND - "LOOP": X, Y
+    ; $F0
+
 @cmdLoop:
 ;   SAVE PROG PTR
     PUSH HL
@@ -577,14 +567,14 @@ cutAniProcess:
     JP cmdCleanUp01
 
 
-/*
-    COMMAND - "SET POS": X, Y
-    $F1
-*/
+
+    ; COMMAND - "SET POS": X, Y
+    ; $F1
+
 @cmdSetPos:
-    EX DE, HL   ; DE: PROG PTR // HL: N/A
+    EX DE, HL   ; DE: PROG PTR | HL: N/A
     LD HL, cutsceneControl.posList - $02
-    EX DE, HL   ; DE: FUNC POS // HL: PROG PTR
+    EX DE, HL   ; DE: FUNC POS | HL: PROG PTR
     PUSH DE     ; SAVE FUNC POS PTR
 ;   GET X AND Y DATA FROM PROGRAM
     INC HL
@@ -594,10 +584,10 @@ cutAniProcess:
     ; DE: YX
     JP cmdCleanUp
 
-/*
-    COMMAND - "SETN": VAL (DB)
-    $F2
-*/
+
+    ; COMMAND - "SETN": VAL (DB)
+    ; $F2
+
 @cmdSetN:
 ;   GET BYTE FROM PROGRAM
     INC HL
@@ -615,19 +605,19 @@ cutAniProcess:
     LD DE, $0002    ; ADVANCE PROG PTR BY 2 BYTES
     JP cmdCleanUp01
 
-/*
-    COMMAND - "SET CHAR": VAL (DW)
-    $F3
-*/
+
+    ; COMMAND - "SET CHAR": VAL (DW)
+    ; $F3
+
 @cmdSetChar:
 ;   CLEAR SPRITE ARRAY OFFSET
-    EX DE, HL   ; DE: PROG PTR // HL: N/A
+    EX DE, HL   ; DE: PROG PTR | HL: N/A
     LD HL, cutsceneControl.charOffsetList - $01
     LD A, B
     RST addToHL
     LD (HL), $00
 ;   GET NEW CHAR ARRAY PTR
-    EX DE, HL   ; DE: N/A // HL: PROG PTR
+    EX DE, HL   ; DE: N/A | HL: PROG PTR
     LD DE, cutsceneControl.charList - $02
     PUSH DE
     INC HL
@@ -637,20 +627,20 @@ cutAniProcess:
     JP cmdCleanUp 
 
 
-/*
-    COMMAND - "PLAY SOUND"
-    $F5
-*/
+
+    ; COMMAND - "PLAY SOUND"
+    ; $F5
+
 @cmdPlaySnd:
 ;   DO NOTHING
     LD DE, $0002    ; ADVANCE BY 2 BYTES
     JP cmdCleanUp01 
 
 
-/*
-    COMMAND - "PAUSE"
-    $F6
-*/
+
+    ; COMMAND - "PAUSE"
+    ; $F6
+
 @cmdPause:
 ;   GET CORRECT ADDRESS FOR TIMER
     LD HL, cutsceneControl.timerList - $01
@@ -666,11 +656,11 @@ cutAniProcess:
     JP cmdCleanUp01
 
 
-/*
-    COMMAND - "CLEAR TEXT"
-    COMMAND - "REMOVE PRIORITY OF FENCE" FOR JR.PAC
-    $F7
-*/
+
+    ; COMMAND - "CLEAR TEXT"
+    ; COMMAND - "REMOVE PRIORITY OF FENCE" FOR JR.PAC
+    ; $F7
+
 @cmdClrText:
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
@@ -744,11 +734,11 @@ cutAniProcess:
 
 
 
-/*
-    COMMAND - "CLEAR NUM"
-    COMMAND - "NO OPERATION" FOR JR.PAC
-    $F8
-*/
+
+    ; COMMAND - "CLEAR NUM"
+    ; COMMAND - "NO OPERATION" FOR JR.PAC
+    ; $F8
+
 @cmdClrNum:
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
@@ -773,18 +763,18 @@ cutAniProcess:
     JP cutAniProcess@loop
 
 
-/*
-    COMMAND - "SET BACKGROUND PRIORTY OVER SPRITES" - NOT NEEDED
-    $F4
-*/
+
+    ; COMMAND - "SET BACKGROUND PRIORTY OVER SPRITES" - NOT NEEDED
+    ; $F4
+
 @cmdSetBGPri:
     JP jrCmdCleanUp
 
 
-/*
-    COMMAND - "SET BACKGROUND PALETTE?" - NOT NEEDED
-    $F9
-*/
+
+    ; COMMAND - "SET BACKGROUND PALETTE?" - NOT NEEDED
+    ; $F9
+
 @cmdSetBGPal:
     INC HL
     BIT 7, (HL)
@@ -803,10 +793,10 @@ cutAniProcess:
     JP jrCmdCleanUp
 
 
-/*
-    COMMAND - "CLEAR POWER DOT AND PLAY FRIGHT SFX" - JR.PAC'S INTERMISSION 1
-    $FA
-*/
+
+    ; COMMAND - "CLEAR POWER DOT AND PLAY FRIGHT SFX" - JR.PAC'S INTERMISSION 1
+    ; $FA
+
 @cmdClrPowDot:
 ;   CLEAR EATEN POWER DOT TILE
     LD HL, NAMETABLE + (22 * $02) + ($05 * $40) | VRAMWRITE
@@ -817,10 +807,10 @@ cutAniProcess:
     JP jrCmdCleanUp
 
 
-/*
-    COMMAND - "SET VAR (USED BY COMMAND $FC)"
-    $FB
-*/
+
+    ; COMMAND - "SET VAR (USED BY COMMAND $FC)"
+    ; $FB
+
 @cmdSetJrVar:
     INC HL
     LD A, (HL)
@@ -828,10 +818,10 @@ cutAniProcess:
     JP jrCmdCleanUp
 
 
-/*
-    COMMAND - "DECREMENT PROGRAM PTR BY 8 (DEPENDING ON VAR)?"
-    $FC
-*/
+
+    ; COMMAND - "DECREMENT PROGRAM PTR BY 8 (DEPENDING ON VAR)?"
+    ; $FC
+
 @cmdDecPtr:
     INC HL
     LD A, (jrCutsceneVarFB)
@@ -847,11 +837,11 @@ cutAniProcess:
     JP jrCmdCleanUp
 
 
-/*
-    COMMAND - "SET OVERRIDE FLAG FOR OFFSCREEN FLAG"
-    $FD
-    [NEW]
-*/
+
+    ; COMMAND - "SET OVERRIDE FLAG FOR OFFSCREEN FLAG"
+    ; $FD
+    ; [NEW]
+
 @cmdSetOverrideFlag:
 ;   GET BYTE FROM PROGRAM
     INC HL
@@ -865,12 +855,12 @@ cutAniProcess:
     JP jrCmdCleanUp
 
 
-/*
-    COMMAND - "SET HIGH BYTE OF X POSITION"
-    COMMAND - "SET SPRITE INDEX OF CHAR ARRAY"
-    $FE
-    [NEW]
-*/
+
+    ; COMMAND - "SET HIGH BYTE OF X POSITION"
+    ; COMMAND - "SET SPRITE INDEX OF CHAR ARRAY"
+    ; $FE
+    ; [NEW]
+
 @cmdSetHighXPos:
 ;   GET BYTE FROM PROGRAM
     INC HL
@@ -891,10 +881,10 @@ cutAniProcess:
     
 
 
-/*
-    COMMAND - "STOP"
-    $FF
-*/
+
+    ; COMMAND - "STOP"
+    ; $FF
+
 @cmdStop:
 ;   GET CORRECT ADDRESS FOR DONE FLAG
     LD HL, cutsceneControl.doneList - $01
@@ -936,14 +926,14 @@ cutAniProcess:
     JP demoPrep
 
 
-/*
-    ADDITIONAL CLEAN UP FOR COMMANDS $F1, $F3
-*/
+
+;   ----- ADDITIONAL CLEAN UP FOR COMMANDS $F1, $F3 -----
+
 cmdCleanUp:
     POP HL      ; HL: ADDRESS USED BY COMMAND
     PUSH DE     ; DE: DATA RETRIEVED BY COMMAND 
     CALL ptrDeref
-    EX DE, HL   ; DE: DATA AT HL // HL: CORRECT ADDRESS FOR COMMAND
+    EX DE, HL   ; DE: DATA AT HL | HL: CORRECT ADDRESS FOR COMMAND
     POP DE      ; DE: DATA RETRIEVED BY COMMAND
 ;   STORE DATA RETRIEVED BY COMMAND AT CORRECT ADDRESS
     LD (HL), D
@@ -954,9 +944,9 @@ cmdCleanUp:
 ;   FALL THROUGH
 
 
-/*
-    CLEAN UP FOR ALL COMMANDS
-*/
+
+;   ----- CLEAN UP FOR ALL COMMANDS -----
+
 cmdCleanUp01:
 ;   GET PROG PTR
     LD L, (IX + 0)
@@ -975,9 +965,9 @@ cmdCleanUp01:
     RET
 
 
-/*
-    CLEAN UP FOR COMMANDS: $F2, $F4, $F9, $FA, $FB, $FC
-*/
+
+;   ----- CLEAN UP FOR COMMANDS: $F2, $F4, $F9, $FA, $FB, $FC -----
+
 jrCmdCleanUp:
     LD DE, $0002
 ;   GET PROG PTR
@@ -993,9 +983,9 @@ jrCmdCleanUp:
 
 
 
-/*
-    POINTER DEREFERENCE (RST $18)
-*/
+
+;   ----- POINTER DEREFERENCE (RST $18) -----
+
 ptrDeref:
     LD A, B
     ADD A, A
@@ -1003,14 +993,14 @@ ptrDeref:
     LD E, (HL)
     INC HL
     LD D, (HL)
-    EX DE, HL   ; DE: (HL + 2B) // HL: DATA AT (HL + 2B)
+    EX DE, HL   ; DE: (HL + 2B) | HL: DATA AT (HL + 2B)
     RET
 
 
-/*
-    MOVEMENT ADJUSTER / CALCULATOR
-    ***FRACTIONAL POSITION***
-*/
+
+    ; MOVEMENT ADJUSTER / CALCULATOR
+    ; ***FRACTIONAL POSITION***
+
 cutFuncCalcMovement:
     LD C, A
     SRA C
@@ -1027,25 +1017,25 @@ cutFuncCalcMovement:
     RET
 
 
-/*
-COMMANDS:
-    $F0 - "LOOP":       X, Y
-    $F1 - "SET POS":    X, Y
-    $F2 - "SETN":       VAL (DB)
-    $F3 - "SET CHAR":   VAL (DW)
-    $F4 - "SET BG PRIORITY": VAL (DB) (NOT IMPLEMENTED)
-    $F5 - "PLAY SOUND": VAL (DB) (NOT IMPLEMENTED)
-    $F6 - "PAUSE":
-    $F7 - "CLR TEXT":
-    $F8 - "CLR NUM":  
-    $F9 - "SET BG PALETTE": VAL (DB)
-    $FA - "CLEAR POWER DOT": VAL (DB)
-    $FB - "SET JR VAR": VAL (DB)
-    $FC - "DECREMENT PTR": VAL (DB)
-    $FD - "SET OVERRIDE OFFSCREEN FLAG": VAL (DB)
-    $FE - "SET X MSB": VAL (DB)   
-    $FF - "END":
-*/
+
+; COMMANDS:
+;     $F0 - "LOOP":       X, Y
+;     $F1 - "SET POS":    X, Y
+;     $F2 - "SETN":       VAL (DB)
+;     $F3 - "SET CHAR":   VAL (DW)
+;     $F4 - "SET BG PRIORITY": VAL (DB) (NOT IMPLEMENTED)
+;     $F5 - "PLAY SOUND": VAL (DB) (NOT IMPLEMENTED)
+;     $F6 - "PAUSE":
+;     $F7 - "CLR TEXT":
+;     $F8 - "CLR NUM":  
+;     $F9 - "SET BG PALETTE": VAL (DB)
+;     $FA - "CLEAR POWER DOT": VAL (DB)
+;     $FB - "SET JR VAR": VAL (DB)
+;     $FC - "DECREMENT PTR": VAL (DB)
+;     $FD - "SET OVERRIDE OFFSCREEN FLAG": VAL (DB)
+;     $FE - "SET X MSB": VAL (DB)   
+;     $FF - "END":
+
 commandJumpTable:
     JP cutAniProcess@cmdLoop
     JP cutAniProcess@cmdSetPos
@@ -1066,12 +1056,12 @@ commandJumpTable:
 
 
 
-/*
-    INFO: SETS UP CUTSCENE ANIMATION PROCESS
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: SETS UP CUTSCENE ANIMATION PROCESS
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 cutsceneSubPrgSetup:
     PUSH HL ; SAVE FOR AFTER MEMSET
 ;   MEMSET CUTSCENE CONTROL VARS TO $00
@@ -1097,12 +1087,12 @@ cutsceneSubPrgSetup:
     RET
 
 
-/*
-    INFO: SETS UP PLAYER TILE POINTERS FOR CUTSCENE ANIMATION
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: SETS UP PLAYER TILE POINTERS FOR CUTSCENE ANIMATION
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 cutsceneTilePtrSetup:
 ;   MAIN CHARACTER TILE PTR
     LD HL, msSceneMainTileTbl@msSN  ; MS.PAC-MAN [SMOOTH]
@@ -1149,18 +1139,18 @@ cutsceneTilePtrSetup:
     RET
 
 
-/*
---------------------------------------------------------
-        CUTSCENE ANIMATION FUNCS FOR JR.PAC
---------------------------------------------------------
-*/
 
-/*
-    INFO: SETS UP CUTSCENES FOR MS.PAC
-    INPUT: HL - PROG TABLE FOR CUTSCENE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+; --------------------------------------------------------
+;         CUTSCENE ANIMATION FUNCS FOR JR.PAC
+; --------------------------------------------------------
+
+
+
+    ; INFO: SETS UP CUTSCENES FOR MS.PAC
+    ; INPUT: HL - PROG TABLE FOR CUTSCENE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 jrCutSetup:
 ;   CUTSCENE SUBPROGRAM SETUP
     CALL cutsceneSubPrgSetup
@@ -1238,12 +1228,12 @@ jrCutSetup:
     RET
 
 
-/*
-    INFO: WRITES VRAM TILEMAP WITH STARTING AREA FOR INTRO CUTSCENE AND CUTSCENE 1
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, D, HL
-*/
+
+    ; INFO: WRITES VRAM TILEMAP WITH STARTING AREA FOR INTRO CUTSCENE AND CUTSCENE 1
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, D, HL
+
 jrLoadStartingTileMapArea:
 ;   SET VDP ADDRESS
     LD HL, NAMETABLE | VRAMWRITE
@@ -1268,12 +1258,12 @@ jrLoadStartingTileMapArea:
     RET
 
 
-/*
-    INFO: COMMON DRAW AND UPDATE FOR JR.PAC CUTSCENES
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX, IY
-*/
+
+    ; INFO: COMMON DRAW AND UPDATE FOR JR.PAC CUTSCENES
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX, IY
+
 jrSceneCommonDrawUpdate:
 ;   DO CUTSCENE DRAW
     ; COPY OFFSCREEN FLAGS TO SEQUENTIAL ARRAY

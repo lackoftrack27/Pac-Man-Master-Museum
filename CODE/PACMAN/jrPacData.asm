@@ -1,8 +1,6 @@
-/*
------------------------------------------------
-            JR. PAC-MAN DATA
------------------------------------------------
-*/
+; -----------------------------------------------
+;             JR. PAC-MAN DATA
+; -----------------------------------------------
 
 ;   JR.PAC-MAN [SMOOTH, NON-PLUS] TILE TABLE
 jrSNTileTbl:
@@ -199,9 +197,3 @@ jrAPDeathTileTbl:
     .DW jrDTileA0E jrDTileA21 jrDTileA07 jrDTileA22
     .DW jrDTileA0F jrDTileA23 jrDTileA07 jrDTileA07
     .DW jrDTileA10 jrDTileA24 jrDTileA07 jrDTileA25
-
-
-
-;   FRAMES TIMES
-jrDeathTimes:
-    .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $07 $5D

@@ -1,17 +1,15 @@
-/*
-------------------------------------------------
-    UPDATE FUNCTIONS FOR DIFFERENT STUFF
-------------------------------------------------
-*/
+; ------------------------------------------------
+;     UPDATE FUNCTIONS FOR DIFFERENT STUFF
+; ------------------------------------------------
 
 
 
-/*
-    INFO: COMMON UPDATE FUNCTION USED FOR NORMAL MODE
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: DE, HL, AF
-*/
+
+    ; INFO: COMMON UPDATE FUNCTION USED FOR NORMAL MODE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: DE, HL, AF
+
 generalGameplayUpdate:
 ;   DEAD STATE UPDATE FUNC (OG)
 ;   EXIT IF DEAD
@@ -53,12 +51,12 @@ generalGameplayUpdate:
     JP ghostDotReleaser
 
 
-/*
-    INFO: UPDATE FUNCTION WHEN PAC-MAN IS EATING GHOST
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: UPDATE FUNCTION WHEN PAC-MAN IS EATING GHOST
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 eatModeUpdate:
 ;   CHECK WHICH SUBSTATE IS ACTIVE
     LD A, (eatSubState)
@@ -98,12 +96,12 @@ eatModeUpdate:
     RET
 
 
-/*
-    INFO: GETS PLAYER INPUT
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, B
-*/
+
+    ; INFO: GETS PLAYER INPUT
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, B
+
 getInput:
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
@@ -175,12 +173,12 @@ getInput:
 
 
 
-/*
-    INFO: ADDS A BCD NUMBER TO SCORE
-    INPUT: HL - NUMBER TO ADD
-    OUTPUT: NONE
-    USES: AF, HL, BC, DE, HL
-*/
+
+    ; INFO: ADDS A BCD NUMBER TO SCORE
+    ; INPUT: HL - NUMBER TO ADD
+    ; OUTPUT: NONE
+    ; USES: AF, HL, BC, DE, HL
+
 addToScore:
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
@@ -268,12 +266,12 @@ addToScore:
     RET
 
 
-/*
-    INFO: INITIALIZES SCORE TILEMAP BUFFER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: INITIALIZES SCORE TILEMAP BUFFER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 scoreTilemapRstBuffer:
 ;   SET FIRST FOUR DIGITS TO BLANK
     LD HL, scoreTileMapBuffer
@@ -294,12 +292,12 @@ scoreTilemapRstBuffer:
     RET
 
 
-/*
-    INFO: CONVERTS SCORE (BCD) TO TILEMAP
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: CONVERTS SCORE (BCD) TO TILEMAP
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 scoreTileMapUpdate:
 ;   SCORE TILEMAP UPDATE ROUTINE
     LD BC, $000F   ; LEADING ZERO FLAG / NIBBLE BITMASK
@@ -372,12 +370,12 @@ scoreTileMapUpdate:
     RET
 
 
-/*
-    INFO: DOES PALETTE CYCLING ON POWER PELLETS WHEN IT IS TIME TO DO SO
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: DOES PALETTE CYCLING ON POWER PELLETS WHEN IT IS TIME TO DO SO
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 powDotCyclingUpdate:
 ;   INCREMENT FRAME COUNTER
     LD HL, powDotFrameCounter
@@ -472,12 +470,12 @@ powDotCyclingUpdate:
 
 
 
-/*
-    INFO: UPDATES RAM BUFFER WHEN MAZE NEEDS TO CHANGE (DOT EATEN)
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: UPDATES RAM BUFFER WHEN MAZE NEEDS TO CHANGE (DOT EATEN)
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 mazeUpdate:
 ;   CHECK IF FRUIT IS ON SCREEN
     LD HL, currPlayerInfo.fruitStatus
@@ -869,12 +867,12 @@ mazeUpdate:
 
 
 
-/*
-    INFO: UPDATES SUPER TIMER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL, IX
-*/
+
+    ; INFO: UPDATES SUPER TIMER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL, IX
+
 
 superTimerUpdate:
 ;   CHECK IF ALL GHOSTS ARE EATEN
@@ -916,12 +914,12 @@ superTimerUpdate:
 
 
 
-/*
-    INFO: CHECKS IF ALL DOTS IN THE MAZE ARE EATEN
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: CHECKS IF ALL DOTS IN THE MAZE ARE EATEN
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 allDotsEatenCheck:
 .IF RACK_ADV != $00
     POP HL      ; REMOVE FUNCTION CALLER FROM STACK
@@ -967,12 +965,12 @@ allDotsEatenCheck:
 
 
 
-/*
-    INFO: UPDATE PLAYER'S DOT COUNTER
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, HL
-*/
+
+    ; INFO: UPDATE PLAYER'S DOT COUNTER
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+
 updatePlayerDotCount:
 ;   CHECK IF GAME IS JR.PAC
     LD A, (plusBitFlags)
@@ -998,13 +996,13 @@ updatePlayerDotCount:
 
 
 
-/*
-    INFO: UPDATES SCROLL RELATED VARS SUCH AS...
-        SCROLL, LEFT-MOST TILE, OFFSCREEN FLAGS, ETC
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL
-*/
+
+    ; INFO: UPDATES SCROLL RELATED VARS SUCH AS...
+    ;     SCROLL, LEFT-MOST TILE, OFFSCREEN FLAGS, ETC
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+
 ;   $28 <-> $00 <-> $D8
 updateJRScroll:
     ; CHANGE BANK FOR TABLES
@@ -1092,12 +1090,12 @@ updateJRScroll:
     RET
 
 
-/*
-    INFO: SWAPS PLAYER DATA (ACTIVE <-> INACTIVE)
-    INPUT: HL - playerType (PLAYER CONFIG)
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX, IY
-*/
+
+    ; INFO: SWAPS PLAYER DATA (ACTIVE <-> INACTIVE)
+    ; INPUT: HL - playerType (PLAYER CONFIG)
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX, IY
+
 swapPlayerData:
 ;   TOGGLE CURRENT PLAYER BIT (BIT 1)
     LD A, $01 << CURR_PLAYER
@@ -1135,12 +1133,12 @@ swapPlayerData:
     RET
 
 
-/*
-    INFO: REMOVES ALL MUTATED DOTS FROM COLLISION MAP & TILE MAP
-    INPUT: NONE
-    OUTPUT: NONE
-    USES: AF, BC, DE, HL, IX, IYL
-*/
+
+    ; INFO: REMOVES ALL MUTATED DOTS FROM COLLISION MAP & TILE MAP
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL, IX, IYL
+
 removeMDots:
 ;   CHECK TO SEE IF ONLY MUTATED DOTS ARE LEFT
     ; ADD BOTH COUNTS AND STORE IN DE

@@ -1,24 +1,23 @@
-/*
-------------------------------------------------
-            STATE UPDATE FUNCTIONS
-------------------------------------------------
-*/
+; ------------------------------------------------
+;             STATE UPDATE FUNCTIONS
+; ------------------------------------------------
 
 
 
-/*
-------------------------------------------------
-                SCATTER MODE
-------------------------------------------------
-*/
+
+
+; ------------------------------------------------
+;                 SCATTER MODE
+; ------------------------------------------------
+
 ghostStateTable@update@scatter:
 @@@enter:
 @@@update:
-/*
-------------------------------------------------
-    [SCATTER MODE] UPDATE - SPEED PATTERN CHECK
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     [SCATTER MODE] UPDATE - SPEED PATTERN CHECK
+; ------------------------------------------------
+
 @@@@speedPatCheck:
 ;   CHECK IF GHOST IS BLINKY
     LD A, (IX + ID)
@@ -73,11 +72,11 @@ ghostStateTable@update@scatter:
     INC HL
     INC HL
     INC (HL)
-/*
-------------------------------------------------
-    [SCATTER MODE] UPDATE - CHECK IF GHOST IS AT CENTER POINT
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     [SCATTER MODE] UPDATE - CHECK IF GHOST IS AT CENTER POINT
+; ------------------------------------------------
+
 @@@@chkCenterPoint:
 ;   CHECK IF AT CENTER OF TILE
     LD A, (IX + X_WHOLE)
@@ -122,11 +121,11 @@ ghostStateTable@update@scatter:
     ; SET REVERSE DIRECTION
     XOR A, $02
     LD (IX + REVE_DIR), A
-/*
-------------------------------------------------
-    [SCATTER MODE] UPDATE - APPLY MAIN AXIS MOVEMENT TO GHOST
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     [SCATTER MODE] UPDATE - APPLY MAIN AXIS MOVEMENT TO GHOST
+; ------------------------------------------------
+
 @@@@applyMovement:
     LD A, (IX + CURR_DIR)
     OR A
@@ -152,11 +151,11 @@ ghostStateTable@update@scatter:
     DEC (IX + X_WHOLE + 1)      ; 150 [RIGHT, UNDERFLOW]
 +:
     DEC (IX + X_WHOLE)          ; 127 [RIGHT]
-/*
-------------------------------------------------
-    [SCATTER MODE] UPDATE - UPDATE TILES
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;     [SCATTER MODE] UPDATE - UPDATE TILES
+; ------------------------------------------------
+
 @@@@updateCenters:
 ;   UPDATE ACTOR'S COLLISION TILES, CENTERS, ETC...
     JP actorUpdate
@@ -167,11 +166,11 @@ ghostStateTable@update@scatter:
 
 
 
-/*
-------------------------------------------------
-                GOTO HOME MODE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;                 GOTO HOME MODE
+; ------------------------------------------------
+
 ghostStateTable@update@gotoHome:
 @@@enter:
 @@@update:
@@ -197,11 +196,11 @@ ghostStateTable@update@gotoHome:
 
 
 
-/*
-------------------------------------------------
-        GOTO CENTER [OF HOME] MODE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;         GOTO CENTER [OF HOME] MODE
+; ------------------------------------------------
+
 ghostStateTable@update@gotoCenter:
 @@@enter:
 @@@update:
@@ -259,11 +258,11 @@ ghostStateTable@update@gotoCenter:
 
 
 
-/*
-------------------------------------------------
-        GOTO REST [SPOT OF HOME] MODE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;         GOTO REST [SPOT OF HOME] MODE
+; ------------------------------------------------
+
 ghostStateTable@update@gotoRest:
 ;   CHECK STATE
     BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
@@ -335,11 +334,11 @@ ghostStateTable@update@gotoRest:
 
 
 
-/*
-------------------------------------------------
-            REST [SPOT OF HOME] MODE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;             REST [SPOT OF HOME] MODE
+; ------------------------------------------------
+
 ghostStateTable@update@rest:
 @@@enter:
 @@@update:
@@ -368,11 +367,11 @@ ghostStateTable@update@rest:
 
 
 
-/*
-------------------------------------------------
-            GOTO EXIT [OF HOME] MODE
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;             GOTO EXIT [OF HOME] MODE
+; ------------------------------------------------
+
 ghostStateTable@update@gotoExit:
 ;   CHECK STATE
     BIT 0, (IX + NEW_STATE_FLAG)    ; CHECK THIS IS A NEW STATE
@@ -451,11 +450,11 @@ ghostStateTable@update@gotoExit:
 
 
 
-/*
-------------------------------------------------
-        DRAW FUNCTIONS OF GHOST STATES
-------------------------------------------------
-*/
+
+; ------------------------------------------------
+;         DRAW FUNCTIONS OF GHOST STATES
+; ------------------------------------------------
+
 ghostStateTable@draw@scatter:
 ghostStateTable@draw@rest:
 ghostStateTable@draw@gotoExit:
