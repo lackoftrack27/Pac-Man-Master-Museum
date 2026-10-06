@@ -215,6 +215,7 @@ generalResetFunc:
     LD (jrColumnToUpdate), A
     LD (updateColFlag), A
     LD (jrCameraPos), A
+    LD (jrScrollVDP), A
     OUT (VDPCON_PORT), A
     LD A, $88
     OUT (VDPCON_PORT), A
@@ -228,6 +229,10 @@ generalResetFunc:
     ; SET INITIAL SCROLL
     LD A, $28
     LD (jrCameraPos), A
+    LD A, $04
+    LD (jrLeftMostTile), A
+    LD HL, JR_ARC_SCROLL_CENTER * $100
+    LD (jrScrollArc), HL
 ;   WRITE TILEMAP DATA TO VRAM (JR. PAC)
     LD HL, NAMETABLE | VRAMWRITE
     RST setVDPAddress

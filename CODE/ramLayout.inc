@@ -53,6 +53,9 @@
     jrColumnToUpdate: db
     updateColFlag: db
     enableScroll: db
+    jrScrollArc: dw         ; OG SCROLL VALUE (LOW: SUBPIXEL, HIGH: WHOLE)
+    jrScrollVDP: db         ; SCROLL VALUE THATS SENT TO VDP
+    jrArcOffScreen: dsb 4   ; OG OFFSCREEN FLAGS FOR GHOSTS
 ;   GAMEPLAY MODE STUFF
     ; INFO FOR CURRENT PLAYER
     currPlayerInfo INSTANCEOF playerInfo

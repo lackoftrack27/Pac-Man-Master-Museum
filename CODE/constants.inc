@@ -344,7 +344,10 @@
     EDIBLE_FLAG DB
     ID          DB
     INVISIBLE_FLAG  DB
-.ENDE  
+.ENDE
+
+.DEFINE JR_ARC_SCROLL_MAX       $D0     ; OG SCROLL (WHOLE) GOES FROM 0 TO THIS
+.DEFINE JR_ARC_SCROLL_CENTER    $68     ; GHOST HOUSE IN THE MIDDLE OF THE SCREEN
 
 ; -------------------------------------------------
 ;           SPRITE PALETTE INDEXES

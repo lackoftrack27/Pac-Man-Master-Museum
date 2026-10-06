@@ -10,6 +10,9 @@
     ; USES: AF, HL, IX
 
 generalGamePlayDraw:
+;   LATCH VDP SCROLL VALUE HERE (KEEPS BG AND SPRITES VISUALLY CONSISTENT)
+    LD A, (jrScrollReal)
+    LD (jrScrollVDP), A
 ;   UPDATE NEW COLUMN FOR SCROLLING (FLAG MUST BE SET && GAME MUST BE JR)
     LD HL, updateColFlag
     LD A, (enableScroll)

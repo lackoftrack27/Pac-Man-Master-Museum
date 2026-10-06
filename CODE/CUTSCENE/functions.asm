@@ -1168,6 +1168,8 @@ jrCutSetup:
     LD L, A
     LD H, A
     ; ALL SCROLL VARS
+    LD (jrScrollArc), HL        ; OG SCROLL STARTS AT RIGHT SIDE LIMIT
+    LD (pacman + X_WHOLE), HL   ; OG SCROLL FOLLOWS PAC-MAN'S SLOT
     LD (jrScrollReal), HL
     LD (jrOldScrollReal), HL
     LD (jrColumnToUpdate), A
@@ -1513,6 +1515,10 @@ jrSceneCommonDrawUpdate:
     DEC IX
     DEC IYL ; KEEP LOOPING UNTIL COUNTER IS 0
     JP NZ, -
+;   UPDATE OG SCROLL VALUE [ATTRACT, CUTSCENE 0/1]
+    LD A, (subGameMode)
+    CP A, CUTSCENE_JRP02
+    CALL NZ, updateJRScrollArc
 ;   SUB PROGRAM UPDATE
     CALL cutAniProcess
     ; EXIT IF CUTSCENE ENDED
@@ -1585,6 +1591,11 @@ jrSceneCommonDrawUpdate:
     ; CHANGE BANK FOR TABLES
     LD A, JR_TABLES_BANK
     LD (MAPPER_SLOT2), A
+    ; DO DIFFERENT SCROLL FOR ATTRACT, CUTSCENE 0/1
+    LD A, (subGameMode)
+    CP A, CUTSCENE_JRP02
+    JP NZ, updateJRScroll@convert
+    ; SCROLL CALCULATION [CUTSCENE 2]
     ; NEW TO OLD
     LD A, (jrScrollReal)
     LD (jrOldScrollReal), A
@@ -1604,45 +1615,6 @@ jrSceneCommonDrawUpdate:
     INC HL
     LD H, (HL)
     LD L, A
-    ; DO DIFFERENT SCROLL FOR CUTSCENE 2
-    LD A, (subGameMode)
-    CP A, CUTSCENE_JRP02
-    JP Z, @cutscene2Scroll
-    ; SCROLL CALCULATION [ATTRACT, CUTSCENE 0/1]
-        ; SKIP IF AT MAX LEFT SCROLL
-    LD DE, $002C + $01
-    OR A
-    SBC HL, DE
-    ADD HL, DE
-    JP C, updateJRScroll@cutsceneJump
-        ; FLIP X AXIS
-    EX DE, HL
-    LD HL, $0154    ; MAX POSITION
-    SBC HL, DE
-    EX DE, HL
-        ; MAX SCROLL DETERMINATION
-    LD HL, $00D8    ; MAX SCROLL
-    ADD HL, DE
-    LD A, L
-    RRC H
-        ; CAP TO $28 (MAX LEFT SCROLL)
-    JR NC, +
-    CP A, $28
-    JR C, +
-    LD A, $28
-+:
-    LD (jrScrollReal), A
-;   CALCULATE LEFT MOST TILE
-    SRA A
-    SRA A
-    SRA A
-    NEG
-    ADD A, $04
-    LD (jrLeftMostTile), A
-;   UPDATE CAMERA POS, OFFSCREEN FLAGS, COLUMN, SCROLL FLAG
-    JP updateJRScroll@cutsceneJump
-@cutscene2Scroll:
-    ; SCROLL CALCULATION [CUTSCENE 2]
         ; CALCULATE SCROLL
     LD DE, $0070    ; STARTING CAMERA POSITION
     OR A

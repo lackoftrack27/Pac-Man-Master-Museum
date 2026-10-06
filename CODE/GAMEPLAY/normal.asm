@@ -42,6 +42,8 @@ sStateGameplayTable@normalMode:
     OUT (VDPCON_PORT), A
 .ENDIF
 @@update:
+;   UPDATE JR PAC SCROLL
+    CALL updateJRScrollIfOn
 ;   CHECK FOR ALL DOTS EATEN
     CALL allDotsEatenCheck
 ;   GENERAL GAMEPLAY UPDATE (SHARED WITH SUPER/EAT MODE)

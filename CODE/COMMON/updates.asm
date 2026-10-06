@@ -996,42 +996,55 @@ updatePlayerDotCount:
 
 
 
+    ; INFO: MOVES SCROLL 1 PIXEL TOWARDS CENTER, THEN UPDATES SCROLL RELATED VARS
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, HL
+centerJRScroll:
+    ; CHANGE BANK FOR TABLES
+    LD A, JR_TABLES_BANK
+    LD (MAPPER_SLOT2), A
+;   COMPARE OG SCROLL (WHOLE) TO CENTER
+    LD HL, jrScrollArc + 1
+    LD A, (HL)
+    CP A, JR_ARC_SCROLL_CENTER
+    JR Z, updateJRScroll@convert    ; ALREADY AT CENTER
+    JR C, @incToCenter
+    DEC (HL)                        ; SCROLL > CENTER
+    DEC (HL)
+@incToCenter:
+    INC (HL)                        ; SCROLL < CENTER
+    JP updateJRScroll@convert
+
+
 
     ; INFO: UPDATES SCROLL RELATED VARS SUCH AS...
     ;     SCROLL, LEFT-MOST TILE, OFFSCREEN FLAGS, ETC
     ; INPUT: NONE
     ; OUTPUT: NONE
-    ; USES: AF, BC, DE, HL
+    ; USES: AF, BC, DE, HL, IX
 
-;   $28 <-> $00 <-> $D8
+;   OG SCROLL:      $D0 <-> $68 <-> $00
+;   SMS SCROLL:     $28 <-> $00 <-> $D8
+updateJRScrollIfOn:
+;   ONLY UPDATE IF SCROLLING IS ENABLED (JR)
+    LD A, (enableScroll)
+    OR A
+    RET Z
+    ; FALL THROUGH
+
 updateJRScroll:
-    ; CHANGE BANK FOR TABLES
-    LD A, JR_TABLES_BANK
-    LD (MAPPER_SLOT2), A
+;   UPDATE OG SCROLL VALUE (ALSO CHANGES BANK FOR TABLES)
+    CALL updateJRScrollArc
+@convert:
 ;   UPDATE REAL SCROLL VALUE
     ; NEW TO OLD
     LD A, (jrScrollReal)
     LD (jrOldScrollReal), A
-    ; SCALE PAC-MAN'S POS TO 3/4 USING TABLE
-        ; POS -> INDEX
-    LD A, (pacman + X_WHOLE)
+    ; OG SCROLL -> REAL SCROLL (FROM TABLE)
+    LD A, (jrScrollArc + 1)
     LD L, A
-    LD A, (pacman + X_WHOLE + 1)
-    LD H, A
-    ADD HL, HL
-        ; ADD HIGH BYTES
-    LD A, H
-    ADD A, hibyte(jrScaleTable)
-    LD H, A
-        ; GET VALUE
-    LD A, (HL)
-    INC HL
-    LD H, (HL)
-    LD L, A
-    ; GET NEW SCROLL VALUE FROM TABLE
-    LD A, H
-    ADD A, hiByte(jrRealScrollTable)
-    LD H, A
+    LD H, hibyte(jrArcToRealTable)
     LD A, (HL)
     LD (jrScrollReal), A
 ;   UPDATE LEFT MOST TILE (FROM TABLE)
@@ -1039,16 +1052,29 @@ updateJRScroll:
     LD L, A
     LD A, (HL)
     LD (jrLeftMostTile), A
-@cutsceneJump:
 ;   UPDATE CAMERA POS
-    LD A, (jrScrollReal)
-    LD B, A
     LD A, $28   ; MAX SCROLL
-    SUB A, B
+    SUB A, L    ; L IS STILL REAL SCROLL
     LD (jrCameraPos), A
+;   UPDATE GHOSTS' OG OFFSCREEN FLAGS (GHOST REVERSES WHEN IT LEAVES THE OG SCREEN)
+    LD A, (jrScrollArc + 1)
+    LD C, A
+    LD HL, jrArcOffScreen   ; SECONDARY OFFSCREEN FLAGS FOR GHOSTS
+    LD IX, blinky
+    CALL ghostArcOffScreenCheck
+    LD IX, pinky
+    CALL ghostArcOffScreenCheck
+    LD IX, inky
+    CALL ghostArcOffScreenCheck
+    LD IX, clyde
+    CALL ghostArcOffScreenCheck
+;   UPDATE ACTOR OFFSCREEN FLAGS (ONLY FOR HIDING SPRITES HERE)
+    LD B, $01   ; DON'T TOUCH REVERSE FLAGS
+    JR @offScreenCheck
 @cutsceneJump2:
 ;   UPDATE ACTOR OFFSCREEN FLAGS
     LD B, $00   ; FLAG TO SET REVERSE FLAG IN OFFSCREEN ROUTINE
+@offScreenCheck:
     LD IX, blinky
     CALL actorOffScreenCheck
     LD IX, pinky
@@ -1070,6 +1096,7 @@ updateJRScroll:
     LD (MAPPER_SLOT2), A
 ;   DETERMINE WHICH COLUMN TO UPDATE
     LD A, (jrScrollReal)
+    LD B, A
     ADD A, $02
     AND A, $F8  ; ADD OFFSET THAN ROUND DOWN TO CLOSEST MULT OF 8
     NEG
@@ -1079,14 +1106,54 @@ updateJRScroll:
     AND A, $1F
     LD (jrColumnToUpdate), A
 ;   UPDATE SCROLL FLAG
-    LD A, (jrScrollReal)
-    LD B, A
     LD A, (jrOldScrollReal)
     XOR A, B
     AND A, $F8
     RET Z
     LD A, $01
     LD (updateColFlag), A
+    RET
+
+
+    ; INFO: UPDATES OG SCROLL VALUE (SCROLL SPEED DEPENDS ON WHERE JR IS ON THE OG SCREEN)
+    ; INPUT: NONE
+    ; OUTPUT: NONE (BANK FOR JR TABLES IS LEFT IN SLOT 2)
+    ; USES: AF, BC, DE, HL
+updateJRScrollArc:
+    ; CHANGE BANK FOR TABLES
+    LD A, JR_TABLES_BANK
+    LD (MAPPER_SLOT2), A
+;   USE JR'S OG SCREEN POS (WORLD POS - SCROLL) AS INDEX INTO SPEED TABLE
+    LD HL, (jrScrollArc)        ; L: SUBPIXEL, H: WHOLE
+    LD A, (pacman + X_WHOLE)
+    SUB A, H
+    LD E, A
+    LD D, hibyte(jrArcSpeedTable)
+    LD A, (DE)
+;   DIVIDE SPEED BY 32
+    LD C, A
+    ADD A, A
+    SBC A, A
+    LD B, A
+    SLA C
+    RL B
+    SLA C
+    RL B
+    SLA C
+    RL B
+;   ADD TO SCROLL VALUE
+    LD D, H                     ; SAVE OLD WHOLE VALUE
+    ADD HL, BC
+;   KEEP WITHIN 0 - MAX
+    LD A, H
+    CP A, JR_ARC_SCROLL_MAX
+    JR C, +
+    LD HL, $0000                ; RIGHT SIDE SCROLL LIMIT (OLD WHOLE VALUE < $80)
+    BIT 7, D
+    JR Z, +
+    LD H, JR_ARC_SCROLL_MAX     ; LEFT SIDE SCROLL LIMIT (OLD WHOLE VALUE >= $80)
++:
+    LD (jrScrollArc), HL
     RET
 
 

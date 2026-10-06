@@ -914,7 +914,11 @@ jrAttractProg6:
     SETN    $FF
     LOOP    $10 $00 ; 
 
-    SETN    $49
+    ;SETN    $49
+    SETN    $FF
+    PAUSE
+    SETN    $3C
+
     PAUSE
     SETPOS    $80 $D2
     SETCHAR jrSceneCharacters@msPacStatic
@@ -922,10 +926,13 @@ jrAttractProg6:
     LOOP    $00 $00
     SETN    $FF
     PAUSE
-    SETN    $FF
-    PAUSE
-    ;SETN    $80
-    SETN    $33
+
+    ; SETN    $FF
+    ; PAUSE
+    ; ;SETN    $80
+    ; SETN    $33
+    SETN    $40
+
     PAUSE
     SETCHAR jrSceneCharacters@msPacRight
     SETN    $17
@@ -1382,7 +1389,10 @@ jrScene1Prog4:
     SETCHAR jrSceneCharacters@emptySpr
     SETN    $01
     LOOP    $00 $00
-    SETPOS  $00 $00 ; $C0 $00
+
+    ;SETPOS  $00 $00
+    SETPOS  $C0 $00
+
     SETN    $30
     LOOP    $10 $00
     SETN    $80
@@ -1391,10 +1401,14 @@ jrScene1Prog4:
     SETN    $34
     LOOP    $10 $00
     SETJRVAR        $01
-    SETN    $E5 ; $D4
+
+    ;SETN    $E5
+    SETN    $D4
+
     LOOP    $F0 $00
-    ;SETN    $D0 
-    ;LOOP    $F0 $00
+
+    SETN    $D0 
+    LOOP    $F0 $00
     CUTEND
 
 

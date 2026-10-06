@@ -25,6 +25,8 @@ sStateGameplayTable@dead00Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   UPDATE SCROLL IF APPLICABLE
+    CALL updateJRScrollIfOn
 ;   CHECK FOR ALL DOTS EATEN (IN CASE OF DYING ON LAST DOT)
     CALL allDotsEatenCheck
 ;   GHOST VISUAL COUNTERS
@@ -90,6 +92,8 @@ sStateGameplayTable@dead01Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   UPDATE SCROLL IF APPLICABLE
+    CALL updateJRScrollIfOn
 ;   UPDATE POWER DOT PALETTE CYCLE
     CALL powDotCyclingUpdate
 ;   UPDATE PAC-MAN
@@ -137,6 +141,8 @@ sStateGameplayTable@dead02Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   UPDATE SCROLL IF APPLICABLE
+    CALL updateJRScrollIfOn
 ;   UPDATE POWER DOT PALETTE CYCLE
     CALL powDotCyclingUpdate
 ;   UPDATE PAC-MAN

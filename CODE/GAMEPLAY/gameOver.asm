@@ -54,24 +54,11 @@ sStateGameplayTable@gameoverMode:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
 ;   SAVE HIGH SCORE TO SRAM
-    CALL saveScoreToSRAM
-;   CAP PAC-MAN'S POSITION (USED IN JR FOR SCROLLING)
-    LD HL, (pacman.xPos)
-    LD DE, $015A
-    OR A
-    SBC HL, DE
-    ADD HL, DE
-    JR C, +
-    LD (pacman.xPos), DE
-    RET
-+:
-    LD DE, $007A
-    OR A
-    SBC HL, DE
-    RET NC
-    LD (pacman.xPos), DE
-    RET 
+    JP saveScoreToSRAM
 @@draw:
+;   LATCH SCROLL VALUE FOR H-INT
+    LD A, (jrScrollReal)
+    LD (jrScrollVDP), A
 ;   UPDATE NEW COLUMN FOR SCROLLING (FLAG MUST BE SET && GAME MUST BE JR)
     LD HL, updateColFlag
     LD A, (plusBitFlags)    ; JR_PAC
@@ -85,20 +72,7 @@ sStateGameplayTable@gameoverMode:
 ;   MOVE SCREEN TO CENTER (IF GAME IS JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, @@@updateTimer
-    LD HL, (pacman.xPos)
-    LD DE, $00E8
-    SBC HL, DE
-    ADD HL, DE
-    JR Z, @@@updateTimer
-    JR C, +
-    DEC HL
-    LD (pacman.xPos), HL
-    JR @@@updateTimer
-+:
-    INC HL
-    LD (pacman.xPos), HL
-@@@updateTimer:
+    CALL NZ, centerJRScroll
 ;   DECREMENT TIMER 0
     LD HL, mainTimer0
     DEC (HL)
