@@ -74,8 +74,7 @@ sStateGameplayTable@gameoverMode:
     AND A, $01 << JR_PAC
     CALL NZ, centerJRScroll
 ;   DECREMENT TIMER 0
-    LD HL, mainTimer0
-    DEC (HL)
+    CALL tickTimer0
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
 ;   PREPARE FOR NEXT GAME STATE

@@ -65,7 +65,7 @@ eatModeUpdate:
 @enter:
 ;   SET TIMER
     LD A, EAT_TIMER_LEN
-    LD (mainTimer0), A
+    CALL setTickTimer0
 ;   INCREASE SCORE
     LD A, (ghostPointIndex) ; CONVERT INDEX TO OFFSET
     ADD A, A
@@ -82,8 +82,7 @@ eatModeUpdate:
     RET
 @update:
 ;   UPDATE EATING TIMER
-    LD HL, mainTimer0
-    DEC (HL)
+    CALL tickTimer0
     RET NZ      ; END IF NOT 0
 @exit:
 ;   UPDATE EATEN GHOST'S STATE
@@ -93,6 +92,34 @@ eatModeUpdate:
 ;   UPDATE GHOST POINTS SPR NUM
     XOR A
     LD (ghostPointSprNum), A
+    RET
+
+
+    ; INFO: SETS TIMER 0 TO COUNT 1/10 SEC TICKS (TIMED TASK IN OG)
+    ;     THIS FRAME'S TICK DOESN'T COUNT, OG PROCESSES ITS TIMERS BEFORE GAME LOGIC
+    ; INPUT: A - NUMBER OF TICKS
+    ; OUTPUT: NONE
+    ; USES: HL
+setTickTimer0:
+    LD (mainTimer0), A
+    LD HL, tickFlags
+    RES TICK_TIMER0, (HL)
+    RET
+
+
+    ; INFO: DECREMENTS TIMER 0 IF THERE WAS A 1/10 SEC TICK THIS FRAME (ONLY ONCE PER FRAME)
+    ; INPUT: NONE
+    ; OUTPUT: Z - TIMER HIT 0, HL - mainTimer0
+    ; USES: AF, HL
+tickTimer0:
+    LD HL, tickFlags
+    LD A, (HL)
+    RES TICK_TIMER0, (HL)   ; TICK HAS BEEN USED
+    LD HL, mainTimer0
+    CPL
+    AND A, $01 << TICK_TIMER0
+    RET NZ                  ; END IF THERE WAS NO TICK
+    DEC (HL)
     RET
 
 

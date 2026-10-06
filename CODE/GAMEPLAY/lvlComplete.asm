@@ -15,7 +15,7 @@ sStateGameplayTable@comp00Mode:
     LD (ghostPointSprNum), A
 ;   SET TIMER
     LD A, LVLC00_TIMER_LEN
-    LD (mainTimer0), A
+    CALL setTickTimer0
 ;   STOP SOUNDS ON CHANNEL 1
     LD B, $01
     CALL sndStopChannel
@@ -27,8 +27,7 @@ sStateGameplayTable@comp00Mode:
     CALL generalGamePlayDraw
 @@update:
 ;   DECREMENT TIMER 0
-    LD HL, mainTimer0
-    DEC (HL)
+    CALL tickTimer0
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
     ; SET SUBSTATE TO COMP01 AND NEW-STATE-FLAG

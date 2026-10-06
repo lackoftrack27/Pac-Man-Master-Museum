@@ -388,6 +388,22 @@ mainGameLoop:
     LD A, (pauseRequest)
     OR A
     JP NZ, pauseMode    ; IF PAUSE BUTTON WAS PRESSED (AND HONORED), SWITCH TO PAUSE "MODE"
+;   UPDATE TIMER TICKS
+    LD HL, tickFrames
+    XOR A       ; ASSUME NO TICK THIS FRAME
+    DEC (HL)
+    JP P, +
+    ; 1/10 SECOND TICK
+    LD (HL), TICK_FRAMES - 1
+    LD A, $01 << TICK_TIMER0 | $01 << TICK_TENTH
+    INC HL      ; tickTenths
+    DEC (HL)
+    JP P, +
+    ; 1 SECOND TICK
+    LD (HL), TICK_TENTHS - 1
+    LD A, $01 << TICK_TIMER0 | $01 << TICK_TENTH | $01 << TICK_SEC
++:
+    LD (tickFlags), A
 ;   UPDATE RNG VALUE (USED IN PLUS)
     ; RNG = RNG * 5 + 1
     LD HL, plusRNGValue

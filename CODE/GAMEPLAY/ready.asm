@@ -9,7 +9,7 @@ sStateGameplayTable@ready00Mode:
 @@enter:
 ;   LOAD STATE TIMER
     LD A, READY00_TIMER_LEN          ; SET TIMER 0 FOR HOW LONG THIS STATE WILL LAST
-    LD (mainTimer0), A
+    CALL setTickTimer0
 ;   CLEAR NEW STATE FLAG
     XOR A
     LD (isNewState), A
@@ -33,8 +33,7 @@ sStateGameplayTable@ready00Mode:
     CALL draw1UP
 @@update:
 ;   DECREMENT TIMER 0
-    LD HL, mainTimer0
-    DEC (HL)
+    CALL tickTimer0
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
 ;   SET SUBSTATE TO READY01, SET NEW-STATE-FLAG

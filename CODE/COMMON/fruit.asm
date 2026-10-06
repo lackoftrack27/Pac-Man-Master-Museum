@@ -145,28 +145,34 @@ checkEatenFruit:
     JP checkEatenFruit@ateFruit
 
 
-
-
-
-    ; INFO: UPDATES FRUIT IN MAZE
+    ; INFO: UPDATES FRUIT TIMER
     ; INPUT: NONE
     ; OUTPUT: NONE
-    ; USES: AF, BC, DE, HL
-
-fruitUpdate:
+    ; USES: AF, HL
+fruitTimerTick:
+;   FRUIT ON SCREEN (PAC-MAN): TIMER COUNTS 1 SEC TICKS. ELSE (FRUIT POINTS): 1/10 SEC TICKS
     LD HL, currPlayerInfo.fruitStatus
-;   UPDATE FRUIT TIMER IF IT ISN'T 0
-    LD DE, (mainTimer3)
-    LD A, E
-    OR A, D
-    JP Z, + ; SKIP IF 0
-    ; DECREMENT TIMER
-    DEC DE
-    LD (mainTimer3), DE
-    LD A, E
-    OR A, D
-    JP NZ, + ; IF NOT 0, SKIP
+    LD A, $01 << TICK_SEC
+    BIT 0, (HL)
+    JR NZ, +
+    LD A, $01 << TICK_TENTH
++:
+;   END IF THERE WAS NO SUCH TICK THIS FRAME
+    LD HL, tickFlags
+    AND A, (HL)
+    RET Z
+;   ONLY IF TIMER IS RUNNING (MS.PAC AND JR.PAC DON'T USE IT FOR THEIR FRUIT)
+    LD HL, mainTimer3
+    LD A, (HL)
+    OR A
+    RET Z
+;   DECREMENT TIMER, REMOVE FRUIT IF 0
+    DEC (HL)
+    RET NZ
+    ; FALL THROUGH
+
 @timerExpired:
+    LD HL, currPlayerInfo.fruitStatus
     ; CLEAR LOWER NIBBLE
     LD A, (HL)
     AND A, $F0
@@ -181,7 +187,14 @@ fruitUpdate:
     INC A
     LD (fruit + OFFSCREEN_FLAG), A
     RET
-+:
+
+
+    ; INFO: UPDATES FRUIT IN MAZE
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF, BC, DE, HL
+fruitUpdate:
+    LD HL, currPlayerInfo.fruitStatus
 ;   DO EXPLOSION REGARDLESS OF EATING (JR)
     LD A, (fruit + STATE)
     CP A, FRUIT_EXPLODE
@@ -355,12 +368,11 @@ msFruitUpdate:
 
 prepNextFruitPath:
 ;   CHECK IF FRUIT HAS FINISHED PATH (IS NOW OFFSCREEN)
-    LD HL, currPlayerInfo.fruitStatus
     LD A, (fruit + X_WHOLE)
     CP A, $F4   ; EXITED FROM LEFT SIDE
-    JP Z, fruitUpdate@timerExpired
+    JP Z, fruitTimerTick@timerExpired
     CP A, $0C   ; EXITED FROM RIGHT SIDE
-    JP Z, fruitUpdate@timerExpired
+    JP Z, fruitTimerTick@timerExpired
 ;   CHECK IF FRUIT NEEDS TO DO GHOST PATH
     LD HL, (fruitPathPtr)
     LD DE, msMazeGhostPath
@@ -1046,8 +1058,7 @@ fruitStateExplode:
     XOR A
     LD (fruit + STATE), A
 ;   CLEAR OTHER FRUIT STUFF
-    LD HL, currPlayerInfo.fruitStatus
-    JP fruitUpdate@timerExpired
+    JP fruitTimerTick@timerExpired
 
 
 

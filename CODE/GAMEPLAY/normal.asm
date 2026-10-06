@@ -46,6 +46,8 @@ sStateGameplayTable@normalMode:
     CALL updateJRScrollIfOn
 ;   CHECK FOR ALL DOTS EATEN
     CALL allDotsEatenCheck
+;   PAC-MAN FRUIT TIMER (TIMED TASK IN OG, DONE BEFORE GAME LOGIC)
+    CALL fruitTimerTick
 ;   GENERAL GAMEPLAY UPDATE (SHARED WITH SUPER/EAT MODE)
     CALL generalGameplayUpdate
     CALL generalGameplayUpdate
