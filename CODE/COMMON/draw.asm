@@ -203,12 +203,12 @@ drawInMazeFruit:
     JP NZ, displayEmptySprite
 ;   CONVERT FRUIT POSITION
     CALL convPosToScreen
+;   ASSUME FRUIT (NOT POINTS) WILL BE DISPLAYED
+    LD HL, (fruitTileDefPtr)
 ;   DISPLAY EXPLOSION IF FRUIT IS EXPLODING (JR)
     LD A, (fruit + STATE)
     CP A, FRUIT_EXPLODE
-    JP Z, @explosionJR
-;   ASSUME FRUIT (NOT POINTS) WILL BE DISPLAYED
-    LD HL, (fruitTileDefPtr)
+    JR Z, @explosionJR
 ;   CHECK IF THAT IS ACTUALLY TRUE
     LD A, (currPlayerInfo.fruitStatus)
     AND A, $01 << $01   ; 2 = POINTS
@@ -219,6 +219,10 @@ drawInMazeFruit:
     LD A, (fruit.sprTableNum)
     JP display4TileSprite
 @explosionJR:
+    ; FRUIT IS STILL DISPLAYED UNTIL EXPLOSION DELAY IS OVER
+    LD A, (fruitExplodeDelay)
+    OR A
+    JR NZ, @execDraw
     LD A, (fruitPathLen)
     AND A, $F0
     RRCA

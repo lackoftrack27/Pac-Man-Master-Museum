@@ -202,7 +202,14 @@ pacStateTable@update@normalMode:
 ;   CHECK IF PAC-MAN IS AT CENTER OF TILE
     AND A, $07
     CP A, $04
-    RET Z       ; IF SO, END
+    JR NZ, +
+    ; IF SO, PAC-MAN IS STOPPED AT A WALL. END UNLESS GAME IS JR.PAC...
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    RET Z
+    ; JR.PAC STILL CHECKS FOR FRUIT (IT CAN MOVE INTO HIM) AND DOTS
+    JP mazeUpdate
++:
 ;   CHECK IF INPUT WAS APPLIED (IS 1?)
     DEC E
     JR Z, @@@@prepareVector ; IF SO, SKIP...
