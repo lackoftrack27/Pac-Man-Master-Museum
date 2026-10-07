@@ -351,7 +351,7 @@ generalIntroSetup00:
     LD (frameCounter), A
     LD (flashCounter), A
 ;   SET TIMERS
-    LD A, ATT00_TIMER_LEN
+    LD A, ATT_FIRST_TIMER_LEN_MS    ; (ONLY MS.PAC-MAN'S INTRO USES THIS VALUE: PAC-MAN'S SETS ITS OWN AND JR'S CLEARS IT)
     LD (mainTimer0), A
     LD HL, $0000
     LD (mainTimer1), HL

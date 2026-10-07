@@ -217,14 +217,14 @@ msIntroSubTable@wait00:
     ; SET UP BLINKY
     XOR A
     LD IX, blinky
-    JP msIntroSetupGhost
+    JP msIntroSetupGhostWait
 
 msIntroSubTable@showBlinky:
 ;   DRAW BLINKY
     LD IX, blinky
     CALL displayGhostNormal
 ;   MOVE BLINKY
-    LD B, $4C + 2       ; Y LIMIT
+    LD B, $4D           ; Y LIMIT [OG: $94 - 71]
     CALL msIntroMoveGhost
     RET NZ  ; IF MOVEMENT ISN'T COMPLETE
 ;   PREPARE FOR NEXT STATE
@@ -246,7 +246,7 @@ msIntroSubTable@showBlinky:
     ; SET UP PINKY
     LD A, $01
     LD IX, pinky
-    JP msIntroSetupGhost
+    JP msIntroSetupGhostWait
 
 
 msIntroSubTable@showPinky:
@@ -254,7 +254,7 @@ msIntroSubTable@showPinky:
     LD IX, pinky
     CALL displayGhostNormal
 ;   MOVE PINKY
-    LD B, $4C + $10 + 2     ; Y LIMIT
+    LD B, $4D + $10         ; Y LIMIT
     CALL msIntroMoveGhost
     RET NZ  ; IF MOVEMENT ISN'T COMPLETE
 ;   PREPARE FOR NEXT STATE
@@ -267,14 +267,14 @@ msIntroSubTable@showPinky:
     ; SET UP INKY
     LD A, $02
     LD IX, inky
-    JP msIntroSetupGhost
+    JP msIntroSetupGhostWait
 
 msIntroSubTable@showInky:
 ;   DRAW INKY
     LD IX, inky
     CALL displayGhostNormal
 ;   MOVE INKY
-    LD B, $4C + $20 + 2     ; Y LIMIT
+    LD B, $4D + $20         ; Y LIMIT
     CALL msIntroMoveGhost
     RET NZ  ; IF MOVEMENT ISN'T COMPLETE
 ;   PREPARE FOR NEXT STATE
@@ -287,14 +287,14 @@ msIntroSubTable@showInky:
     ; SET UP SUE
     LD A, $03
     LD IX, clyde
-    JP msIntroSetupGhost
+    JR msIntroSetupGhostWait
 
 msIntroSubTable@showSue:
 ;   DRAW SUE
     LD IX, clyde
     CALL displayGhostNormal
 ;   MOVE SUE
-    LD B, $4C + $30 + 2     ; Y LIMIT
+    LD B, $4D + $30         ; Y LIMIT
     CALL msIntroMoveGhost
     RET NZ  ; IF MOVEMENT ISN'T COMPLETE
 ;   PREPARE FOR NEXT STATE
@@ -325,25 +325,30 @@ msIntroSubTable@showSue:
     ; SET UP MS. PAC
     LD A, $FF
     LD IX, pacman
-    JP msIntroSetupGhost    ; WRITES $00FF00 TO BLINKY'S UP COLLISION TILE
+    CALL msIntroSetupGhostWait  ; WRITES $00FF00 TO BLINKY'S UP COLLISION TILE
+    INC (HL)                    ; OG: MS.PAC-MAN'S NAME APPEARS A FRAME AFTER 'STARRING', SO SHE WAITS 1 MORE (HL: mainTimer0)
+    RET
 
 
 msIntroSubTable@showMsPac:
 ;   DRAW MS. PAC
     CALL pacTileStreaming
     CALL displayPacMan
+;   WAIT IF NEEDED
+    CALL msIntroWait
+    RET NZ
 ;   UPDATE POSITION
     LD HL, pacman.xPos
     INC (HL)
-;   CHECK IF MS. PAC IS AT WANTED POSITION
-    LD A, $75
+;   CHECK IF MS. PAC IS AT WANTED POSITION [OG: 114 PIXELS]
+    LD A, $72
     CP A, (HL)
     RET NZ  ; IF NOT, END
     ; INCREMENT STATE
     LD HL, introSubState
     INC (HL)
-    ; SET TWO SECOND TIMER
-    LD A, 120
+    ; SET TIMER [OG: SETN, 127 FRAME PAUSE, END]
+    LD A, 130
     LD (mainTimer0), A
     RET
 
@@ -376,6 +381,12 @@ msIntroDisplayGhostText:
     LD B, $06
     JP msIntroDisplayText
 
+;   MS.PAC-MAN'S INTRO ENTERS HERE (PAC-MAN'S INTRO USES msIntroSetupGhost AND COUNTS FRAMES IN mainTimer0)
+msIntroSetupGhostWait:
+;   WAIT 3 FRAMES BEFORE MOVING [OG: SETPOS, SETCHAR, SETN]
+    LD HL, mainTimer0
+    LD (HL), $03
+;   FALL THROUGH
 
 msIntroSetupGhost:
 ;   GHOST ID
@@ -407,12 +418,27 @@ msIntroSetupGhost:
 
 
 msIntroMoveGhost:
+;   WAIT IF NEEDED
+    CALL msIntroWait
+    RET NZ
 ;   CHECK IF GHOST NEEDS TO GO RIGHT OR UP
     LD A, (IX + X_WHOLE)
     CP A, $C0
     JR Z, +
-    INC (IX + X_WHOLE)  ; MOVE RIGHT
-    OR A, $01
+    INC A   ; MOVE RIGHT
+    LD (IX + X_WHOLE), A
+    ; OG: 1 FRAME WAIT AFTER 112 PIXELS [SETN], 3 AT THE CORNER [SETCHAR, SETN, FIRST STEP UP IS 0 PIXELS]
+    CP A, $70
+    JR Z, @wait1
+    CP A, $C0
+    RET NZ  ; RETURNS NZ
+    ; FACING UP
+    XOR A
+    LD (IX + CURR_DIR), A
+    LD (IX + NEXT_DIR), A
+    LD (HL), $02
+@wait1:
+    INC (HL)
     RET     ; ALWAYS RETURNS NZ
 +:
 ;   CHECK IF GHOST IS DONE GOING UP
@@ -420,8 +446,23 @@ msIntroMoveGhost:
     CP A, B
     RET Z   ; Z - COMPLETE
 ;   FACING UP
-    XOR A
-    LD (IX + CURR_DIR), A
-    LD (IX + NEXT_DIR), A
-    DEC (IX + Y_WHOLE)  ; MOVE UP
+    DEC A   ; MOVE UP
+    LD (IX + Y_WHOLE), A
+    ; OG: NEXT NAME APPEARS 2 FRAMES AFTER THE LAST STEP, SO WAIT 1 FRAME BEFORE REPORTING COMPLETE
+    CP A, B
+    JR Z, @wait1
     RET     ; ALWAYS RETURNS NZ
+
+
+    ; INFO: COUNTS DOWN THE WAIT TIMER OF MS.PAC-MAN'S INTRO
+    ; INPUT: NONE
+    ; OUTPUT: NZ IF WAITING, Z IF NOT
+    ; USES: AF, HL
+msIntroWait:
+    LD HL, mainTimer0
+    LD A, (HL)
+    OR A
+    RET Z
+    DEC (HL)
+    OR A
+    RET

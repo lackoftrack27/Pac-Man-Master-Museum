@@ -55,6 +55,9 @@ sStateAttractTable@introMode:
     CALL generalIntroSetup01
     LD A, $01
     LD (sprFlickerControl), A
+;   SHORTER FIRST WAIT (LOADING TOOK UP PART OF OG'S 1 SECOND)
+    LD A, ATT_FIRST_TIMER_LEN
+    LD (mainTimer0), A
 @@draw:
 ;   UPDATE GHOST VISUAL COUNTERS
     CALL ghostVisCounterUpdate
@@ -494,6 +497,21 @@ introActorSetup:
 
 ;   SUB STATE 0F
 runFromGhosts:
+;   MOVE PAC-MAN TOWARDS POWER DOT
+    ; COUNT FRAMES (OG: GHOSTS START ONE AFTER ANOTHER, EVERYONE SPEEDS UP ONCE CLYDE STARTS)
+    LD HL, mainTimer0
+    INC (HL)
+    LD A, (HL)
+    LD DE, ATT_PAC_SPEED00 - $10
+    LD BC, ATT_GHO_SPEED00 - $10
+    CP A, ATT_CLYDE_START
+    JR C, +
+    LD DE, ATT_PAC_SPEED00  ; MOVES SLIGHTLY SLOWER THAN GHOSTS
+    LD BC, ATT_GHO_SPEED00
++:
+    LD HL, (pacman + SUBPIXEL)
+    ADD HL, DE
+    LD (pacman + SUBPIXEL), HL
 ;   STATE 15 CHECK (HAS PAC-MAN REACHED POWER DOT?)
     LD A, (pacman.xPos)
     CP A, $C8
@@ -540,70 +558,49 @@ runFromGhosts:
 ;   DECREMENT STATE (COUNTERACT INCREMENT IN UPDATE)
     LD HL, introSubState
     DEC (HL)
-;   MOVE ALL ACTORS TOWARDS POWER DOT
-    ; PAC-MAN
-    LD DE, ATT_PAC_SPEED00  ; MOVES SLIGHTLY SLOWER THAN GHOSTS
-    LD HL, (pacman + SUBPIXEL)
-    ADD HL, DE
-    LD (pacman + SUBPIXEL), HL
-    ; CALCULATE TILE
-    LD IX, pacman
-    CALL updateCurrTile
-    LD A, (pacman + CURR_X)
-    ; CHECK IF PAC-MAN HAS REACHED WANTED TILE (BLINKY)
-    CP A, $21
+;   MOVE GHOSTS TOWARDS POWER DOT
+    LD A, (mainTimer0)
+    ; CHECK IF IT'S TIME FOR BLINKY TO MOVE
+    CP A, ATT_BLINKY_START
     RET C   ; IF NOT, END
     ; MOVE BLINKY
-    LD DE, ATT_GHO_SPEED00
     LD HL, (blinky + SUBPIXEL)
-    ADD HL, DE
+    ADD HL, BC
     LD (blinky + SUBPIXEL), HL
     ; CHECK IF PAC-MAN HAS REACHED WANTED TILE (PINKY)
-    CP A, $23
+    CP A, ATT_PINKY_START
     RET C   ; IF NOT, END
     ; MOVE PINKY
     LD HL, (pinky + SUBPIXEL)
-    ADD HL, DE
+    ADD HL, BC
     LD (pinky + SUBPIXEL), HL
     ; CHECK IF PAC-MAN HAS REACHED WANTED TILE (INKY)
-    CP A, $25
+    CP A, ATT_INKY_START
     RET C   ; IF NOT, END
     ; MOVE INKY
     LD HL, (inky + SUBPIXEL)
-    ADD HL, DE
+    ADD HL, BC
     LD (inky + SUBPIXEL), HL
     ; CHECK IF PAC-MAN HAS REACHED WANTED TILE (CLYDE)   
-    CP A, $27
+    CP A, ATT_CLYDE_START
     RET C   ; IF NOT, END
     ; MOVE CLYDE
     LD HL, (clyde + SUBPIXEL)
-    ADD HL, DE
+    ADD HL, BC
     LD (clyde + SUBPIXEL), HL
     RET
 
 
 ;   SUB STATE 10
 ghostHeadStart:
-;   STATE 16 CHECK (HAS PAC-MAN REACHED CENTER OF TILE WHERE POWER DOT WAS?)
-    LD A, (pacman.xPos)
-    CP A, $CC
-    JR NZ, +    ; IF NOT, SKIP...
-    ; MAKE PAC-MAN FACE RIGHT
-    LD A, $03
-    LD (pacman.currDir), A
-    RET
-+:
-;   DECREMENT STATE (COUNTERACT INCREMENT IN UPDATE)
-    LD HL, introSubState
-    DEC (HL)
-;   MOVE ALL ACTORS TOWARDS POWER DOT
-    ; PAC-MAN
+;   MOVE ALL ACTORS
+    ; PAC-MAN (WAITS A BIT AFTER EATING POWER DOT)
     LD HL, pacPelletTimer   ; CHECK IF MSB IS SET (IS $FF)
     DEC (HL)                ; DECREMENT TIMER
     JP P, +                 ; IF NOT SET, DON'T MOVE PAC-MAN
     INC (HL)    ; COUNTERACT NEXT DECREMENT
-    ; MOVES SLIGHTLY SLOWER THAN GHOSTS
-    LD DE, ATT_PAC_SPEED00
+    ; MOVES TO CENTER OF POWER DOT'S TILE IN 3 FRAMES
+    LD DE, ATT_PAC_SPEED02
     LD HL, (pacman + SUBPIXEL)
     ADD HL, DE
     LD (pacman + SUBPIXEL), HL
@@ -626,7 +623,23 @@ ghostHeadStart:
     ADD HL, DE
     LD (clyde + SUBPIXEL), HL
     ; UPDATE TILES
-    JR eatGhosts@updateActorTiles
+    CALL eatGhosts@updateActorTiles
+;   STATE 16 CHECK (HAS PAC-MAN REACHED CENTER OF TILE WHERE POWER DOT WAS?)
+    LD A, (pacman.xPos)
+    CP A, $CC
+    JR NZ, +    ; IF NOT, SKIP...
+    ; MAKE PAC-MAN FACE RIGHT
+    LD A, $03
+    LD (pacman.currDir), A
+    ; SET SUBPIXEL SO HE MOVES ON THE SAME FRAMES AS OG
+    LD A, $E0
+    LD (pacman + SUBPIXEL), A
+    RET
++:
+;   DECREMENT STATE (COUNTERACT INCREMENT IN UPDATE)
+    LD HL, introSubState
+    DEC (HL)
+    RET
 
 
 ;   SUB STATE 11
@@ -660,12 +673,17 @@ eatGhosts:
     LD (IX + ALIVE_FLAG), A
     ; GHOST IS NOW INVISIBLE
     LD (IX + INVISIBLE_FLAG), $01
-    ; SET EAT TIMER
-    LD A, ATT00_TIMER_LEN
-    LD (mainTimer0), A
     ; INCREMENT POINT INDEX
     LD HL, ghostPointIndex
     INC (HL)
+    ; SET EAT TIMER (OG: 10 TICKS OF 1/10 SEC, WHICH IS 1 FRAME LONGER FOR 3RD GHOST)
+    LD A, (HL)
+    CP A, $02
+    LD A, ATT_EAT_TIMER_LEN
+    JR NZ, @setTimer
+    INC A
+@setTimer:
+    LD (mainTimer0), A
     RET
 +:
 ;   MOVE ALL ACTORS
