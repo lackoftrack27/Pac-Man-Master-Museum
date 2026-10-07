@@ -1,33 +1,21 @@
 ; ------------------------------------------------
-;             STATE UPDATE ROUTINES
-; ------------------------------------------------
-
-
-
-
-; ------------------------------------------------
 ;             NORMAL MODE UPDATE
 ; ------------------------------------------------
-
-pacStateTable@update@normalMode:
+PacNormal_U:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
     OR A
-    JP Z, @@@update      ; IF NOT, SKIP TRANSITION 
-@@@enter:
+    JP Z, @update      ; IF NOT, SKIP TRANSITION 
+@enter:
     ; SET SPEED POINTER TO NORMAL
     LD HL, spdPatternNormal
-@@@@setSpdPtr:
+@setSpdPtr:
     LD (spdPatternPtr), HL
     ; STATE IS NO LONGER NEW
     XOR A
     LD (pacman.newStateFlag), A
-@@@update:
-
-; ------------------------------------------------
-;     UPDATE - DOT COUNTER CHECK
-; ------------------------------------------------
-
+@update:
+;   UPDATE - DOT COUNTER CHECK
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_GAMEPLAY
@@ -35,32 +23,24 @@ pacStateTable@update@normalMode:
 ;   CHECK IF SPEED UP FLAG IS SET
     LD A, (speedUpFlag)
     OR A
-    JR NZ, @@@@prepUpdate ; IF SO, PAC-MAN CAN MOVE EVERY UPDATE
+    JR NZ, @prepUpdate ; IF SO, PAC-MAN CAN MOVE EVERY UPDATE
 +:
 ;   CHECK IF DOT DELAY TIMER IS $FF
     LD HL, pacPelletTimer
     BIT 7, (HL) ; MSB SET
-    JR NZ, @@@@speedPatCheck    ; IF SO, CONTINUE WITH UPDATE
+    JR NZ, @speedPatCheck    ; IF SO, CONTINUE WITH UPDATE
     DEC (HL)    ; DECREMENT TIMER
     RET         ; BUT, DON'T UPDATE
-
-; ------------------------------------------------
-;     UPDATE - SPEED PATTERN CHECK
-; ------------------------------------------------
-
-@@@@speedPatCheck:
+@speedPatCheck:
     LD HL, (spdPatternPtr)
     actorSpdPatternUpdate
     RET NC
     INC HL
     INC HL
     INC (HL)
+    ; FALL THROUGH
 
-; ------------------------------------------------
-;     UPDATE - PREPARATION
-; ------------------------------------------------
-
-@@@@prepUpdate:
+@prepUpdate:
     LD IX, pacman   ; SET ACTOR POINTER
 ;   SAVE DOT COUNT FOR DOT EXPIRE COUNTER
     LD A, (currPlayerInfo.dotCount)
@@ -77,15 +57,10 @@ pacStateTable@update@normalMode:
 +:
     LD (pacInTunnel), A     ; A ISN'T 0
 ++:
-
-; ------------------------------------------------
-;     UPDATE - "CHECK IF IN DEMO"
-; ------------------------------------------------ 
-
 ;   CHECK IF IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_GAMEPLAY
-    JR Z, @@@@tunnelCheck  ; IF NOT, SKIP...
+    JR Z, @tunnelCheck  ; IF NOT, SKIP...
 ;   ------------------------------------------
 ;                   DEMO LOGIC
 ;   ------------------------------------------
@@ -104,7 +79,7 @@ pacStateTable@update@normalMode:
     LD A, (HL)
     AND A, $07  ; MODULUS BY 8
     CP A, $04   ; CHECK IF AT CENTER PIXEL
-    JP NZ, @@@@prepareVector ; IF NOT, SKIP...
+    JP NZ, @prepareVector ; IF NOT, SKIP...
 ;   CHECK IF PAC-MAN IS ABOUT TO TELEPORT
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
@@ -122,33 +97,21 @@ pacStateTable@update@normalMode:
 ;   SET REVERSE DIRECTION
     XOR A, $02
     LD (pacman.reveDir), A
-    JP @@@@prepareVector
-
-
-
-; ------------------------------------------------
-;     UPDATE - TUNNEL CHECK
-; ------------------------------------------------ 
-
-@@@@tunnelCheck:
+    JP @prepareVector
+@tunnelCheck:
 ;   CHECK IF IN TUNNEL (FLAG WAS SET ABOVE)
     LD A, (pacInTunnel)
     OR A
-    JR Z, @@@@getCollision  ; IF NOT, PROCEED WITH NORMAL UPDATE
+    JR Z, @getCollision  ; IF NOT, PROCEED WITH NORMAL UPDATE
 ;   CHECK IF PLAYER MOVED LEFT
     LD A, (pacman.nextDir)
     CP A, DIR_LEFT
-    JR Z, @@@@prepareAxis
+    JR Z, @prepareAxis
 ;   CHECK IF PLAYER MOVED RIGHT
     CP A, DIR_RIGHT
-    JR Z, @@@@prepareAxis
-    JP @@@@prepareVector
-
-; ------------------------------------------------
-;     UPDATE - MAZE COLLISION
-; ------------------------------------------------ 
-
-@@@@getCollision:
+    JR Z, @prepareAxis
+    JP @prepareVector
+@getCollision:
 ;   SAVE CURRENT DIRECTION IN D
     LD A, (pacman.currDir)
     LD D, A
@@ -171,19 +134,19 @@ pacStateTable@update@normalMode:
 ;   HL = TILE ID PTR FOR WANTED DIRECTION, A = TILE ID
     AND A, $03     ; KEEP LOWER 2 BITS (PAC-MAN DOESN'T USE UPPER TWO BITS)
     DEC A   ; CHECK IF ID ISN'T 1 (WALL)
-    JR NZ, @@@@prepareAxis ; IF SO, MOVE IN WANTED DIRECTION
+    JR NZ, @prepareAxis ; IF SO, MOVE IN WANTED DIRECTION
 ;   ---------------------------------------------
 ;   CHECK IF INPUT WAS APPLIED (IS 1?)
     DEC E
     INC E
-    JR Z, @@@@chkCenterOfTile   ; IF NOT, CHECK IF PAC-MAN IS AT CENTER OF TILE
+    JR Z, @chkCenterOfTile   ; IF NOT, CHECK IF PAC-MAN IS AT CENTER OF TILE
 
 ; ------------------------------------------------
 ;     UPDATE - CHECK IF CURRENT DIRECTION IS VALID 
 ;     (NEEDED IF PAC-MAN'S WANTED DIRECTION ISN'T)
 ; ------------------------------------------------
 
-@@@@chkCurrDirTile:
+@chkCurrDirTile:
 ;   CHECK IF TILE IN CURRENT DIRECTION IS UNWALKABLE
     ; CONVERT DIRECTION TO OFFSET
     LD A, (pacMoveDir)
@@ -197,9 +160,9 @@ pacStateTable@update@normalMode:
 ;   HL = TILE ID PTR FOR WANTED DIRECTION, A = TILE ID
     AND A, $03     ; KEEP LOWER 2 BITS (PAC-MAN DOESN'T USE UPPER TWO BITS)
     DEC A       ; CHECK IF 1 (WALL)
-    JR NZ, @@@@prepareVector ; IF NOT, MOVE BUT IGNORE USER INPUT
+    JR NZ, @prepareVector ; IF NOT, MOVE BUT IGNORE USER INPUT
 ;   ---------------------------------------------
-@@@@chkCenterOfTile:
+@chkCenterOfTile:
 ;   ASSUME PAC-MAN'S AXIS IS X
     LD HL, pacman.xPos
     BIT $00, D
@@ -222,60 +185,48 @@ pacStateTable@update@normalMode:
 +:
 ;   CHECK IF INPUT WAS APPLIED (IS 1?)
     DEC E
-    JR Z, @@@@prepareVector ; IF SO, SKIP...
+    JR Z, @prepareVector ; IF SO, SKIP...
 ;   NO INPUT, WALL AHEAD, NOT AT CENTER: 
     LD A, (pacWantedFace)           ; TURN PAC-MAN TO FACE THE LAST DIRECTION ASKED FOR, BUT KEEP MOVING THE SAME WAY
     LD (pacman.currDir), A
-    JR @@@@prepareVector
-
-; ------------------------------------------------
-;     UPDATE - PREPARE FOR MOVEMENT
-; ------------------------------------------------
-
-@@@@prepareAxis:    ; $1940
+    JR @prepareVector
+@prepareAxis:    ; $1940
 ;   SET DIRECTION TO WANTED DIRECTION (MOVING AND FACING)
     LD A, (pacman.nextDir)
     LD (pacman.currDir), A
     LD (pacMoveDir), A
-@@@@prepareVector:  ; $1950
+@prepareVector:  ; $1950
 ;   SAVE FACING DIRECTION (DECIDES WHICH AXIS GETS THE CORNERING)
     LD A, (pacman.currDir)
     LD B, A
 ;   GET MOVING DIRECTION
     LD A, (pacMoveDir)
-
-; ------------------------------------------------
-;     UPDATE - APPLY MAIN AXIS MOVEMENT TO PAC-MAN
-; ------------------------------------------------
- 
+;   APPLY MAIN AXIS MOVEMENT TO PAC-MAN
     OR A
     JP NZ, +
     LD HL, pacman + Y_WHOLE     ; 45 [UP]
     DEC (HL)
-    JP @@@@perAxisUpdate
+    JP @perAxisUpdate
 +:
     DEC A
     JP NZ, +
     LD HL, (pacman + X_WHOLE)   ; 76 [LEFT]
     INC HL
     LD (pacman + X_WHOLE), HL
-    JP @@@@perAxisUpdate
+    JP @perAxisUpdate
 +:
     DEC A
     JP NZ, +
     LD HL, pacman + Y_WHOLE     ; 73 [DOWN]
     INC (HL)
-    JP @@@@perAxisUpdate
+    JP @perAxisUpdate
 +:
     LD HL, (pacman + X_WHOLE)   ; 80 [RIGHT]
     DEC HL
     LD (pacman + X_WHOLE), HL
+    ; FALL THROUGH
 
-; ------------------------------------------------
-;     UPDATE - APPLY PERPENDICULAR AXIS MOVEMENT TO PAC-MAN
-; ------------------------------------------------
-
-@@@@perAxisUpdate:
+@perAxisUpdate:                 ; UPDATE - APPLY PERPENDICULAR AXIS MOVEMENT TO PAC-MAN
 ;   ASSUME PAC-MAN'S PERPENDICULAR AXIS IS X
     LD HL, pacman.xPos
     BIT $00, B
@@ -288,7 +239,7 @@ pacStateTable@update@normalMode:
 ;   CHECK IF PAC-MAN IS AT CENTER OF TILE (IN PER. AXIS)
     AND A, $07
     CP A, $04
-    JR Z, @@@@updateCenters  ; IF SO, SKIP...
+    JR Z, @updateCenters  ; IF SO, SKIP...
 ;   APPLY CORNERING TO POSITION
     ; BC = POSITION
     LD C, (HL)
@@ -305,18 +256,15 @@ pacStateTable@update@normalMode:
     LD (HL), B
     DEC HL
     LD (HL), C
+    ; FALL THROUGH
 
-; ------------------------------------------------
-;     UPDATE - UPDATE TILES, PTRS, ETC
-; ------------------------------------------------
-
-@@@@updateCenters:
+@updateCenters:         ; UPDATE - UPDATE TILES, PTRS, ETC
 ;   UPDATE ACTOR'S COLLISION TILES, CENTERS, ETC...
     CALL actorUpdate
 ;   UPDATE CENTERS, TILEMAP PTRS, QUADRANT, ETC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JP NZ, @@@@jrPtrUpdate
+    JP NZ, @jrPtrUpdate
 ;   --------------
 ;   CONVERT COLLISION-SPACE TILE COORDS TO SCREEN-SPACE PIXEL COORDS (NON SCROLLING)
 ;   --------------
@@ -375,8 +323,8 @@ pacStateTable@update@normalMode:
     ADD HL, DE
     LD (tileMapRamPtr), HL
     ; UPDATE QUADRANT
-    JP @@@@quadCalc
-@@@@jrPtrUpdate:
+    JP @quadCalc
+@jrPtrUpdate:
 ;   --------------
 ;   CONVERT COLLISION-SPACE TILE COORDS TO SCREEN-SPACE PIXEL COORDS (SCROLLING)
 ;   --------------
@@ -471,7 +419,7 @@ pacStateTable@update@normalMode:
     ADD HL, DE
     ; STORE VRAM POINTER
     LD (tileMapPointer), HL
-@@@@quadCalc:
+@quadCalc:
 ;   --------------
 ;   TILE QUADRANT DERTERMINATION
 ;   --------------
@@ -514,8 +462,8 @@ pacStateTable@update@normalMode:
     OR A, C
     ; STORE RESULT
     LD (tileQuadrant), A
-@@@exit:
-@@@end:
+@exit:
+@end:
 ;   DON'T CHECK FOR FRUIT OR DOTS IF PAC-MAN WAS IN THE TUNNEL BEFORE THIS MOVE [$198E]
     LD HL, pacInTunnel
     LD A, (HL)
@@ -525,38 +473,30 @@ pacStateTable@update@normalMode:
     JP mazeUpdate
 
 
-
-
-
 ; ------------------------------------------------
 ;             SUPER MODE UPDATE
 ; ------------------------------------------------
-
-pacStateTable@update@superMode:
+PacSuper_U:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
     OR A
-    JP Z, pacStateTable@update@normalMode@@@update      ; IF NOT, SKIP TRANSITION 
-@@@enter:
+    JP Z, PacNormal_U@update      ; IF NOT, SKIP TRANSITION 
+@enter:
     ; SET SPEED POINTER TO NORMAL
     LD HL, spdPatternSuper
     ; GOTO NORMAL MODE'S UPDATE
-    JP pacStateTable@update@normalMode@@@enter@setSpdPtr
-
-
-
+    JP PacNormal_U@setSpdPtr
 
 
 ; ------------------------------------------------
 ;                 DEAD MODE UPDATE
 ; ------------------------------------------------
-
-pacStateTable@update@deadMode:
+PacDead_U:
 ;   CHECK STATE
     LD A, (pacman.newStateFlag)   ; CHECK THIS IS A NEW STATE
     OR A
-    JP Z, @@@update     ; IF NOT, SKIP TRANSITION
-@@@enter:
+    JP Z, @update     ; IF NOT, SKIP TRANSITION
+@enter:
 ;   STATE IS NO LONGER NEW
     XOR A
     LD (pacman.newStateFlag), A
@@ -564,7 +504,7 @@ pacStateTable@update@deadMode:
     LD HL, (pacDeathTimePtr)
     LD A, (HL)
     LD (pacDeathTimer), A
-@@@update:
+@update:
 ;   DECREMENT, THEN CHECK IF TIMER IS 0
     LD HL, pacDeathTimer
     DEC (HL)
@@ -583,26 +523,12 @@ pacStateTable@update@deadMode:
     RET
 
 
-
-
-
-
-; ------------------------------------------------
-;             STATE DRAW ROUTINES
-; ------------------------------------------------
-
-
-
-
-
-
 ; ------------------------------------------------
 ; NORMAL, SUPER, DEAD MODE DRAW [TILE STREAMING]
 ; ------------------------------------------------
-
-pacStateTable@draw@normalMode:
-pacStateTable@draw@superMode:
-pacStateTable@draw@deadMode:
+PacNormal_D:
+PacSuper_D:
+PacDead_D:
 displayPacMan:
 ;   CONVERT POSITION
     LD IX, pacman
@@ -651,8 +577,7 @@ displayPacMan:
 ; ------------------------------------------------
 ;     BIG MODE DRAW [PAC-MAN CUTSCENE 1 ONLY]
 ; ------------------------------------------------
-
-pacStateTable@draw@bigMode:
+PacBig_D:
 ;   CALCULATE TABLE INDEX
     ; MODULUS POSITION BY 16
     LD A, (pacman.xPos)

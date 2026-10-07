@@ -3,16 +3,14 @@
 ; ------------------------------------------------
 pacStateTable:
 @update:
-    .dw @@normalMode    ; 00
-    .dw @@superMode     ; 01
-    .dw @@deadMode      ; 02
-    ;.DW @@bigMode      ; 03
+    .dw PacNormal_U
+    .dw PacSuper_U
+    .dw PacDead_U
 @draw:
-    .dw @@normalMode    ; 00
-    .dw @@superMode     ; 01
-    .dw @@deadMode      ; 02
-    .DW @@bigMode       ; 03
-
+    .dw PacNormal_D
+    .dw PacSuper_D
+    .dw PacDead_D
+    .dw PacBig_D
 
 
 
