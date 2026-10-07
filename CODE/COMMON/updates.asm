@@ -927,7 +927,8 @@ superTimerUpdate:
 ;   TURN OFF GHOST FLASH, RESTART FLASH COUNTER
     LD HL, flashCounter
     LD (HL), $00
-    RET
+;   GHOSTS STILL INVISIBLE FROM A BONUS ITEM (PLUS) ARE SHOWN AGAIN
+    JP plus_showGhosts
 
 
 

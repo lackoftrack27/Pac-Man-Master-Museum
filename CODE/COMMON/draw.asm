@@ -23,7 +23,8 @@ generalGamePlayDraw:
     LD A, (plusBitFlags)    ; INVISIBLE_MAZE
     RLCA    ; BIT 7 -> BIT 0
     AND A, (HL)
-    JP Z, +
+    LD (plusMazeBlank), A   ; GHOSTS IGNORE SPECIAL TILES WHILE MAZE IS INVISIBLE
+    JR Z, +
     ; SET VDP ADDRESS
     LD A, $01
     OUT (VDPCON_PORT), A
@@ -294,12 +295,6 @@ ghostFlashUpdate:
 ;   SET BIT 5 OF FLASH VAR
     LD HL, flashCounter
     SET 5, (HL)
-;   CLEAR ALL GHOST INVISIBLE FLAGS
-    XOR A
-    LD (blinky + INVISIBLE_FLAG), A
-    LD (pinky + INVISIBLE_FLAG), A
-    LD (inky + INVISIBLE_FLAG), A
-    LD (clyde + INVISIBLE_FLAG), A
 @counter:
 ;   OG'S FLASH COUNTER [$4DC8] IS BITS 0 - 3. 
 ;   IT RUNS EVERY FRAME EXCEPT WHILE A GHOST IS BEING EATEN AND RESTARTS AT EACH POWER DOT
@@ -316,6 +311,13 @@ ghostFlashUpdate:
     BIT 5, A
     JR Z, ++
     XOR A, $10
+    ; PLUS: GHOSTS MADE INVISIBLE BY A BONUS ITEM (BIT 6) COME BACK AT THIS STEP, AND AS BLUE, NOT WHITE (OG:COLOR 0 -> BLUE)
+    BIT 6, A
+    JR Z, ++
+    AND A, $2E      ; CLEAR BITS 6 AND 4, KEEP FLASHING BIT AND COUNTER
+    LD (HL), A
+    CALL plus_showGhosts
+    JR +
 ++:
     LD (HL), A
 +:

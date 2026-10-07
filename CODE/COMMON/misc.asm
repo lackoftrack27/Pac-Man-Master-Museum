@@ -253,16 +253,12 @@ jrGetMazeIndex:
     ; USES: AF, BC, DE, HL, IX
 
 plus_powerDotRNG:
+;   RESET ALL INVISIBLE FLAGS
+    CALL plus_showGhosts
 ;   CHECK IF GAME IS IN DEMO
     LD A, (mainGameMode)
     CP A, M_STATE_ATTRACT
     RET Z   ; IF SO, EXIT
-;   RESET ALL INVISIBLE FLAGS
-    XOR A
-    LD (blinky + INVISIBLE_FLAG), A
-    LD (pinky + INVISIBLE_FLAG), A
-    LD (inky + INVISIBLE_FLAG), A
-    LD (clyde + INVISIBLE_FLAG), A
 ;   COPY RNG VALUE TO C
     LD A, (plusRNGValue)
     LD C, A
@@ -280,8 +276,9 @@ plus_powerDotRNG:
     ADD IX, DE
     DJNZ -
 ;   MAKE SELECTED GHOST NOT TURN SCARED
-    CALL ghostGameTrans_normal
-    LD (IX + NEW_STATE_FLAG), $00
+    ; PLUS CLEARS ITS BLUE FLAG EVEN IF IT IS DEAD. EYES ONLY HEAD HOME WHILE THAT FLAG IS SET, SO THEY GO AFTER
+    ; THE GHOST'S NORMAL TARGET INSTEAD UNTIL THE NEXT POWER DOT / BONUS ITEM
+    LD (IX + EDIBLE_FLAG), $00
 @mazeInvisible:
 ;   CALCULATE LEVEL LIMIT
     ; SUBTRACT 1 IF GAME IS JR (LEVEL 1 - RIGHT AFTER 1ST CUTSCENE)
@@ -312,11 +309,11 @@ plus_powerDotRNG:
     ; USES: AF, HL, IX
 
 plus_fruitSuper:
-;   RESET GHOST FLASH COUNTER
-    XOR A
+;   RESET GHOST FLASH COUNTER, SET BIT 6 (GHOSTS STAY INVISIBLE UNTIL THE FIRST FLASH STEP)
+    LD A, $40
     LD (flashCounter), A
 ;   SET GHOST POINT INDEX TO START AT 1 (400)
-    INC A
+    LD A, $01
     LD (ghostPointIndex), A
 ;   SET INVISIBLE FLAGS OF GHOSTS
     LD (blinky + INVISIBLE_FLAG), A
@@ -338,6 +335,19 @@ plus_fruitSuper:
 ;   SET POWER DOT'S TIME
     LD HL, (plusFruitSuperTime)
     LD (mainTimer1), HL
+    RET
+
+
+    ; INFO: MAKES ALL GHOSTS VISIBLE AGAIN [PLUS]
+    ; INPUT: NONE
+    ; OUTPUT: NONE
+    ; USES: AF
+plus_showGhosts:
+    XOR A
+    LD (blinky + INVISIBLE_FLAG), A
+    LD (pinky + INVISIBLE_FLAG), A
+    LD (inky + INVISIBLE_FLAG), A
+    LD (clyde + INVISIBLE_FLAG), A
     RET
 
 

@@ -19,6 +19,10 @@ GhostScatter_U:
     LD HL, SPD_PATT_SLOW_00
     BIT 2, (IX + CURR_ID)
     JP Z, +     ; IF NOT, SKIP...
+    ; IGNORE SLOWDOWN BIT IF MAZE IS INVISIBLE (PLUS)
+    LD A, (plusMazeBlank)
+    OR A
+    JP NZ, +
     ; IGNORE SLOWDOWN BIT IF GAME IS JR.PAC
     LD A, (plusBitFlags)
     BIT JR_PAC, A
@@ -92,7 +96,11 @@ GhostScatter_U:
 +:
     ; CHECK IF GHOST IS AT TILE WHERE IT DOESN'T PATHFIND
     BIT 3, (IX + NEXT_ID)   ; CHECK IF BIT 3 OF TILE ID IS SET
-    JP NZ, @skipPathfinding ; IF SO, SKIP
+    JP Z, @addPFTask        ; IF NOT, DO PATHFINDING
+    ; STILL DO PATHFINDING IF MAZE IS INVISIBLE (PLUS)
+    LD HL, plusMazeBlank
+    BIT 0, (HL)
+    JP Z, @skipPathfinding  ; IF NOT, SKIP
 @addPFTask:
     ; SET PATHFINDING FLAG (WILL DO PATHFINDING ON NEXT MOVE)
     CALL addTask

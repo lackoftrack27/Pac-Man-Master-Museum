@@ -45,6 +45,7 @@
     plusBitFlags: db
     plusRNGValue: db
     plusFruitSuperTime: dw
+    plusMazeBlank: db
 ;   JR PAC
     jrCameraPos: db
     jrOldScrollReal: db
