@@ -289,52 +289,36 @@ ghostOutHomeUpdate:
     LD A, (blinky + STATE)
     OR A
     JP NZ, +    ; IF NOT, SKIP
-    ; CHECK IF GHOST IS ALIVE
-    ;LD A, (blinky + ALIVE_FLAG)
-    ;OR A
-    ;JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, blinky
-    CALL ghostStateTable@update@scatter
+    CALL GhostScatter_U
 +:
 ;   PINKY
     ; CHECK IF GHOST IS OUTSIDE OF HOME (BUT NOT GOING TO HOME)
     LD A, (pinky + STATE)
     OR A
     JP NZ, +    ; IF NOT, SKIP
-    ; CHECK IF GHOST IS ALIVE
-    ;LD A, (pinky + ALIVE_FLAG)
-    ;OR A
-    ;JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, pinky
-    CALL ghostStateTable@update@scatter
+    CALL GhostScatter_U
 +:
 ;   INKY
     ; CHECK IF GHOST IS OUTSIDE OF HOME (BUT NOT GOING TO HOME)
     LD A, (inky + STATE)
     OR A
     JP NZ, +    ; IF NOT, SKIP
-    ; CHECK IF GHOST IS ALIVE
-    ;LD A, (inky + ALIVE_FLAG)
-    ;OR A
-    ;JP Z, +     ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, inky
-    CALL ghostStateTable@update@scatter
+    CALL GhostScatter_U
 +:
 ;   CLYDE
     ; CHECK IF GHOST IS OUTSIDE OF HOME (BUT NOT GOING TO HOME)
     LD A, (clyde + STATE)
     OR A
     RET NZ      ; IF NOT, SKIP
-    ; CHECK IF GHOST IS ALIVE
-    ;LD A, (clyde + ALIVE_FLAG)
-    ;OR A
-    ;RET Z       ; IF NOT, SKIP
     ; ELSE, UPDATE GHOST
     LD IX, clyde
-    JP ghostStateTable@update@scatter
+    JP GhostScatter_U
 
 
 

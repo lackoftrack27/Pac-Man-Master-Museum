@@ -13,6 +13,8 @@
     diedFlag db
     awarded1UPFlag db
     fruitStatus db
+
+    dotCounters dsb 3
 .ENDST
 
 ;   HIGH SCORES IN SRAM

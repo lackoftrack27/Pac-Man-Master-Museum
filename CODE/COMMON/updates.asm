@@ -1195,10 +1195,23 @@ swapPlayerData:
     LD A, $01 << CURR_PLAYER
     XOR A, (HL)
     LD (HL), A
+;   SWAP GHOSTS' PERSONAL DOT COUNTERS WITH OTHER PLAYER'S
+    LD HL, altPlayerInfo.dotCounters
+    LD IX, pinky
+    LD DE, _sizeof_ghost
+    LD B, $03
+-:
+    LD A, (IX + DOT_COUNTER)
+    LD C, (HL)
+    LD (HL), A
+    LD (IX + DOT_COUNTER), C
+    INC HL
+    ADD IX, DE
+    DJNZ -
 ;   SWAP PLAYER DATA (NON MAZE STUFF)
     LD IX, currPlayerInfo
     LD IY, altPlayerInfo
-    LD B, _sizeof_playerInfo
+    LD B, _sizeof_playerInfo - $03  ; ALL BUT THE SAVED DOT COUNTERS
 -:
     LD E, (IX + 0)
     LD D, (IY + 0)

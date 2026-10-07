@@ -18,22 +18,22 @@
 ; ------------------------------------------------
 
 ghostStateTable:
-    @update:
-        .dw @@scatter      ; 00 - ghostOutHomeUpdate
-        .dw @@gotoHome     ; 01 --v
-        .dw @@gotoCenter   ; 02 - ghostToHomeUpdate
-        .dw @@gotoRest     ; 03 --^
-        .dw @@rest         ; 04 - ghostHomeUpdate
-        .dw @@gotoExit     ; 05 --^
-    @draw:
-        .dw @@scatter      ; 00
-        .dw @@gotoHome     ; 01
-        .dw @@gotoCenter   ; 02
-        .dw @@gotoRest     ; 03
-        .dw @@rest         ; 04
-        .dw @@gotoExit     ; 05
-
-
+@update:
+    ; UPDATE ROUTINES
+    .dw GhostScatter_U
+    .dw GhostGotoHome_U
+    .dw GhostGotoCenter_U
+    .dw GhostGotoRest_U
+    .dw GhostRest_U
+    .dw GhostGotoExit_U
+@draw:
+    ; DRAW ROUTINES
+    .dw GhostScatter_D
+    .dw GhostGotoHome_D
+    .dw GhostGotoCenter_D
+    .dw GhostGotoRest_D
+    .dw GhostRest_D
+    .dw GhostGotoExit_D
 
 
 ; ------------------------------------------------

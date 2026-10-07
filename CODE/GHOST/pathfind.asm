@@ -9,50 +9,47 @@ taskListTable:
     .DW clydePF     ; 3
     .DW pacmanDemoPF        ; 4
     .DW fruitPathFindingAI  ; 5
+    .DW blinkyScaredPF      ; 6
+    .DW pinkyScaredPF       ; 7
+    .DW inkyScaredPF        ; 8
+    .DW clydeScaredPF       ; 9
 
 
 blinkyPF:
     LD IX, blinky
-    JP ghostPathFindingAI
+    JR ghostPathFindingAI
 pinkyPF:
     LD IX, pinky
-    JP ghostPathFindingAI
+    JR ghostPathFindingAI
 inkyPF:
     LD IX, inky
-    JP ghostPathFindingAI
+    JR ghostPathFindingAI
 clydePF:
     LD IX, clyde
-    JP ghostPathFindingAI
-
-
-
-
-; --------------------------------------------
-;             GHOST TARGET TABLE
-; --------------------------------------------
-
-ghostTargetTable:
-    .DW blinkyTarget    ; 0
-    .DW pinkyTarget     ; 1
-    .DW inkyTarget      ; 2
-    .DW clydeTarget     ; 3
-
-
+    JR ghostPathFindingAI
+blinkyScaredPF:
+    LD IX, blinky
+    JR ghostScaredPathFindingAI
+pinkyScaredPF:
+    LD IX, pinky
+    JR ghostScaredPathFindingAI
+inkyScaredPF:
+    LD IX, inky
+    JR ghostScaredPathFindingAI
+clydeScaredPF:
+    LD IX, clyde
+;   FALL THROUGH
 
 
 ; --------------------------------------------
-;         GHOST PATHFINDING ALGORITHM
+;     GHOST PATHFINDING ALGORITHM (SCARED / DEAD)
 ; --------------------------------------------
-
-ghostPathFindingAI:
+ghostScaredPathFindingAI:
 ;   PREPARE FOR PATHFINDING
     CALL setupPathFinding
-;   CHECK IF GHOST IS EDIBLE
-    BIT 0, (IX + EDIBLE_FLAG)
-    JP Z, ++     ; IF NOT, SKIP
 ;   CHECK IF GHOST IS ALIVE
     BIT 0, (IX + ALIVE_FLAG)
-    JP NZ, @scaredPathfind  ; IF SO, DO SCARED PATHFIND
+    JP NZ, ghostPathFindingAI@scaredPathfind    ; IF SO, DO SCARED PATHFIND
 ;   ELSE, MAKE GHOST GO HOME
     LD HL, $2C2E
     ; CHANGE TARGET IF GAME IS JR.PAC
@@ -63,8 +60,16 @@ ghostPathFindingAI:
 +:
     LD (IX + TARGET_X), L
     LD (IX + TARGET_Y), H
-    JP @normalPathFinding
-++:
+    JP ghostPathFindingAI@normalPathFinding
+
+
+; --------------------------------------------
+;         GHOST PATHFINDING ALGORITHM
+; --------------------------------------------
+
+ghostPathFindingAI:
+;   PREPARE FOR PATHFINDING
+    CALL setupPathFinding
 ;   JUMP TO TARGET ALGORITHM BASED ON GHOST
     LD HL, ghostTargetTable
     LD A, (IX + ID)
@@ -115,17 +120,23 @@ ghostPathFindingAI:
     LD A, (IX + TARGET_X)
     SUB A, B
 ;   GET SQUARE OF DX
-    OR A
-    JP P, +
+    JP NC, +
     NEG
 +:
+    LD B, A     ; SAVE FOR LATER
     LD H, hibyte(squareTable)
-    ADD A, A
+    ADD A, A    ; CARRY IF 128 OR MORE (SQUARED TABLE ONLY HAS 0 - 127)
     LD L, A
     LD A, (HL)
     INC HL
     LD H, (HL)
     LD L, A
+    JR NC, +
+    LD A, B     ; (128 + N)^2 = N^2 + (64 + N) * 256
+    SUB A, $40
+    ADD A, H
+    LD H, A
++:
     EX DE, HL   ; SAVE IN DE
 ;   GET SQUARE OF DY
     LD A, C     ; GET BACK DY
@@ -224,8 +235,15 @@ ghostPathFindingAI:
 
 
 
+; --------------------------------------------
+;             GHOST TARGET TABLE
+; --------------------------------------------
 
-
+ghostTargetTable:
+    .DW blinkyTarget    ; 0
+    .DW pinkyTarget     ; 1
+    .DW inkyTarget      ; 2
+    .DW clydeTarget     ; 3
 
 
 ; --------------------------------------------

@@ -513,6 +513,8 @@
     GHOST_GOTOEXIT  DB
 .ENDE
 
+;   PATHFINDING TASK ID FOR A SCARED/DEAD GHOST (ADDED TO GHOST'S ID)
+.DEFINE TASK_SCARED_PF  $06
 
 ; -------------------------------------------------
 ;               CUTSCENE ANIMATION

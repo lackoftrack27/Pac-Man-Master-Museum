@@ -84,13 +84,13 @@ sStateAttractTable@introMode:
     CALL displayPacMan
     ; DISPLAY GHOSTS
     LD IX, blinky
-    CALL ghostStateTable@draw@gotoExit
+    CALL GhostGotoExit_D
     LD IX, pinky
-    CALL ghostStateTable@draw@gotoExit
+    CALL GhostGotoExit_D
     LD IX, inky
-    CALL ghostStateTable@draw@gotoExit
+    CALL GhostGotoExit_D
     LD IX, clyde
-    CALL ghostStateTable@draw@gotoExit
+    CALL GhostGotoExit_D
     ; DISPLAY GHOST POINTS (IF NEEDED)
     LD A, (ghostPointSprNum)
     OR A
