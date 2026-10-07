@@ -84,7 +84,7 @@ sStateGameplayTable@gameoverMode:
     JR Z, +
     RES PLAYER_MODE, (HL)   ; SET TO 1 PLAYER MODE
     CALL swapPlayerData     ; SWAP PLAYER DATA
-    LD HL, $01 * $100 + GAMEPLAY_READY01 
+    LD HL, READY_FROM_DEATH * $100 + GAMEPLAY_READY01
     LD (subGameMode), HL    ; SWITCH TO SECOND READY STATE
     JP generalResetFunc     ; GENERAL GAMEPLAY RESET
 +:

@@ -126,8 +126,19 @@ sStateGameplayTable@dead02Mode:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
-;   SET TIMER
-    LD A, DEAD02_TIMER_LEN
+;   SET TIMER (DEPENDS ON GAME)
+    LD A, (plusBitFlags)
+    LD B, DEAD02_TIMER_LEN_JR
+    BIT JR_PAC, A
+    JR NZ, +
+    ; PAC-MAN / MS.PAC-MAN: SHORTER IF MAZE WILL BE RELOADED AFTER (PLAYER STILL HAS LIVES)
+    LD B, DEAD02_TIMER_LEN_PAC
+    LD A, (currPlayerInfo.lives)
+    OR A
+    JR NZ, +
+    LD B, DEAD02_TIMER_LEN_PAC_GO
++:
+    LD A, B
     LD (mainTimer0), A
 ;   PLAY DEATH SOUND
     LD A, SFX_DEATH     ; ASSUME SFX FOR PAC-MAN
@@ -174,7 +185,7 @@ sStateGameplayTable@dead02Mode:
     ; GENERAL GAMEPLAY RESET
     CALL generalResetFunc
     ; SWITCH TO SECOND READY STATE
-    LD HL, $01 * $100 + GAMEPLAY_READY01 
+    LD HL, READY_FROM_DEATH * $100 + GAMEPLAY_READY01
 +:
     LD (subGameMode), HL
     RET

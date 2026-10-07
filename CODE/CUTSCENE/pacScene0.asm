@@ -81,8 +81,8 @@ scene0Update2:
 ;   MAKE BLINKY EDIBLE
     LD A, $01
     LD (blinky + EDIBLE_FLAG), A
-;   SET TIMER FOR HALF SECOND
-    LD A, 30
+;   SET TIMER (OG: HALF SECOND, THEN BLINKY MOVES A BIT FURTHER BEFORE TURNING AROUND)
+    LD A, 38
     LD (mainTimer0), A
 ;   INCREMENT CUTSCENE STATE
     JP incCutState
@@ -93,8 +93,8 @@ scene0Update3:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ
-    ; SET TIMER FOR HALF SECOND (FOR LAST STATE)
-    LD A, 30
+;   SET TIMER FOR LAST STATE (OG: HALF SECOND, STARTS BEFORE PAC-MAN HAS FULLY LEFT)
+    LD A, 27
     LD (mainTimer0), A
 ;   INCREMENT CUTSCENE STATE
     JP incCutState
@@ -127,11 +127,6 @@ scene0Update6:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ  ; IF NOT, END
-;   LAZY TIMER WAIT
-    LD B, $04
--:
-    HALT
-    DJNZ -
 ;   ELSE, SWITCH BACK TO GAME
     JP switchToGameplay
 

@@ -382,6 +382,9 @@ msScene1Prog1:
 ;     LOOP    $90 $00
     SETN    $7F
     PAUSE
+
+    SETN    $0F
+    PAUSE
     CUTEND
 
 
@@ -532,7 +535,7 @@ msScene2Prog4:
     SETCHAR msSceneCharacters@jrPac
     SETN    $01
     LOOP    $00 $00
-    SETN    $20
+    SETN    $24
     PAUSE
     CUTEND
 

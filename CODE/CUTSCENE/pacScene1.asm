@@ -145,7 +145,7 @@ scene1Update6:
     CP A, $80
     JR NZ, actorMovement02    ; IF NOT, SKIP
     ; SET TIMER
-    LD A, 90
+    LD A, 85
     LD (mainTimer0), A
     ; INCREMENT CUTSCENE STATE
     JP incCutState

@@ -246,7 +246,7 @@ attractExit:
 
 demoPrep:
     ; GO INTO DEMO MODE
-    LD HL, $01 * $100 + ATTRACT_READY01
+    LD HL, READY_FROM_LEVEL * $100 + ATTRACT_READY01
     LD (subGameMode), HL
     ; DO GAMEPLAY INITIALIZATION
     JP gamePlayInit

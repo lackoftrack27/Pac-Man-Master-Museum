@@ -59,7 +59,7 @@ switchToGameplay:
 ;   SWITCH FIRST READY MODE OF GAMEPLAY
     LD HL, GAMEPLAY_READY01 * $100 + M_STATE_GAMEPLAY
     LD (mainGameMode), HL
-    LD A, $01
+    LD A, READY_FROM_CUT
     LD (isNewState), A
 ;   DO GENERAL GAMEPLAY RESET
     JP generalResetFunc    
@@ -164,8 +164,12 @@ pacCutsceneInit:
     RST setVDPAddress
     LD A, $D0
     OUT (VDPDATA_PORT), A
-;   TURN ON SCREEN
+;   WAIT A BIT BEFORE STARTING (OG: 18 FRAMES BETWEEN MAZE FLASH AND CUTSCENE)
+    LD B, PAC_CUT_START_WAIT
+-:
     CALL waitForVblank
+    DJNZ -
+;   TURN ON SCREEN
     JP turnOnScreen
 
 
