@@ -290,7 +290,8 @@
 .DEFINE SOUND_BANK          $06
 .DEFINE UNCOMP_BANK         $07
 .DEFINE RNG_PAC_BANK        $08
-.DEFINE RNG_JR_BANK         $09
+.DEFINE RNG_MS_BANK         $09     ; MUST BE RNG_PAC_BANK + 1
+.DEFINE RNG_JR_BANK         $0A     ; MUST BE RNG_PAC_BANK + 2
 
 ; -------------------------------------------------
 ;                       GAME

@@ -2589,12 +2589,19 @@ arcadeGFXData:
 ; ----------------------------------------------------------
 ;             ORIGINAL GAME DATA FOR RNG FUNCTION
 ; ----------------------------------------------------------
-.SECTION "ORIGINAL GAME DATA FOR RNG [PAC/MS.PAC]" BANK RNG_PAC_BANK SLOT 2 FREE
+.SECTION "ORIGINAL GAME DATA FOR RNG [PAC]" BANK RNG_PAC_BANK SLOT 2 FREE
     .INCDIR "ASSETS"
     rngDataOffset:
         .INCBIN "PAC_RNG.BIN"   ; 8KB
         .INCBIN "PLUS_RNG.BIN"  ; 8KB
 .ENDS
+
+.SECTION "ORIGINAL GAME DATA FOR RNG [MS.PAC]" BANK RNG_MS_BANK SLOT 2 FREE
+    .INCDIR "ASSETS"
+        .INCBIN "MS_RNG.BIN"    ; 8KB
+        .INCBIN "PLUS_RNG.BIN"  ; 8KB
+.ENDS
+
 
 .SECTION "ORIGINAL GAME DATA FOR RNG [JR.PAC]" BANK RNG_JR_BANK SLOT 2 FREE
     .INCDIR "ASSETS"

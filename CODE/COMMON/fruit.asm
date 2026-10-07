@@ -598,6 +598,7 @@ prepareFruit:
     SUB A, B
     JP NC, -
     ADD A, B
+    NOP
 @@calcPtrs:
     ; USE AS OFFSET INTO FRUIT TILE DEF TABLE
     ADD A, A

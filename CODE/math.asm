@@ -103,9 +103,8 @@ randNumGen:
 +:
     ADD HL, DE              ; ADD OFFSET TO INDEX
 ;   GET VALUE FROM ORIGINAL GAME'S DATA
-    ; SET BANK
-    RRCA
-    AND A, ($01 << MS_PAC | $01 << JR_PAC) >> $02
+    ; SET BANK (0 - PAC-MAN, 1 - MS.PAC-MAN, 2 - JR.PAC-MAN)
+    AND A, ($01 << MS_PAC | $01 << JR_PAC) >> $01
     ADD A, RNG_PAC_BANK
     LD (MAPPER_SLOT2), A
     ; GET VALUE AT "RANDOM" INDEX
