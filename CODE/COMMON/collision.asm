@@ -15,9 +15,8 @@ globalCollCheckTile:
     LD HL, (pacman + CURR_X)
 ;   CLYDE
     ; CHECK IF GHOST IS ALIVE
-    LD A, (clyde + ALIVE_FLAG)
-    OR A
-    JP Z, + ; IF NOT, CHECK NEXT GHOST
+    CALL ghostCanTouch
+    JR Z, + ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF PAC-MAN AND GHOST ARE AT SAME TILE
     LD DE, (clyde + CURR_X)
     SBC HL, DE
@@ -27,9 +26,8 @@ globalCollCheckTile:
 +:
     ADD IX, BC  ; GHOST POINTER = INKY
     ; CHECK IF GHOST IS ALIVE
-    LD A, (inky + ALIVE_FLAG)
-    OR A
-    JP Z, + ; IF NOT, CHECK NEXT GHOST
+    CALL ghostCanTouch
+    JR Z, + ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF PAC-MAN AND GHOST ARE AT SAME TILE
     LD DE, (inky + CURR_X)
     SBC HL, DE
@@ -39,9 +37,8 @@ globalCollCheckTile:
 +:
     ADD IX, BC  ; GHOST POINTER = PINKY
     ; CHECK IF GHOST IS ALIVE
-    LD A, (pinky + ALIVE_FLAG)
-    OR A
-    JP Z, + ; IF NOT, CHECK NEXT GHOST
+    CALL ghostCanTouch
+    JR Z, + ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF PAC-MAN AND GHOST ARE AT SAME TILE
     LD DE, (pinky + CURR_X)
     SBC HL, DE
@@ -51,8 +48,7 @@ globalCollCheckTile:
 +:
     ADD IX, BC  ; GHOST POINTER = BLINKY
     ; CHECK IF GHOST IS ALIVE
-    LD A, (blinky + ALIVE_FLAG)
-    OR A
+    CALL ghostCanTouch
     RET Z   ; IF NOT, END
     ; CHECK IF PAC-MAN AND GHOST ARE AT SAME TILE
     LD DE, (blinky + CURR_X)
@@ -121,16 +117,15 @@ globalCollCheckPixel:
 ;   CHECK IF GAME MODE IS SUPER
     LD A, (pacPoweredUp)
     OR A
-    RET Z   ; IF NOT, EXIT
+    RET Z       ; IF NOT, EXIT
 ;   SETUP
     LD IX, clyde
     LD BC, -_sizeof_ghost
     LD IY, pacman
 ;   CLYDE
     ; CHECK IF GHOST IS ALIVE
-    LD A, (clyde + ALIVE_FLAG)
-    OR A
-    JP Z, +     ; IF NOT, CHECK NEXT GHOST
+    CALL ghostCanTouch
+    JR Z, +     ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF GHOST IS WITHIN TOLERANCE OF PAC-MAN'S POSITION
     LD DE, (pacman + X_WHOLE)
     LD HL, (clyde + X_WHOLE)
@@ -147,9 +142,8 @@ globalCollCheckPixel:
 +:
     ADD IX, BC  ; GHOST POINTER = INKY
     ; CHECK IF GHOST IS ALIVE
-    LD A, (inky + ALIVE_FLAG)
-    OR A
-    JP Z, +     ; IF NOT, CHECK NEXT GHOST
+    CALL ghostCanTouch
+    JR Z, +     ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF GHOST IS WITHIN TOLERANCE OF PAC-MAN'S POSITION
     LD DE, (pacman + X_WHOLE)
     LD HL, (inky + X_WHOLE)
@@ -166,9 +160,8 @@ globalCollCheckPixel:
 +:
     ADD IX, BC  ; GHOST POINTER = PINKY
     ; CHECK IF GHOST IS ALIVE
-    LD A, (pinky + ALIVE_FLAG)
-    OR A
-    JP Z, +     ; IF NOT, CHECK NEXT GHOST
+    CALL ghostCanTouch
+    JR Z, +     ; IF NOT, CHECK NEXT GHOST
     ; CHECK IF GHOST IS WITHIN TOLERANCE OF PAC-MAN'S POSITION
     LD DE, (pacman + X_WHOLE)
     LD HL, (pinky + X_WHOLE)
@@ -185,8 +178,7 @@ globalCollCheckPixel:
 +:
     ADD IX, BC  ; GHOST POINTER = BLINKY
     ; CHECK IF GHOST IS ALIVE
-    LD A, (blinky + ALIVE_FLAG)
-    OR A
+    CALL ghostCanTouch
     RET Z   ; IF NOT, END
     ; CHECK IF GHOST IS WITHIN TOLERANCE OF PAC-MAN'S POSITION
     LD DE, (pacman + X_WHOLE)
@@ -195,9 +187,34 @@ globalCollCheckPixel:
     LD DE, $0004
     OR A
     SBC HL, DE
-    RET NC      ; IF NOT, CHECK NEXT GHOST
+    RET NC  ; IF NOT, CHECK NEXT GHOST
     LD A, (blinky + Y_WHOLE)
     SUB A, (IY + Y_WHOLE)
     CP A, $04
     JP C, interactDetermination ; IF SO, CHECK GHOST'S STATE TO DETERMINE NEXT ACTION
+    RET
+
+
+    ; INFO: CHECKS IF PAC-MAN CAN TOUCH A GHOST AT ALL
+    ; INPUT: IX - GHOST
+    ; OUTPUT: Z - NO, NZ - YES (CARRY IS CLEAR)
+    ; USES: AF
+ghostCanTouch:
+;   A DEAD GHOST (EYES) CAN'T BE TOUCHED
+    LD A, (IX + ALIVE_FLAG)
+    OR A
+    RET Z
+;   EXIT IF IN PAC-MAN OR MS.PAC-MAN
+    LD A, (plusBitFlags)
+    CPL
+    AND A, $01 << JR_PAC
+    RET NZ
+;   JR.PAC-MAN: THE GHOST MUST ALSO BE OUT OF THE HOUSE
+    LD A, (IX + STATE)
+    CP A, GHOST_SCATTER
+    LD A, $01   ; YES
+    JR Z, +
+    XOR A       ; NO
++:
+    OR A        ; SET Z / NZ, CLEAR CARRY
     RET
