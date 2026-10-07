@@ -296,7 +296,7 @@ pinkyTarget:
     LD C, B
     LD B, A     ; BC = XY
     ; USE PAC-MAN'S DIRECTION AS OFFSET INTO TABLE
-    LD A, (pacman.currDir)
+    LD A, (pacMoveDir)
     ADD A, A
     LD HL, dirVectors
     addToHL_M
@@ -352,7 +352,7 @@ inkyTarget:
     LD C, B
     LD B, A     ; BC = XY
     ; USE PAC-MAN'S DIRECTION AS OFFSET INTO TABLE
-    LD A, (pacman.currDir)
+    LD A, (pacMoveDir)
     ADD A, A
     LD HL, dirVectors
     addToHL_M

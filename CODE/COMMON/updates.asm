@@ -172,7 +172,7 @@ getInput:
 @noDir:
     ; NO DIRECTION WAS PRESSED
     DEC (HL)    ; CLEAR INPUT FLAG
-    LD A, (pacman.currDir)  ; WANTED DIRECTION WILL BE CURRENT DIRECTION
+    LD A, (pacMoveDir)      ; WANTED DIRECTION WILL BE CURRENT DIRECTION
 @setWanted:
     LD (pacman.nextDir), A  ; SET WANTED DIRECTION
     RET

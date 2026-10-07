@@ -68,6 +68,8 @@ pacmanReset:
     INC A   ; $01
     LD (pacman.currDir), A
     LD (pacman.nextDir), A
+    LD (pacMoveDir), A
+    LD (pacWantedFace), A
 ;   GENERAL ACTOR RESET
     LD IX, pacman
     JP actorReset

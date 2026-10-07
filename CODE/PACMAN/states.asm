@@ -65,6 +65,18 @@ pacStateTable@update@normalMode:
 ;   SAVE DOT COUNT FOR DOT EXPIRE COUNTER
     LD A, (currPlayerInfo.dotCount)
     LD (dotExpireCounter), A
+;   SET TUNNEL FLAG IF PAC-MAN IS IN THE TUNNEL (NOT IN JR.PAC)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR NZ, ++
+    LD A, (pacman + CURR_X)
+    CP A, $21
+    JR C, +
+    CP A, $3B
+    JR C, ++
++:
+    LD (pacInTunnel), A     ; A ISN'T 0
+++:
 
 ; ------------------------------------------------
 ;     UPDATE - "CHECK IF IN DEMO"
@@ -106,10 +118,11 @@ pacStateTable@update@normalMode:
 ;   SET CURRENT DIRECTION TO NEXT DIRECTION
     LD A, (pacman.nextDir)
     LD (pacman.currDir), A
+    LD (pacMoveDir), A
 ;   SET REVERSE DIRECTION
     XOR A, $02
     LD (pacman.reveDir), A
-    JR @@@@prepareVector
+    JP @@@@prepareVector
 
 
 
@@ -118,17 +131,10 @@ pacStateTable@update@normalMode:
 ; ------------------------------------------------ 
 
 @@@@tunnelCheck:
-;   SKIP IF GAME IS JR.PAC
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JP NZ, @@@@getCollision
-;   CHECK IF IN TUNNEL
-    LD A, (pacman + CURR_X)
-    CP A, $21
-    JR C, +     ; LESS THAN
-    CP A, $3B
-    JR C, @@@@getCollision  ; IF NOT, PROCEED WITH NORMAL UPDATE
-+:
+;   CHECK IF IN TUNNEL (FLAG WAS SET ABOVE)
+    LD A, (pacInTunnel)
+    OR A
+    JR Z, @@@@getCollision  ; IF NOT, PROCEED WITH NORMAL UPDATE
 ;   CHECK IF PLAYER MOVED LEFT
     LD A, (pacman.nextDir)
     CP A, DIR_LEFT
@@ -149,8 +155,12 @@ pacStateTable@update@normalMode:
 ;   SAVE INPUT FLAG IN E
     LD A, (inputFlag)
     LD E, A
+    OR A
 ;   CALCULATE TILE ID OFFSET (BASED ON WANTED DIRECTION)
     LD A, (pacman.nextDir)
+    JR Z, +
+    LD (pacWantedFace), A   ; REMEMBER THE DIRECTION ASKED FOR, EVEN IF IT TURNS OUT TO BE BLOCKED
++:
     LD L, A
     ADD A, A    ; MULTIPLY BY 3 (EACH TILE IS 3 BYTES)
     ADD A, L
@@ -176,7 +186,7 @@ pacStateTable@update@normalMode:
 @@@@chkCurrDirTile:
 ;   CHECK IF TILE IN CURRENT DIRECTION IS UNWALKABLE
     ; CONVERT DIRECTION TO OFFSET
-    LD A, (pacman.currDir)
+    LD A, (pacMoveDir)
     LD L, A
     ADD A, A    ; MULTIPLY BY 3
     ADD A, L
@@ -213,19 +223,26 @@ pacStateTable@update@normalMode:
 ;   CHECK IF INPUT WAS APPLIED (IS 1?)
     DEC E
     JR Z, @@@@prepareVector ; IF SO, SKIP...
+;   NO INPUT, WALL AHEAD, NOT AT CENTER: 
+    LD A, (pacWantedFace)           ; TURN PAC-MAN TO FACE THE LAST DIRECTION ASKED FOR, BUT KEEP MOVING THE SAME WAY
+    LD (pacman.currDir), A
+    JR @@@@prepareVector
 
 ; ------------------------------------------------
 ;     UPDATE - PREPARE FOR MOVEMENT
 ; ------------------------------------------------
 
 @@@@prepareAxis:    ; $1940
-;   SET DIRECTION TO WANTED DIRECTION
+;   SET DIRECTION TO WANTED DIRECTION (MOVING AND FACING)
     LD A, (pacman.nextDir)
     LD (pacman.currDir), A
+    LD (pacMoveDir), A
 @@@@prepareVector:  ; $1950
-;   GET MOVEMENT BYTES FROM TABLE
+;   SAVE FACING DIRECTION (DECIDES WHICH AXIS GETS THE CORNERING)
     LD A, (pacman.currDir)
-    LD B, A     ; SAVE DIRECTION
+    LD B, A
+;   GET MOVING DIRECTION
+    LD A, (pacMoveDir)
 
 ; ------------------------------------------------
 ;     UPDATE - APPLY MAIN AXIS MOVEMENT TO PAC-MAN
@@ -499,6 +516,12 @@ pacStateTable@update@normalMode:
     LD (tileQuadrant), A
 @@@exit:
 @@@end:
+;   DON'T CHECK FOR FRUIT OR DOTS IF PAC-MAN WAS IN THE TUNNEL BEFORE THIS MOVE [$198E]
+    LD HL, pacInTunnel
+    LD A, (HL)
+    LD (HL), $00
+    OR A
+    RET NZ
     JP mazeUpdate
 
 

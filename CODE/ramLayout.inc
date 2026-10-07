@@ -112,6 +112,9 @@
     pacPelletTimer: db
     pacDeathTimer: db
     pacDeathTimePtr: dw
+    pacInTunnel: db     ; SET IF PAC-MAN WAS IN THE TUNNEL BEFORE HIS MOVE [$4DBF]
+    pacMoveDir: db      ; DIRECTION PAC-MAN MOVES IN [$4D1C]. pacman.currDir IS THE DIRECTION HE FACES [$4D30]
+    pacWantedFace: db   ; LAST DIRECTION THE PLAYER ASKED FOR OUTSIDE OF THE TUNNEL, EVEN IF IT WAS BLOCKED [$4D3C]
     spdPatternNormal: dsb 4
     spdPatternSuper: dsb 4
     spdPatternPtr: dw
