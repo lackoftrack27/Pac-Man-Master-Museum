@@ -199,12 +199,21 @@ fruitUpdate:
     LD A, (fruit + STATE)
     CP A, FRUIT_EXPLODE
     JP Z, fruitStateExplode
-;   DON'T UPDATE DURING EAT
+;   CHECK IF A GHOST WAS TOUCHED (BEING EATEN, OR PAC-MAN JUST DIED)
     LD A, (ghostPointSprNum)
     OR A
-    RET NZ
-;   DIFFERENT MAIN UPDATES DEPENDING ON GAME
     LD A, (plusBitFlags)
+    JR Z, +     ; IF NOT, DO MAIN UPDATE
+    ; MS.PAC / JR.PAC: DON'T UPDATE
+    AND A, $01 << MS_PAC | $01 << JR_PAC
+    RET NZ
+    ; PAC-MAN: ONLY SKIPS THIS WHEN HE IS DEAD, SO A FRUIT CAN STILL APPEAR WHILE A GHOST IS BEING EATEN
+    LD A, (subGameMode)
+    CP A, GAMEPLAY_DEAD00
+    RET Z
+    JR @pacFruit
++:
+;   DIFFERENT MAIN UPDATES DEPENDING ON GAME
     RRCA    ; PLUS
     RRCA    ; MS.PAC
     JP C, msFruitUpdate
@@ -213,6 +222,7 @@ fruitUpdate:
 ;   ----------------------------------
 ;           PAC-MAN FRUIT CODE
 ;   ----------------------------------
+@pacFruit:
 ;   CHECK IF FRUIT AND FRUIT POINTS AREN'T ACTIVE (ON SCREEN)
     LD A, $0F
     AND A, (HL) ; CHECK IF LOW NIBBLE IS 0 (NO FRUIT OR SCORE POINTS)

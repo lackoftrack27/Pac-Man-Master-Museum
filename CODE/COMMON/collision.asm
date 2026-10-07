@@ -89,6 +89,15 @@ interactDetermination:
     LD (ghostPointXpos + 1), A
     LD A, (IX + Y_WHOLE)
     LD (ghostPointYpos), A
+    ; INCREASE SCORE AND PLAY GHOST ATE SOUND
+    LD A, (ghostPointIndex) ; CONVERT INDEX TO OFFSET
+    ADD A, A
+    LD HL, ghostScoreTable  ; ADD TO SCORE TABLE
+    addToHL_M
+    RST getDataAtHL         ; GET SCORE VALUE FROM TABLE
+    CALL addToScore         ; ADD TO SCORE
+    LD HL, ch2SoundControl
+    SET 3, (HL)
     RET
 @ghostKill:
 ;   GHOST IS KILLING PAC-MAN

@@ -267,30 +267,12 @@ ghostVisCounterUpdate:
 ;   INCREMENT FRAME COUNTER
     LD HL, frameCounter
     INC (HL)
-;   CHECK IF FLASH IS ENABLED (IF BIT 5 IS SET)
-    LD HL, flashCounter
-    BIT 5, (HL)
-    RET Z   ; IF NOT, END
-;   INCREMENT FLASH COUNTER
-    INC (HL)
-;   CHECK IF BITS 0-3 ARE SET  
-    LD A, $0F
-    AND A, (HL)
-    CP A, $0F   ; 12.5 FOR PAL
-    RET NZ      ; IF NOT, END
-;   TOGGLE COLOR (BIT 4)
-    LD A, $10
-    XOR A, (HL)
-;   CLEAR COUNTER (BITS 0-3)
-    AND A, $F0
-;   STORE
-    LD (HL), A
     RET
 
 
 
 
-    ; INFO: DETERMINES WHEN GHOSTS START FLASHING
+    ; INFO: DETERMINES WHEN GHOSTS START FLASHING AND WHEN THEY CHANGE COLOR
     ; INPUT: NONE
     ; OUTPUT: NONE
     ; USES: AF, DE, HL
@@ -299,16 +281,16 @@ ghostFlashUpdate:
 ;   CHECK IF SUB GAME MODE IS SUPER 
     LD A, (pacPoweredUp)
     OR A
-    RET Z   ; IF NOT, EXIT
+    JR Z, @counter  ; IF NOT, SKIP
 ;   CHECK IF BIT 5 IS SET (IS FLASHING ENABLED)
     LD A, (flashCounter)
     AND A, $01 << $05
-    RET NZ  ; IF SO, EXIT
+    JR NZ, @counter  ; IF NOT, SKIP
 ;   CHECK IF POWER DOT TIMER IS LESS THAN 128 * 2
     LD HL, (mainTimer1)
     LD DE, GHOST_FLASH_TIME
     SBC HL, DE  ; CARRY CLEARED
-    RET NC  ; IF NOT, SKIP...
+    JR NC, @counter  ; IF NOT, SKIP
 ;   SET BIT 5 OF FLASH VAR
     LD HL, flashCounter
     SET 5, (HL)
@@ -318,6 +300,26 @@ ghostFlashUpdate:
     LD (pinky + INVISIBLE_FLAG), A
     LD (inky + INVISIBLE_FLAG), A
     LD (clyde + INVISIBLE_FLAG), A
+@counter:
+;   OG'S FLASH COUNTER [$4DC8] IS BITS 0 - 3. 
+;   IT RUNS EVERY FRAME EXCEPT WHILE A GHOST IS BEING EATEN AND RESTARTS AT EACH POWER DOT
+;   AT 0 IT GOES BACK TO 14, AND THE COLOR (BIT 4) CHANGES IF FLASHING IS ENABLED [$0AC3]
+    LD A, (ghostPointSprNum)
+    OR A
+    RET NZ
+    LD HL, flashCounter
+    LD A, (HL)
+    AND A, $0F
+    JR NZ, +
+    LD A, (HL)
+    OR A, $0E
+    BIT 5, A
+    JR Z, ++
+    XOR A, $10
+++:
+    LD (HL), A
++:
+    DEC (HL)
     RET
 
 

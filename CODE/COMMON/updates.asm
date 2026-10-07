@@ -66,16 +66,6 @@ eatModeUpdate:
 ;   SET TIMER
     LD A, EAT_TIMER_LEN
     CALL setTickTimer0
-;   INCREASE SCORE
-    LD A, (ghostPointIndex) ; CONVERT INDEX TO OFFSET
-    ADD A, A
-    LD HL, ghostScoreTable  ; ADD TO SCORE TABLE
-    addToHL_M
-    RST getDataAtHL         ; GET SCORE VALUE FROM TABLE
-    CALL addToScore         ; ADD TO SCORE
-;   PLAY GHOST ATE SOUND
-    LD HL, ch2SoundControl
-    SET 3, (HL)
 ;   UPDATE SUBSTATE
     LD A, $02
     LD (eatSubState), A
@@ -934,9 +924,9 @@ superTimerUpdate:
     LD (pacPoweredUp), A
     INC A
     LD (isNewState), A
-;   TURN OFF GHOST FLASH
+;   TURN OFF GHOST FLASH, RESTART FLASH COUNTER
     LD HL, flashCounter
-    RES 5, (HL)
+    LD (HL), $00
     RET
 
 

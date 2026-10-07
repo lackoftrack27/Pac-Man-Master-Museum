@@ -669,6 +669,7 @@ eatGhosts:
     ; RESET EAT SUBSTATE (DON'T NEED)
     XOR A
     LD (eatSubState), A
+    LD (ch2SoundControl), A
     ; GHOST IS NOW DEAD
     LD (IX + ALIVE_FLAG), A
     ; GHOST IS NOW INVISIBLE
