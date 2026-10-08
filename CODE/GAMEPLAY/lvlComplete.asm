@@ -26,6 +26,8 @@ sStateGameplayTable@comp00Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   FRUIT / FRUIT POINTS TIMER UPDATE
+    CALL fruitTimerTick
 ;   DECREMENT TIMER 0
     CALL tickTimer0
     RET NZ  ; IF NOT 0, EXIT...
@@ -51,9 +53,7 @@ sStateGameplayTable@comp01Mode:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
-;   CLEAR FRUIT STATUS
-    LD (currPlayerInfo.fruitStatus), A
-;   REMOVE ACTORS FROM SCREEN
+;   REMOVE GHOSTS FROM SCREEN
     ; MOVE OFFSCREEN
     LD H, A
     LD L, A
@@ -61,15 +61,12 @@ sStateGameplayTable@comp01Mode:
     LD (pinky + X_WHOLE), HL
     LD (inky + X_WHOLE), HL
     LD (clyde + X_WHOLE), HL
-    LD (fruit + X_WHOLE), HL
-    LD (fruit + Y_WHOLE), HL
     ; SET OFFSCREEN FLAGS
     INC A
     LD (blinky + OFFSCREEN_FLAG), A
     LD (pinky + OFFSCREEN_FLAG), A
     LD (inky + OFFSCREEN_FLAG), A
     LD (clyde + OFFSCREEN_FLAG), A
-    LD (fruit + OFFSCREEN_FLAG), A 
 ;   TURN MAZE WHITE
     LD HL, BGPAL_WALLS | CRAMWRITE
     RST setVDPAddress
@@ -81,6 +78,8 @@ sStateGameplayTable@comp01Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   FRUIT / FRUIT POINTS TIMER UPDATE
+    CALL fruitTimerTick
     ; BITS 0 - 3: TIMER COUNTER
     ; BIT 4: COLOR FLAG (0 - WHITE, 1 - REGULAR)
     ; BITS 5 - 7: FLASH COUNTER
@@ -107,7 +106,7 @@ sStateGameplayTable@comp01Mode:
     LD (mazeDoneCounter), A
     ; CHANGE COLORS DEPENDING ON FLAG
     BIT 4, A
-    JR Z, colorWallsWhite   ; SET TO WHITE IF CLEAR
+    JP Z, colorWallsWhite   ; SET TO WHITE IF CLEAR
     ; RESTORE MAZE COLORS
     LD BC, BGPAL_SHADE2 * $100 + VDPDATA_PORT    ; UP TO, AND INCLUDING, MAZE SHADE 2
     LD A, (plusBitFlags)    ; ADD 1 TO B IF GAME IS MS.PAC (RESTORES GHOST GATE)
@@ -119,6 +118,10 @@ sStateGameplayTable@comp01Mode:
     OTIR
     RET
 @@exit:
+;   CLEAR FRUIT STATUS FOR THE NEXT LEVEL AND REMOVE FRUIT / FRUIT POINTS
+    LD HL, currPlayerInfo.fruitStatus
+    LD (HL), $00
+    CALL fruitTimerTick@timerExpired
 ;   SWITCH FIRST READY MODE
     LD HL, $01 * $100 + GAMEPLAY_READY01
     LD (subGameMode), HL

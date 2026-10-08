@@ -34,6 +34,8 @@ sStateGameplayTable@dead00Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw@noStream
 @@update:
+;   FRUIT / FRUIT POINTS TIMER
+    CALL fruitTimerTick
 ;   UPDATE SCROLL IF APPLICABLE
     CALL updateJRScrollIfOn
 ;   CHECK FOR ALL DOTS EATEN (IN CASE OF DYING ON LAST DOT)
@@ -67,7 +69,7 @@ sStateGameplayTable@dead01Mode:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
-;   REMOVE ACTORS FROM SCREEN
+;   REMOVE GHOSTS FROM SCREEN
     ; MOVE OFFSCREEN
     LD H, A
     LD L, A
@@ -75,20 +77,12 @@ sStateGameplayTable@dead01Mode:
     LD (pinky + X_WHOLE), HL
     LD (inky + X_WHOLE), HL
     LD (clyde + X_WHOLE), HL
-    LD (fruit + X_WHOLE), HL
-    LD (fruit + Y_WHOLE), HL
     ; SET OFFSCREEN FLAGS
     INC A
     LD (blinky + OFFSCREEN_FLAG), A
     LD (pinky + OFFSCREEN_FLAG), A
     LD (inky + OFFSCREEN_FLAG), A
     LD (clyde + OFFSCREEN_FLAG), A
-    LD (fruit + OFFSCREEN_FLAG), A
-;   CLEAR LOWER NIBBLE OF FRUIT STATUS
-    LD HL, currPlayerInfo.fruitStatus
-    LD A, (HL)
-    AND A, $F0
-    LD (HL), A
 ;   SET TIMER
     LD A, DEAD01_TIMER_LEN
     LD (mainTimer0), A
@@ -101,6 +95,8 @@ sStateGameplayTable@dead01Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   FRUIT / FRUIT POINTS TIMER
+    CALL fruitTimerTick
 ;   UPDATE SCROLL IF APPLICABLE
     CALL updateJRScrollIfOn
 ;   UPDATE POWER DOT PALETTE CYCLE
@@ -166,6 +162,8 @@ sStateGameplayTable@dead02Mode:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
 @@update:
+;   FRUIT / FRUIT POINTS TIMER
+    CALL fruitTimerTick
 ;   UPDATE SCROLL IF APPLICABLE
     CALL updateJRScrollIfOn
 ;   UPDATE POWER DOT PALETTE CYCLE
@@ -179,6 +177,8 @@ sStateGameplayTable@dead02Mode:
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
 @@exit:
+;   REMOVE FRUIT / FRUIT POINTS
+    CALL fruitTimerTick@timerExpired
 ;   CLEAR MUTATED DOTS (JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
