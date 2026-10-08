@@ -763,8 +763,12 @@ mStateTable:
 .SECTION "Pac-Man (Player) Data - Death Frame Times" FREE
 pacmanDeathTimes:
     .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $0F $55
+@second:
+    .DB $1E $07 $08 $07 $08 $07 $08 $07 $08 $07 $0F $55
 jrDeathTimes:
     .DB $1E $08 $07 $08 $07 $08 $07 $08 $07 $08 $07 $5D
+@second:
+    .DB $1E $07 $08 $07 $08 $07 $08 $07 $08 $07 $08 $5D
 .ENDS
 
 .SECTION "Pac-Man (Player) Data - Sprite Defs for Big Pac-Man" FREE

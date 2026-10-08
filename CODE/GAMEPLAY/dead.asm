@@ -13,7 +13,16 @@ sStateGameplayTable@dead00Mode:
 ;   RESET GHOST POINT SPRITE NUM
     LD (ghostPointSprNum), A
 ;   SET TIMER
+    LD A, (killPass)
+    CP A, $02
     LD A, DEAD00_TIMER_LEN
+    JR NZ, +
+    LD HL, (pacDeathTimePtr)
+    LD DE, pacmanDeathTimes@second - pacmanDeathTimes
+    ADD HL, DE
+    LD (pacDeathTimePtr), HL
+    INC A
++:
     LD (mainTimer0), A
 ;   TURN OFF GHOST FLASH
     LD HL, flashCounter
@@ -23,7 +32,7 @@ sStateGameplayTable@dead00Mode:
     CALL sndStopChannel
 @@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
-    CALL generalGamePlayDraw
+    CALL generalGamePlayDraw@noStream
 @@update:
 ;   UPDATE SCROLL IF APPLICABLE
     CALL updateJRScrollIfOn
@@ -138,7 +147,12 @@ sStateGameplayTable@dead02Mode:
     JR NZ, +
     LD B, DEAD02_TIMER_LEN_PAC_GO
 +:
+    LD A, (killPass)
+    CP A, $02
     LD A, B
+    JR NZ, +
+    DEC A
++:
     LD (mainTimer0), A
 ;   PLAY DEATH SOUND
     LD A, SFX_DEATH     ; ASSUME SFX FOR PAC-MAN

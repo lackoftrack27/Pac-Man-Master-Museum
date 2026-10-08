@@ -130,6 +130,7 @@
     playerTileTblPtr: DW
     deathTileTblPtr: DW
     scoreTileMapBuffer: DSB $06
+    killPass: db
 ;   GLOBAL GHOST STUFF
     globalDotCounter: db
     frameCounter: db

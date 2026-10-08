@@ -48,6 +48,9 @@ sStateGameplayTable@normalMode:
     CALL allDotsEatenCheck
 ;   PAC-MAN FRUIT TIMER (TIMED TASK IN OG, DONE BEFORE GAME LOGIC)
     CALL fruitTimerTick
+;   RESET UPDATE COUNTER FOR DEATH
+    XOR A
+    LD (killPass), A
 ;   GENERAL GAMEPLAY UPDATE (SHARED WITH SUPER/EAT MODE)
     CALL generalGameplayUpdate
     CALL generalGameplayUpdate
