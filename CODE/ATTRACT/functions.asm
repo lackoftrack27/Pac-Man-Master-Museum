@@ -343,8 +343,10 @@ generalIntroSetup00:
     LD (xUPCounter), A
 ;   SET INTRO'S SUB STATE
     LD (introSubState), A
-;   RESET POINT SPR NUM (EAT MODE INDICATOR)
+;   RESET POINT SPR NUM (EAT MODE INDICATOR) AND EAT SUBSTATE (WHILE SET, GHOSTS' LOOK ISN'T UPDATED)
     LD (ghostPointSprNum), A
+    LD (ghostPointShown), A
+    LD (eatSubState), A
 ;   RESET POWER DOT PALETTE BUFFER/COUNTER
     LD (powDotFrameCounter), A
 ;   RESET GLOBAL GHOST VARS

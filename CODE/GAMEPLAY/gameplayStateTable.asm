@@ -346,6 +346,7 @@ firstTimeEnd:
     LD (flashCounter), A
     LD (difficultyState), A
     LD (ghostPointSprNum), A
+    LD (ghostPointShown), A
 ;   INITIALIZE A BUNCH OF STUFF TO 0
     LD (rngIndex), HL       ; RNG INDEX
     LD (mainTimer2), HL     ; SCATTER/CHASE TIMER

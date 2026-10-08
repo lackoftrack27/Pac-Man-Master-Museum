@@ -103,6 +103,7 @@
     ghostPointYpos: db
     ghostPointSprNum: db
     ghostPointIndex: db
+    ghostPointShown: db
 ;   EAT STATE STUFF
     eatSubState: db
 ;   POWER DOT PALETTE CYCLING

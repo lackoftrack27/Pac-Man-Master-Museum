@@ -92,6 +92,10 @@
     id db
     ; PLUS
     invisible db
+    ; HOW THE GHOST IS DRAWN: FACING * 2 + FEET FRAME
+    look db
+    ; SET WHEN THE GHOST COMES BACK TO LIFE (STILL DRAWN AS EYES UNTIL NEXT COLOR UPDATE)
+    eyesLag db
 .ENDST
 
 

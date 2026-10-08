@@ -10,6 +10,11 @@
     ; USES: AF, HL, IX
 
 generalGamePlayDraw:
+;   STREAM PLAYER TILES IF GHOST POINTS AREN'T BEING DISPLAYED
+    LD A, (ghostPointSprNum)
+    OR A
+    CALL Z, pacTileStreaming
+@noStream:
 ;   LATCH VDP SCROLL VALUE HERE (KEEPS BG AND SPRITES VISUALLY CONSISTENT)
     LD A, (jrScrollReal)
     LD (jrScrollVDP), A
@@ -58,7 +63,6 @@ generalGamePlayDraw:
     CALL NZ, drawMazeFruitJr
 ;   DRAW ACTORS
     ; PAC-MAN
-    CALL pacTileStreaming   ; STREAM PLAYER TILES
     LD HL, pacStateTable@draw
     LD A, (pacman.state)
     RST jumpTableExec
@@ -85,7 +89,7 @@ generalGamePlayDraw:
 ;   DRAW FRUIT OR FRUIT POINTS (IN MAZE)
     CALL drawInMazeFruit
 ;   DRAW GHOST POINTS (IF NEEDED)
-    LD A, (ghostPointSprNum)
+    LD A, (ghostPointShown)
     OR A
     CALL NZ, drawGhostPoints
 ;   POWER PELLET PALETTE CYCLING (DONE LAST TO HIDE CRAM DOTS)
@@ -258,16 +262,40 @@ drawGhostPoints:
     ; INFO: UPDATES COUNTERS FOR GHOST ANIMATION
     ; INPUT: NONE
     ; OUTPUT: NONE
-    ; USES: AF, HL
+    ; USES: AF, B, HL
 
 ghostVisCounterUpdate:
-;   DON'T UPDATE IF IN EAT MODE (FREEZE GHOST ANIMATION)
-    LD A, (ghostPointSprNum)
-    OR A
-    RET NZ
-;   INCREMENT FRAME COUNTER
+;   UPDATE FEET COUNTER
     LD HL, frameCounter
     INC (HL)
+@latch:
+;   EXIT IF PAC-MAN IS EATING A GHOST (SIDE-EFFECT: EYES REMAIN STATIC)
+    LD A, (eatSubState)
+    OR A
+    RET NZ
+;   COMPUTE LOOK OFFSETS
+    LD A, (HL)
+    RRCA
+    RRCA
+    RRCA
+    AND A, $01              ; ADD BIT 3 TO NEXT_DIR*2 FOR ALL GHOSTS
+    LD B, A
+    LD A, (blinky + NEXT_DIR)
+    ADD A, A
+    OR A, B
+    LD (blinky + LOOK), A
+    LD A, (pinky + NEXT_DIR)
+    ADD A, A
+    OR A, B
+    LD (pinky + LOOK), A
+    LD A, (inky + NEXT_DIR)
+    ADD A, A
+    OR A, B
+    LD (inky + LOOK), A
+    LD A, (clyde + NEXT_DIR)
+    ADD A, A
+    OR A, B
+    LD (clyde + LOOK), A
     RET
 
 
@@ -306,6 +334,7 @@ ghostFlashUpdate:
     LD A, (HL)
     AND A, $0F
     JR NZ, +
+    CALL ghostsClearEyesLag
     LD A, (HL)
     OR A, $0E
     BIT 5, A

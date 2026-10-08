@@ -101,17 +101,33 @@ clydeReset:
 
 
 ghostReset:
+;   DRAWN FACING THE WAY IT STARTS, FEET FRAME 0
+    LD A, (IX + NEXT_DIR)
+    ADD A, A
+    LD (IX + LOOK), A
 ;   RESET FLAGS
     XOR A
     LD (IX + INVISIBLE_FLAG), A
     LD (IX + REVE_FLAG), A
     LD (IX + EDIBLE_FLAG), A
+    LD (IX + EYES_LAG), A
 ;   GHOST IS ALIVE
     INC A
     LD (IX + ALIVE_FLAG), A
     RET
 
 
+    ; INFO: NO GHOST IS WAITING TO GET ITS BODY BACK (SEE EYES_LAG)
+    ; INPUT: NONE
+    ; OUTPUT: A - 0
+    ; USES: AF
+ghostsClearEyesLag:
+    XOR A
+    LD (blinky + EYES_LAG), A
+    LD (pinky + EYES_LAG), A
+    LD (inky + EYES_LAG), A
+    LD (clyde + EYES_LAG), A
+    RET
 
 
 ; ------------------------------------------------
@@ -119,17 +135,10 @@ ghostReset:
 ; ------------------------------------------------
 
 displayGhostNormal:
-;   GET NEXT DIRECTION
-    LD A, (IX + NEXT_DIR)
-    ADD A, A    ; MULT BY 8
+;   GET LOOK (FACING * 2 + FEET FRAME, FEET MOVE EVERY 8 FRAMES), 4 TILES FOR EACH
+    LD A, (IX + LOOK)
+    ADD A, A    ; MULT BY 4
     ADD A, A
-    ADD A, A
-    LD E, A     ; SAVE FOR LATER ADD
-;   ADD 4 IF GHOST FRAME COUNTER IS MULTIPLE OF 8 (THIS MAKES IT SO THEIR FEET MOVE EVERY 8 FRAMES)
-    LD A, (frameCounter)
-    AND A, $08
-    RRCA
-    ADD A, E
     LD E, A     ; SAVE FOR LATER ADD
 ;   ADD (ID * 32) TO GET CORRECT OFFSET FOR GHOST
     LD A, (IX + ID)
@@ -157,10 +166,11 @@ displayGhostNormal:
 
 
 displayGhostScared:
-;   ADD 4 IF GHOST FRAME COUNTER IS MULTIPLE OF 8
-    LD A, (frameCounter)
-    AND A, $08
-    RRCA
+;   ADD 4 FOR SECOND FEET FRAME (BIT 0 OF LOOK)
+    LD A, (IX + LOOK)
+    AND A, $01
+    ADD A, A
+    ADD A, A
     LD E, A
 ;   ADD 8 IF BIT 4 OF FLASH IS SET
     LD A, (flashCounter)
@@ -187,9 +197,9 @@ displayGhostScared:
 
 displayGhostEyes:
     LD HL, ghostEyesTileDefs
-;   USE NEXT DIR AS OFFSET
-    LD A, (IX + NEXT_DIR)
-    ADD A, A    ; MULT BY 2
+;   USE FACING AS OFFSET (LOOK WITHOUT FEET FRAME = FACING * 2)
+    LD A, (IX + LOOK)
+    AND A, $06
     addToHL_M
 ;   GET X AND Y POSITION
     CALL convPosToScreen

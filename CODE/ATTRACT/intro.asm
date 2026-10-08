@@ -656,9 +656,10 @@ eatGhosts:
     LD A, (ghostPointIndex)
     CP A, $03
     JP Z, demoPrep  ; IF SO, PREPARE FOR DEMO
-;   RESET GHOST POINT SPRITE NUMBER (NO COLLISION DETECTED YET)
+;   RESET GHOST POINT SPRITE NUMBER (NO COLLISION DETECTED YET) AND EAT SUBSTATE
     XOR A
     LD (ghostPointSprNum), A
+    LD (eatSubState), A
 ;   COLLISION CHECK BETWEEN PAC-MAN AND GHOSTS
     CALL globalCollCheckTile
     CALL globalCollCheckPixel
@@ -666,9 +667,8 @@ eatGhosts:
     LD A, (ghostPointSprNum)
     OR A
     JR Z, + ; IF NOT, CONTINUE UPDATE
-    ; RESET EAT SUBSTATE (DON'T NEED)
+    ; STOP CH2 SOUND
     XOR A
-    LD (eatSubState), A
     LD (ch2SoundControl), A
     ; GHOST IS NOW DEAD
     LD (IX + ALIVE_FLAG), A

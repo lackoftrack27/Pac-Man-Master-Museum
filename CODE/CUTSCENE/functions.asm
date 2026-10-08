@@ -126,13 +126,15 @@ pacCutsceneInit:
     XOR A
     LD (pacman + SUBPIXEL), A
     LD (blinky + SUBPIXEL), A
-    ; CLEAR GHOST VISUAL COUNTERS
+    ; CLEAR GHOST VISUAL COUNTERS (AND EAT SUBSTATE: WHILE SET, GHOSTS' LOOK ISN'T UPDATED)
     LD (flashCounter), A
     LD (frameCounter), A
+    LD (eatSubState), A
     ; CLEAR BLINKY'S FLAGS
     LD (blinky + EDIBLE_FLAG), A
     LD (blinky + INVISIBLE_FLAG), A
     LD (blinky + OFFSCREEN_FLAG), A
+    LD (blinky + EYES_LAG), A
     ; PAC-MAN FACING LEFT
     INC A   ; $01
     LD (pacman.currDir), A
@@ -140,6 +142,8 @@ pacCutsceneInit:
     ; BLINKY FACING LEFT
     LD (blinky.currDir), A
     LD (blinky.nextDir), A
+    ADD A, A
+    LD (blinky + LOOK), A   ; LOOK = FACING * 2 + FEET FRAME
     ; SET BLINKY SPRITE TABLE NUM
     LD A, $0A
     LD (blinky.sprTableNum), A

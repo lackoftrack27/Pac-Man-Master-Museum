@@ -73,6 +73,7 @@ scene2Update1:
     LD A, $03   ; GO RIGHT
     LD (blinky.currDir), A
     LD (blinky.nextDir), A
+    CALL ghostVisCounterUpdate@latch
 ;   RESET FRAME COUNTER FOR NAKED GHOST
     XOR A
     LD (nakedFrameCounter), A

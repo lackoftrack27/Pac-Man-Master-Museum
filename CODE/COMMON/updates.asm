@@ -69,6 +69,9 @@ eatModeUpdate:
 ;   UPDATE SUBSTATE
     LD A, $02
     LD (eatSubState), A
+;   POINTS ARE DRAWN IN PLACE OF THE GHOST, AND PAC-MAN IS HIDDEN 
+    LD A, (ghostPointSprNum)
+    LD (ghostPointShown), A
     RET
 @update:
 ;   UPDATE EATING TIMER
@@ -82,6 +85,7 @@ eatModeUpdate:
 ;   UPDATE GHOST POINTS SPR NUM
     XOR A
     LD (ghostPointSprNum), A
+    LD (ghostPointShown), A
     RET
 
 
@@ -960,6 +964,7 @@ allDotsEatenCheck:
     CP A, L
     RET NZ      ; IF NOT, LEVEL ISN'T COMPLETE, EXIT
 @lvlDone:
+    CALL ghostVisCounterUpdate@latch
 ;   ELSE, SET MODE TO FIRST LEVEL COMPLETE STATE
     POP HL      ; REMOVE FUNCTION CALLER FROM STACK
     LD HL, $01 * $100 + GAMEPLAY_COMP00
