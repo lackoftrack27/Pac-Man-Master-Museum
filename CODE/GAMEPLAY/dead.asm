@@ -2,11 +2,11 @@
 ;                     DEAD 00 MODE
 ; -------------------------------------------------------
 
-sStateGameplayTable@dead00Mode:
+Dead00Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
@@ -30,10 +30,10 @@ sStateGameplayTable@dead00Mode:
 ;   STOP SOUNDS
     LD B, $01
     CALL sndStopChannel
-@@draw:
+@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw@noStream
-@@update:
+@update:
 ;   FRUIT / FRUIT POINTS TIMER
     CALL fruitTimerTick
 ;   UPDATE SCROLL IF APPLICABLE
@@ -48,7 +48,7 @@ sStateGameplayTable@dead00Mode:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
-@@exit:
+@exit:
 ;   SET SUBSTATE TO DEAD01, SET NEW-STATE-FLAG
     LD HL, $01 * $100 + GAMEPLAY_DEAD01
     LD (subGameMode), HL
@@ -61,11 +61,11 @@ sStateGameplayTable@dead00Mode:
 ;                     DEAD 01 MODE
 ; -------------------------------------------------------
 
-sStateGameplayTable@dead01Mode:
+Dead01Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
@@ -91,10 +91,10 @@ sStateGameplayTable@dead01Mode:
     LD (mainTimer1), A
 ;   NOTIFY PAC-MAN
     CALL pacGameTrans_dead
-@@draw:
+@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   FRUIT / FRUIT POINTS TIMER
     CALL fruitTimerTick
 ;   UPDATE SCROLL IF APPLICABLE
@@ -109,7 +109,7 @@ sStateGameplayTable@dead01Mode:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
-@@exit:
+@exit:
 ;   SET SUBSTATE TO DEAD02, SET NEW-STATE-FLAG
     LD HL, $01 * $100 + GAMEPLAY_DEAD02
     LD (subGameMode), HL
@@ -123,11 +123,11 @@ sStateGameplayTable@dead01Mode:
 ;                     DEAD 02 MODE
 ; -------------------------------------------------------
 
-sStateGameplayTable@dead02Mode:
+Dead02Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
@@ -158,10 +158,10 @@ sStateGameplayTable@dead02Mode:
     ADD A, B            ; ADD TO MUSIC ID
     LD B, $01           ; CHANNEL 1
     CALL sndPlaySFX
-@@draw:
+@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   FRUIT / FRUIT POINTS TIMER
     CALL fruitTimerTick
 ;   UPDATE SCROLL IF APPLICABLE
@@ -176,7 +176,7 @@ sStateGameplayTable@dead02Mode:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
-@@exit:
+@exit:
 ;   REMOVE FRUIT / FRUIT POINTS
     CALL fruitTimerTick@timerExpired
 ;   CLEAR MUTATED DOTS (JR)

@@ -3,11 +3,11 @@
 ;                 LEVEL COMPLETE 00 MODE
 ; -------------------------------------------------------
 
-sStateGameplayTable@comp00Mode:
+Comp00Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
@@ -22,16 +22,16 @@ sStateGameplayTable@comp00Mode:
 ;   CLEAR INVISIBLE MAZE FLAG
     LD HL, plusBitFlags
     RES INVISIBLE_MAZE, (HL)
-@@draw:
+@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   FRUIT / FRUIT POINTS TIMER UPDATE
     CALL fruitTimerTick
 ;   DECREMENT TIMER 0
     CALL tickTimer0
     RET NZ  ; IF NOT 0, EXIT...
-@@exit:
+@exit:
     ; SET SUBSTATE TO COMP01 AND NEW-STATE-FLAG
     LD HL, $01 * $100 + GAMEPLAY_COMP01
     LD (subGameMode), HL
@@ -45,11 +45,11 @@ sStateGameplayTable@comp00Mode:
 ;                 LEVEL COMPLETE 01 MODE
 ; -------------------------------------------------------
 
-sStateGameplayTable@comp01Mode:
+Comp01Mode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
@@ -74,10 +74,10 @@ sStateGameplayTable@comp01Mode:
 ;   SET PALETTE CHANGE COUNTER
     LD A, MAZE_FLASH_TIMER
     LD (mazeDoneCounter), A
-@@draw:
+@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   FRUIT / FRUIT POINTS TIMER UPDATE
     CALL fruitTimerTick
     ; BITS 0 - 3: TIMER COUNTER
@@ -94,7 +94,7 @@ sStateGameplayTable@comp01Mode:
     LD A, $20
     ADD A, (HL)
     LD (HL), A
-    JR C, @@exit    ; IF OVERFLOW OCCURED, THEN STOP FLASHING
+    JR C, @exit    ; IF OVERFLOW OCCURED, THEN STOP FLASHING
     ; SET VDP ADDRESS FOR MAZE COLOR CHANGE
     LD HL, BGPAL_WALLS | CRAMWRITE
     RST setVDPAddress
@@ -117,7 +117,7 @@ sStateGameplayTable@comp01Mode:
     LD HL, mazePalette + BGPAL_WALLS    ; SKIP TRANSPARENT COLOR
     OTIR
     RET
-@@exit:
+@exit:
 ;   CLEAR FRUIT STATUS FOR THE NEXT LEVEL AND REMOVE FRUIT / FRUIT POINTS
     LD HL, currPlayerInfo.fruitStatus
     LD (HL), $00
@@ -149,35 +149,35 @@ sStateGameplayTable@comp01Mode:
     ; CUTSCENE CHECK [PAC/MS] (2, 5, 9, 13, 17)
     LD A, (currPlayerInfo.level)
     CP A, $11   ; CHECK IF LEVEL IS 17  02
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     CP A, $0D   ; CHECK IF LEVEL IS 13  02
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     CP A, $09   ; CHECK IF LEVEL IS 09  02
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     DEC B
     CP A, $05   ; CHECK IF LEVEL IS 05  01
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     DEC B
     CP A, $02   ; CHECK IF LEVEL IS 02  00
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     JP generalResetFunc
 +:
     ; CUTSCENE CHECK [JR] (1, 3, 5, 7, 9)
     LD A, (currPlayerInfo.level)
     CP A, $09   ; CHECK IF LEVEL IS 09  02
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     CP A, $07   ; CHECK IF LEVEL IS 07  02
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     CP A, $05   ; CHECK IF LEVEL IS 05  02
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     DEC B
     CP A, $03   ; CHECK IF LEVEL IS 03  01
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     DEC B
     CP A, $01   ; CHECK IF LEVEL IS 01  00
-    JR Z, @@@switchToCutscene
+    JR Z, @switchToCutscene
     JP generalResetFunc
-@@@switchToCutscene:
+@switchToCutscene:
 ;   SETUP CUTSCENE STATE
     ; SET SUBSTATE
     LD A, (plusBitFlags)    ; ADD 0/4/8 DEPENDING ON GAME

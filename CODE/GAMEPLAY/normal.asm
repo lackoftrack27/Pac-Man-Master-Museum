@@ -1,11 +1,11 @@
 ; -------------------------------------------------------
 ;                     NORMAL MODE
 ; -------------------------------------------------------
-sStateGameplayTable@normalMode:
+NormalMode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JP Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   RESET NEW STATE FLAG
     XOR A
     LD (isNewState), A
@@ -13,7 +13,7 @@ sStateGameplayTable@normalMode:
     ; CHECK IF INVISIBLE FLAG IS SET
     LD HL, plusBitFlags
     BIT INVISIBLE_MAZE, (HL)
-    JP Z, @@draw    ; IF NOT, SKIP
+    JP Z, @draw    ; IF NOT, SKIP
     ; CLEAR FLAG
     RES INVISIBLE_MAZE, (HL)
     ; RESTORE COLORS
@@ -24,7 +24,7 @@ sStateGameplayTable@normalMode:
     LD HL, mazePalette
     DEC C
     OTIR
-@@draw:
+@draw:
 .IF SAFE_DRAW != $00
 ;   TURN OFF SCREEN
     LD A, $A0
@@ -41,7 +41,7 @@ sStateGameplayTable@normalMode:
     LD A, $81
     OUT (VDPCON_PORT), A
 .ENDIF
-@@update:
+@update:
 ;   UPDATE JR PAC SCROLL
     CALL updateJRScrollIfOn
 ;   CHECK FOR ALL DOTS EATEN

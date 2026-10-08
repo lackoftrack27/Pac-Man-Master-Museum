@@ -1,12 +1,12 @@
 ; -------------------------------------------------------
 ;                     READY 00 MODE
 ; -------------------------------------------------------
-sStateGameplayTable@ready00Mode:
-@@checkState:
+Ready00Mode:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   LOAD STATE TIMER
     LD A, READY00_TIMER_LEN          ; SET TIMER 0 FOR HOW LONG THIS STATE WILL LAST
     CALL setTickTimer0
@@ -28,14 +28,14 @@ sStateGameplayTable@ready00Mode:
 ;   DRAW STATIC MAZE TEXT
     CALL drawPlayerTilemap  ; DRAW "PLAYER ONE"
     CALL drawReadyTilemap   ; DRAW "READY!"
-@@draw:
+@draw:
 ;   DRAW 1UP
     CALL draw1UP
-@@update:
+@update:
 ;   DECREMENT TIMER 0
     CALL tickTimer0
     RET NZ  ; IF NOT 0, EXIT...
-@@exit:
+@exit:
 ;   SET SUBSTATE TO READY01, SET NEW-STATE-FLAG
     LD HL, READY_FROM_START * $100 + GAMEPLAY_READY01
     LD (subGameMode), HL
@@ -44,7 +44,7 @@ sStateGameplayTable@ready00Mode:
 ;   PREPARE FOR SECOND READY STATE DIFFERENTLY DEPENDING ON GAME...
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR NZ, @@jrExit
+    JR NZ, @jrExit
 ;   PREPARE FOR SECOND READY STATE (PAC/MS.PAC)
     ; ERASE PLAYER TEXT (PAC/MS.PAC)
     LD HL, SPRITE_TABLE + $01 | VRAMWRITE
@@ -60,7 +60,7 @@ sStateGameplayTable@ready00Mode:
     LD BC, $80 * $100 + VDPDATA_PORT
     OTIR
     RET
-@@jrExit:
+@jrExit:
 ;   PREPARE FOR SECOND READY STATE (JR.PAC)
     ; RESTORE MAZE TILEMAP (JR)
     LD C, VDPCON_PORT
@@ -88,12 +88,12 @@ sStateGameplayTable@ready00Mode:
 ;                     READY 01 MODE
 ; -------------------------------------------------------
 
-sStateGameplayTable@ready01Mode:
-@@checkState:
+Ready01Mode:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   GET TABLE ENTRY FOR THIS GAME AND WHERE WE CAME FROM (NEW-STATE-FLAG IS ONE OF READY_FROM_*)
     DEC A
     LD C, A     ; 0 - 3
@@ -144,15 +144,15 @@ sStateGameplayTable@ready01Mode:
     LD A, (currPlayerInfo.diedFlag)
     OR A
     CALL NZ, removeLifeonScreen
-@@draw:
+@draw:
 ;   GENERAL DRAW FOR GAMEPLAY
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   DECREMENT TIMER 0
     LD HL, mainTimer0
     DEC (HL)
     RET NZ  ; IF NOT 0, EXIT...
-@@exit:
+@exit:
 ;   SWITCH TO NORMAL MODE AND SETUP
     LD HL, $01 * $100 + GAMEPLAY_NORMAL
     LD (subGameMode), HL
@@ -167,7 +167,7 @@ sStateGameplayTable@ready01Mode:
 ;   REMOVE 'READY!' TEXT ON BG LAYER IF GAME IS JR.PAC
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR Z, @@end     ; ELSE, SKIP
+    JR Z, @end     ; ELSE, SKIP
     LD BC, $0A * $100 + VDPCON_PORT
     LD DE, NAMETABLE + ($0E * $02) + ($0D * $40) | VRAMWRITE
     OUT (C), E
@@ -175,7 +175,7 @@ sStateGameplayTable@ready01Mode:
     DEC C
     LD HL, mazeTextBuffer + $24
     OTIR
-@@end:
+@end:
     ; DISABLE UNNEEDED SPRITES
     LD HL, SPRITE_TABLE + $19 | VRAMWRITE
     RST setVDPAddress

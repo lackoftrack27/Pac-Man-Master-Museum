@@ -1,11 +1,11 @@
 ; -------------------------------------------------------
 ;                     GAMEOVER MODE
 ; -------------------------------------------------------
-sStateGameplayTable@gameoverMode:
+GameoverMode:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   RESET NEW STATE FLAG AND VBLANK FLAG
     XOR A
     LD (isNewState), A
@@ -13,6 +13,12 @@ sStateGameplayTable@gameoverMode:
 ;   SET TIMER
     LD A, GOVER_TIMER_LEN
     LD (mainTimer0), A
+    ; DO 1/10 SEC TICKS IF IN 2P MODE
+    LD A, (playerType)
+    RRCA
+    CALL C, tickTimer0
+    LD HL, tickFlags
+    RES TICK_TIMER0, (HL)
 ;   REMOVE ALL SPRITES
     LD HL, SPRITE_TABLE + $01 | VRAMWRITE
     RST setVDPAddress
@@ -24,7 +30,7 @@ sStateGameplayTable@gameoverMode:
 ;   WRITE "PLAYER ONE/TWO" TILES TO VRAM (IF GAME ISN'T JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
-    JR NZ, @@@displayTileMaps
+    JR NZ, @displayTileMaps
     ; SET VDP ADDRESS
     LD HL, SPRITE_ADDR + PAC_VRAM | VRAMWRITE
     RST setVDPAddress
@@ -38,7 +44,7 @@ sStateGameplayTable@gameoverMode:
     OTIR
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
-@@@displayTileMaps:
+@displayTileMaps:
 ;   DISPLAY "PLAYER ONE" OR "PLAYER TWO" IF IN 2 PLAYER MODE
     LD A, (playerType)
     BIT PLAYER_MODE, A
@@ -55,7 +61,7 @@ sStateGameplayTable@gameoverMode:
     OUT (VDPDATA_PORT), A
 ;   SAVE HIGH SCORE TO SRAM
     JP saveScoreToSRAM
-@@draw:
+@draw:
 ;   LATCH SCROLL VALUE FOR H-INT
     LD A, (jrScrollReal)
     LD (jrScrollVDP), A
@@ -68,7 +74,7 @@ sStateGameplayTable@gameoverMode:
     CALL NZ, drawNewColumn
 ;   DRAW 1UP
     CALL draw1UP
-@@update:
+@update:
 ;   MOVE SCREEN TO CENTER (IF GAME IS JR)
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
@@ -76,18 +82,27 @@ sStateGameplayTable@gameoverMode:
 ;   DECREMENT TIMER 0
     CALL tickTimer0
     RET NZ  ; IF NOT 0, EXIT...
-@@exit:
+@exit:
 ;   PREPARE FOR NEXT GAME STATE
     ; CHECK IF TWO PLAYER MODE IS ENABLED
     LD HL, playerType
     BIT PLAYER_MODE, (HL) 
-    JR Z, +
+    JR Z, @resetGame
     RES PLAYER_MODE, (HL)   ; SET TO 1 PLAYER MODE
     CALL swapPlayerData     ; SWAP PLAYER DATA
+    ; ACCOUNT FOR TICK DIFFERENCE WHEN SWAPPING PLAYERS
+    LD HL, tickTenths
+    LD A, (HL)
+    ADD A, GOVER_TICKS_BACK
+    CP A, TICK_TENTHS
+    JR C, +
+    SUB A, TICK_TENTHS
++:
+    LD (HL), A
     LD HL, READY_FROM_DEATH * $100 + GAMEPLAY_READY01
     LD (subGameMode), HL    ; SWITCH TO SECOND READY STATE
     JP generalResetFunc     ; GENERAL GAMEPLAY RESET
-+:
+@resetGame:
     ; IF NOT, RESET GAME
     POP HL  ; REMOVE FSM CALLER
     ; TURN OFF SCREEN, KEEP VBLANK ON

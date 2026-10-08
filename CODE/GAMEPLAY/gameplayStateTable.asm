@@ -16,15 +16,15 @@
 ; ----------------------------------------------
 
 sStateGameplayTable:
-    .dw @ready00Mode    ; 00
-    .dw @ready01Mode    ; 01
-    .dw @normalMode     ; 02
-    .dw @dead00Mode     ; 03
-    .dw @dead01Mode     ; 04
-    .dw @dead02Mode     ; 05
-    .dw @comp00Mode     ; 06
-    .dw @comp01Mode     ; 07
-    .dw @gameoverMode   ; 08
+    .dw Ready00Mode    ; 00
+    .dw Ready01Mode    ; 01
+    .dw NormalMode     ; 02
+    .dw Dead00Mode     ; 03
+    .dw Dead01Mode     ; 04
+    .dw Dead02Mode     ; 05
+    .dw Comp00Mode     ; 06
+    .dw Comp01Mode     ; 07
+    .dw GameoverMode   ; 08
 
 
 

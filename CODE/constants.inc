@@ -228,6 +228,9 @@
     .DEFINE TICK_SEC            1       ; 1 SEC TICK
     .DEFINE TICK_TENTH          2       ; 1/10 SEC TICK
 
+;   1/10 SEC TICKS GIVEN BACK WHEN THE OTHER PLAYER'S GAME IS OVER
+    .DEFINE GOVER_TICKS_BACK    3
+
 
 ; -------------------------------------------------
 ;                   DIRECTIONS
