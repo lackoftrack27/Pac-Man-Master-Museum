@@ -300,6 +300,7 @@ coldBoot:
     XOR A
     LD (diffIndex), A   ; 0 - NORMAL, 1 - HARD
     LD (bonusIndex), A  ; 0 - 10K, 1 - 15K, 2 - 20K, 3 - OFF/30K
+    LD (ghostIndex), A  ; 0 - US, 1 - JP, 2 - JP ALT, 3 - US ALT
     LD (speedIndex), A  ; 0 - NORMAL, 1 - FAST
     LD (styleIndex), A  ; 0 - SMOOTH, 1 - ARCADE
 ;   RESET HIGH SCORE (ONLY FOR WHEN SRAM ISN'T PRESENT)
@@ -2195,11 +2196,6 @@ jrArcToRealTable:
 ;   OPTIONS
     optionsTileData:
         .INCBIN "TILE_OPTIONS.ZX7"
-;   INTRO
-    introTileData:
-        .INCBIN "TILE_INTRO.ZX7"
-    @otto:
-        .INCBIN "TILE_OTTOINTRO.ZX7"
 ;   MS INTRO
     msIntroTileData:
         .INCBIN "TILE_MSINTRO.ZX7"
@@ -2208,6 +2204,15 @@ jrArcToRealTable:
         .INCBIN "TILE_MARQUEE.ZX7"
 .ENDS
 
+.SECTION "ATTRACT MODE GFX DATA - PAC-MAN/OTTO INTRO" SUPERFREE SLOT 2
+;   INTRO
+    introTileData_Comm:
+        .INCBIN "TILE_INTRO_COMM.ZX7"
+    introTileData_Normal:
+        .INCBIN "TILE_INTRO_NORM.ZX7"
+    introTileData_Alt:
+        .INCBIN "TILE_INTRO_ALT.ZX7"
+.ENDS
 
 
 ; ----------------------------------------------------------

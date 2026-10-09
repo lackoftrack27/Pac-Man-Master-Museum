@@ -9,18 +9,27 @@ IntroMode:
     JP Z, @draw    ; IF NOT, SKIP TRANSITION CODE
 @enter:
 ;   GENERAL INTRO MODE SETUP
-    CALL generalIntroSetup00
-;   SET BANK FOR ATTRACT MODE GFX
-    LD A, bank(titleTileMap)
-    LD (MAPPER_SLOT2), A
+    CALL generalIntroSetup00    
 ;   LOAD TILES
-    LD DE, BACKGROUND_ADDR | VRAMWRITE
-    LD HL, introTileData
+    LD A, :introTileData_Comm
+    LD (MAPPER_SLOT2), A
+    LD DE, $1F00 | VRAMWRITE
+    LD HL, introTileData_Comm
     CALL zx7_decompressVRAM
-    LD DE, BACKGROUND_ADDR + ($77 * $20) | VRAMWRITE
-    LD HL, introTileData@otto
+        ; LOAD OTTO GHOST NAMES IF GAME IS NOT PAC-MAN
+    LD HL, introTileData_Normal
+    LD A, (plusBitFlags)
+    AND A, %00001111
+    JR NZ, +
+        ; ALSO LOAD NORMAL NAME GHOST NAMES IF GHOST SETTING ISN'T SET TO A ALT OPTION
+    LD A, (ghostIndex)
+    CP A, $02
+    JR C, +
+        ; ELSE, LOAD ALTERNATE GHOST NAMES
+    LD HL, introTileData_Alt
++:
+    LD DE, $2780 | VRAMWRITE
     CALL zx7_decompressVRAM
-;   RESTORE BANK
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   LOAD BG PALETTE TO RAM
@@ -49,8 +58,8 @@ IntroMode:
     LD HL, NAMETABLE + ($07 * 2) + ($01 * $40) | VRAMWRITE
     RST setVDPAddress
     LD HL, introNicknameText
-    LD B, $10
-    CALL msIntroDisplayText
+    LD B, $10 * $02
+    OTIR
 ;   GENERAL INTRO MODE SETUP 2
     CALL generalIntroSetup01
     LD A, $01
@@ -178,17 +187,8 @@ showShadowText:
     LD A, ATT01_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY TEXT
-    LD HL, NAMETABLE + ($07 * 2) + ($03 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introShadowText
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introMadDogText
-+:
-    LD B, 7
-    JP msIntroDisplayText
+    LD HL, introTextTable00
+    JP DisplayGhostName
 
 
 ;   SUB STATE 02
@@ -197,17 +197,8 @@ showBlinkyText:
     LD A, ATT01_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY TEXT
-    LD HL, NAMETABLE + ($0F * 2) + ($03 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introBlinkyText
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introPlatoText
-+:
-    LD B, 7
-    JP msIntroDisplayText
+    LD HL, introTextTable01
+    JP DisplayGhostName
 
 
 ;   SUB STATE 03
@@ -234,17 +225,8 @@ showSpeedyText:
     LD A, ATT01_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY TEXT
-    LD HL, NAMETABLE + ($07 * 2) + ($05 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introSpeedyText
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introKillerText
-+:
-    LD B, 6
-    JP msIntroDisplayText
+    LD HL, introTextTable02
+    JP DisplayGhostName
 
 
 ;   SUB STATE 05
@@ -253,17 +235,8 @@ showPinkyText:
     LD A, ATT01_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY TEXT
-    LD HL, NAMETABLE + ($0F * 2) + ($05 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introPinkyText
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introDarwinText
-+:
-    LD B, 7
-    JP msIntroDisplayText
+    LD HL, introTextTable03
+    JP DisplayGhostName
 
 
 ;   SUB STATE 06
@@ -290,17 +263,8 @@ showBashfulText:
     LD A, ATT01_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY TEXT
-    LD HL, NAMETABLE + ($07 * 2) + ($07 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introBashfulText
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introBruteText
-+:
-    LD B, 7
-    JP msIntroDisplayText
+    LD HL, introTextTable04
+    JP DisplayGhostName
    
 
 ;   SUB STATE 08
@@ -309,17 +273,8 @@ showInkyText:
     LD A, ATT01_TIMER_LEN
     LD (mainTimer0), A
 ;   DISPLAY TEXT
-    LD HL, NAMETABLE + ($0F * 2) + ($07 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introInkyText
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introFreudText
-+:
-    LD B, 6
-    JP msIntroDisplayText
+    LD HL, introTextTable05
+    JP DisplayGhostName
 
 
 ;   SUB STATE 09
@@ -347,24 +302,11 @@ showPokeyText:
     LD (mainTimer0), A
 ;   DISPLAY TEXT
     ; ROW 0
-    LD HL, NAMETABLE + ($07 * 2) + ($09 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introPokeyText@row0
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introSamText@row0
-+:
-    LD B, 5
-    CALL msIntroDisplayText
+    LD HL, introTextTable06
+    CALL DisplayGhostName
     ; ROW 1
-    EX DE, HL
-    LD HL, NAMETABLE + ($07 * 2) + ($0A * $40) | VRAMWRITE
-    RST setVDPAddress
-    EX DE, HL   ; ROW 1
-    LD B, 5
-    JP msIntroDisplayText
+    LD HL, introTextTable07
+    JP DisplayGhostName
 
 
 ;   SUB STATE 0B
@@ -374,24 +316,11 @@ showClydeText:
     LD (mainTimer0), A
 ;   DISPLAY TEXT
     ; ROW 0
-    LD HL, NAMETABLE + ($0F * 2) + ($09 * $40) | VRAMWRITE
-    RST setVDPAddress
-    ; DISPLAY DIFFERENT TEXT IF GAME IS OTTO
-    LD HL, introClydeText@row0
-    LD A, (plusBitFlags)
-    AND A, $01 << OTTO
-    JR Z, +
-    LD HL, introNewtonText@row0
-+:
-    LD B, 7
-    CALL msIntroDisplayText
+    LD HL, introTextTable08
+    CALL DisplayGhostName
     ; ROW 1
-    EX DE, HL
-    LD HL, NAMETABLE + ($0F * 2) + ($0A * $40) | VRAMWRITE
-    RST setVDPAddress
-    EX DE, HL   ; ROW 1
-    LD B, 7
-    JP msIntroDisplayText
+    LD HL, introTextTable09
+    JP DisplayGhostName
 
 
 ;   SUB STATE 0C

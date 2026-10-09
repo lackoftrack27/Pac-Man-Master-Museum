@@ -160,6 +160,7 @@
     liveIndex: db
     diffIndex: db
     bonusIndex: db
+    ghostIndex: db
     speedIndex: db
     styleIndex: db
 ;   PATHFIND TASK LIST

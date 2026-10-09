@@ -290,7 +290,7 @@ introDisplayText:
     LD A, $01
 -:
     OUTI
-    OUT (C), A
+    OUT (VDPDATA_PORT), A
     JR NZ, -
     RET
 
@@ -304,7 +304,7 @@ msIntroDisplayText:
     LD A, $09
 -:
     OUTI
-    OUT (C), A
+    OUT (VDPDATA_PORT), A
     JR NZ, -
     RET
 
@@ -352,6 +352,42 @@ drawOptionText:
     RST addToHL
     LD B, $06
     JP introDisplayText
+
+
+    ; INFO: DISPLAY GHOST NAME (PAC-MAN/CRAZY OTTO)
+    ; INPUT: HL - GHOST NAME TABLE
+    ; OUTPUT: NONE
+    ; USES: AF, B, HL
+
+DisplayGhostName:
+;   FORCE INDEX TO 4 IF DOING CRAZY OTTO
+    LD A, (plusBitFlags)
+    AND A, $01 << OTTO
+    LD A, $04
+    JR NZ, @derefPtr
+;   FORCE INDEX TO 0 IF DOING PAC-MAN PLUS 
+    LD A, (plusBitFlags)
+    AND A, %00001111
+    LD A, $00
+    JR NZ, @derefPtr
+;   ELSE, USE GHOST INDEX TO GET THE CORRECT GHOST NAME
+    LD A, (ghostIndex)
+@derefPtr:
+    ADD A, A
+    RST addToHL
+    RST getDataAtHL
+;   WRITE VDP ADDR
+    LD A, (HL)
+    OUT (VDPCON_PORT), A
+    INC HL
+    LD A, (HL)
+    OUT (VDPCON_PORT), A
+;   GET COUNT
+    INC HL
+    LD B, (HL)
+;   WRITE TO SCREEN
+    INC HL
+    JP msIntroDisplayText
 
 
 

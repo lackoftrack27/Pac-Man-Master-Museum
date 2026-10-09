@@ -53,6 +53,28 @@ OptionsMode:
     LD DE, optionBonusText
     LD HL, NAMETABLE + ($04 * $02) + (BONUS_YPOS * $40) | VRAMWRITE
     CALL drawOptionText
+;   DRAW GHOST NAME AND TYPE (PAC-MAN ONLY)
+    LD A, (plusBitFlags)
+    AND A, %00001111
+    JR NZ, +
+    LD HL, NAMETABLE + ($04 * $02) + (GHOST_YPOS * $40) | VRAMWRITE
+    RST setVDPAddress
+    LD HL, optionGhostText
+    LD BC, $0B * $100 + VDPDATA_PORT
+    CALL introDisplayText
+    ; SKIP 4 TILES
+    LD B, $08
+-:
+    IN F, (C)
+    DJNZ -
+    ; WRITE OPTION TYPE
+    LD A, (ghostIndex)
+    LD HL, optionTileMaps@ghostNames
+    CALL multiplyBy6
+    RST addToHL
+    LD B, $06
+    CALL introDisplayText
++:
 ;   DRAW SPEED TEXT AND TYPE
     LD A, (speedIndex)
     LD BC, optionTileMaps@speed
@@ -128,17 +150,20 @@ OptionsMode:
     INC DE      ; POINT TO INDEX FOR BONUS
     DEC A       ; CHECK IF ON BONUS (2)
     JP Z, OptionsLine_Bonus ; IF SO, GO PROCESS
+    INC DE
+    DEC A       ; CHECK IF ON GHOST NAMES (3)
+    JP Z, OptionsLine_Ghost
     INC DE      ; POINT TO INDEX FOR SPEED
-    DEC A       ; CHECK IF ON SPEED (3)
+    DEC A       ; CHECK IF ON SPEED (4)
     JP Z, OptionsLine_Speed ; IF SO, GO PROCESS
     INC DE      ; POINT TO INDEX FOR STYLE
-    DEC A       ; CHECK IF ON STYLE (4)
+    DEC A       ; CHECK IF ON STYLE (5)
     JR Z, OptionsLine_Style ; IF SO, GO PROCESS
     LD DE, sndTestIndex
 
 
 
-;   ----- "SOUND TEST" PROCESSING  [LINE INDEX: 5] -----
+;   ----- "SOUND TEST" PROCESSING  [LINE INDEX: 6] -----
 
 OptionsLine_SoundTest:
 ;   CHECK IF USER PRESSED UP
@@ -194,7 +219,7 @@ OptionsLine_SoundTest:
 
 
 
-;   ----- "STYLE" PROCESSING  [LINE INDEX: 4] -----
+;   ----- "STYLE" PROCESSING  [LINE INDEX: 5] -----
 
 OptionsLine_Style:
 ;   CHECK IF USER PRESSED UP
@@ -227,12 +252,14 @@ OptionsLine_Style:
 
 
 
-;   ----- "SPEED" PROCESSING  [LINE INDEX: 3] -----
+;   ----- "SPEED" PROCESSING  [LINE INDEX: 4] -----
 
+OptionsLine_Speed_Force:
+    INC DE
 OptionsLine_Speed:
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
-    JP NZ, changeArrows@bonus
+    JP NZ, changeArrows@ghostNames  ; BONUS
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
     JP NZ, changeArrows@style
@@ -435,7 +462,7 @@ OptionsLine_Diff:
 OptionsLine_Bonus:
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
-    JP NZ, changeArrows@speed
+    JP NZ, changeArrows@ghostNames  ; SPEED
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
     JP NZ, changeArrows@diff
@@ -585,6 +612,105 @@ OptionsLine_Bonus:
 
 
 
+;   ----- "GHOST NAME" PROCESSING  [LINE INDEX: 2] -----
+OptionsLine_Ghost:
+;   SWITCH TO SPEED LINE IF NOT PAC-MAN
+    LD A, (plusBitFlags)
+    AND A, %00001111
+    JP NZ, OptionsLine_Speed_Force
+;   CHECK IF USER PRESSED DOWN
+    BIT P1_DIR_DOWN, (HL)
+    JP NZ, changeArrows@speed
+;   CHECK IF USER PRESSED UP
+    BIT P1_DIR_UP, (HL)
+    JP NZ, changeArrows@bonus
+;   CHECK WHAT ITEM IS SELECTED
+    LD A, (DE)
+    OR A
+    JR Z, @usa
+    DEC A
+    JR Z, @japan
+    DEC A
+    JR Z, @jpAlt
+;   USA ALT PROCESSING (CAN MOVE TO EITHER JPALT <-> US)
+;   CHECK IF LEFT IS PRESSED
+    BIT P1_DIR_LEFT, (HL)
+    JR Z, +   ; IF NOT, CHECK FOR RIGHT
+@jpAltSelected:
+    ; JP ALT SELECTED
+    LD A, $02
+    LD (DE), A
+    ; UPDATE TILE MAP
+    LD HL, NAMETABLE + ($13 * $02) + (GHOST_YPOS * $40) | VRAMWRITE
+    RST setVDPAddress
+    LD HL, optionTileMaps@ghostNames + ($02 * $06)
+    LD BC, $06 * $100 + VDPDATA_PORT
+    JP introDisplayText
++:
+;   CHECK IF RIGHT IS PRESSED
+    BIT P1_DIR_RIGHT, (HL)
+    RET Z   ; IF NOT, END
+@usSelected:
+    ; US SELECTED
+    XOR A
+    LD (DE), A
+    ; UPDATE TILE MAP
+    LD HL, NAMETABLE + ($13 * $02) + (GHOST_YPOS * $40) | VRAMWRITE
+    RST setVDPAddress
+    LD HL, optionTileMaps@ghostNames + ($00 * $06)
+    LD BC, $06 * $100 + VDPDATA_PORT
+    JP introDisplayText
+;   JP ALT PROCESSING (CAN MOVE TO EITHER JP <-> US ALT)
+@jpAlt:
+;   CHECK IF LEFT IS PRESSED
+    BIT P1_DIR_LEFT, (HL)
+    JR Z, +   ; IF NOT, CHECK FOR RIGHT
+@jpSelected:
+    ; JP SELECTED
+    LD A, $01
+    LD (DE), A
+    ; UPDATE TILE MAP
+    LD HL, NAMETABLE + ($13 * $02) + (GHOST_YPOS * $40) | VRAMWRITE
+    RST setVDPAddress
+    LD HL, optionTileMaps@ghostNames + ($01 * $06)
+    LD BC, $06 * $100 + VDPDATA_PORT
+    JP introDisplayText
++:
+;   CHECK IF RIGHT IS PRESSED
+    BIT P1_DIR_RIGHT, (HL)
+    RET Z   ; IF NOT, END
+@usAltSelected:
+    ; US ALT SELECTED
+    LD A, $03
+    LD (DE), A
+    ; UPDATE TILE MAP
+    LD HL, NAMETABLE + ($13 * $02) + (GHOST_YPOS * $40) | VRAMWRITE
+    RST setVDPAddress
+    LD HL, optionTileMaps@ghostNames + ($03 * $06)
+    LD BC, $06 * $100 + VDPDATA_PORT
+    JP introDisplayText
+;   JP PROCESSING (CAN MOVE TO EITHER US <-> JP ALT)
+@japan:
+;   CHECK IF LEFT IS PRESSED
+    BIT P1_DIR_LEFT, (HL)
+    JR NZ, @usSelected  ; IF SO, SELECT US
+;   CHECK IF RIGHT IS PRESSED
+    BIT P1_DIR_RIGHT, (HL)
+    RET Z   ; IF NOT, END
+    ; JP ALT SELECTED
+    JR @jpAltSelected
+;   USA PROCESSING (CAN MOVE TO EITHER US ALT <-> JP)
+@usa:
+;   CHECK IF LEFT IS PRESSED
+    BIT P1_DIR_LEFT, (HL)
+    JR NZ, @usAltSelected  ; IF SO, SELECT US ALT
+;   CHECK IF RIGHT IS PRESSED
+    BIT P1_DIR_RIGHT, (HL)
+    RET Z   ; IF NOT, END
+    ; JP SELECTED
+    JR @jpSelected
+
+
 
 ; --------------------------------------
 ;             HELPER FUNCTIONS
@@ -638,6 +764,26 @@ changeArrows:
     LD A, $02
     LD (lineMode), A
     RET
+@ghostNames:
+    LD A, (plusBitFlags)
+    AND A, %00001111
+    JR Z, +
+    BIT P1_DIR_DOWN, (HL)
+    JR NZ, @speed
+    JR @bonus
++:
+    ; POINT TO "GHOST NAMES"
+    LD HL, SPRITE_TABLE | VRAMWRITE
+    RST setVDPAddress
+    LD A, (GHOST_YPOS * $08) - 1
+    OUT (VDPDATA_PORT), A
+    ; SET POINTER ARROWS
+    OUT (VDPDATA_PORT), A
+    OUT (VDPDATA_PORT), A
+    ; CHANGE LINE VAR
+    LD A, $03
+    LD (lineMode), A
+    RET
 @speed:
     ; POINT TO "SPEED"
     LD HL, SPRITE_TABLE | VRAMWRITE
@@ -648,7 +794,7 @@ changeArrows:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     ; CHANGE LINE VAR
-    LD A, $03
+    LD A, $04
     LD (lineMode), A
     RET
 @style:
@@ -661,7 +807,7 @@ changeArrows:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     ; CHANGE LINE VAR
-    LD A, $04
+    LD A, $05
     LD (lineMode), A
     RET
 @sndTest:
@@ -674,7 +820,7 @@ changeArrows:
     OUT (VDPDATA_PORT), A
     OUT (VDPDATA_PORT), A
     ; CHANGE LINE VAR
-    LD A, $05
+    LD A, $06
     LD (lineMode), A
     RET
 

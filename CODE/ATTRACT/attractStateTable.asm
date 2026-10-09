@@ -22,13 +22,14 @@
 .DEFINE     P2_SPR_POS          P1_SPR_POS + 16
 .DEFINE     OP_SPR_POS          P2_SPR_POS + 16
 ;   OPTION CONSTS
-.DEFINE     LIVES_YPOS          $03   
-.DEFINE     DIFF_YPOS           $06
-.DEFINE     BONUS_YPOS          $09
-.DEFINE     SPEED_YPOS          $0C
-.DEFINE     STYLE_YPOS          $0F
-.DEFINE     SND_YPOS            $12
-.DEFINE     HELP_YPOS           $15
+.DEFINE     LIVES_YPOS          $01   
+.DEFINE     DIFF_YPOS           $04
+.DEFINE     BONUS_YPOS          $07
+.DEFINE     GHOST_YPOS          $0A
+.DEFINE     SPEED_YPOS          $0D
+.DEFINE     STYLE_YPOS          $10
+.DEFINE     SND_YPOS            $13
+.DEFINE     HELP_YPOS           $16
 
 
 ; ----------------------------------------------

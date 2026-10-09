@@ -60,19 +60,21 @@ titleCharTblArcade:
 
 ;   TILE LISTS FOR OPTIONS TEXT
 optionLivesText:
-    .DB $01 $02 $03 $04 $05 $00 $00 $00 $00 $00
+    .DB $01, $02, $03, $04, $05, $00, $00, $00, $00, $00
 optionDiffText:
-    .DB $07 $02 $08 $08 $02 $09 $0A $01 $0B $0C
+    .DB $07, $02, $08, $08, $02, $09, $0A, $01, $0B, $0C
 optionBonusText:
-    .DB $12 $0E $0D $0A $05 $00 $00 $00 $00 $00
+    .DB $12, $0E, $0D, $0A, $05, $00, $00, $00, $00, $00
+optionGhostText:
+    .DB $EC, $EA, $0E, $05, $0B, $00, $0D, $11, $10, $04, $05
 optionSpeedText:
-    .DB $05 $16 $04 $04 $07 $00 $00 $00 $00 $00
+    .DB $05, $16, $04, $04, $07, $00, $00, $00, $00, $00
 optionStyleText:
-    .DB $05 $0B $0C $01 $04 $00 $00 $00 $00 $00
+    .DB $05, $0B, $0C, $01, $04, $00, $00, $00, $00, $00
 optionSndText:
-    .DB $05 $0E $0A $0D $07 $00 $0B $04 $05 $0B
+    .DB $05, $0E, $0A, $0D, $07, $00, $0B, $04, $05, $0B
 optionHelpText:
-    .DB $00 $16 $0F $04 $05 $05 $00 $12 $0A $0B $0B $0E $0D $00 $13 $00 $0B $0E $00 $04 $18 $02 $0B
+    .DB $00, $16, $0F, $04, $05, $05, $00, $12, $0A, $0B, $0B, $0E, $0D, $00, $13, $00, $0B, $0E, $00, $04, $18, $02, $0B
 
 
 ;   TILE LISTS FOR OPTION VALUES
@@ -91,6 +93,11 @@ optionTileMaps:
     .DB $00 $19 $14 $15 $00 $00 ; 20K
     .DB $00 $0E $08 $08 $00 $00 ; OFF (PAC/MS.PAC)
     .DB $00 $06 $14 $15 $00 $00 ; 30K (JR.PAC)
+@ghostNames:
+    .DB $00, $00, $0A, $05, $00, $00    ; US
+    .DB $00, $00, $A5, $16, $00, $00    ; JP
+    .DB $A5, $16, $00, $11, $01, $0B    ; JP ALT
+    .DB $0A, $05, $00, $11, $01, $0B    ; US ALT
 @speed:
     .DB $0D $0E $0F $10 $11 $01 ; NORMAL
     .DB $00 $08 $11 $05 $0B $00 ; FAST
@@ -103,121 +110,401 @@ optionTileMaps:
 ;             ATTRACT MODE DATA [PAC-MAN]
 ; ----------------------------------------------
 
+;   GHOST 0
+introTextTable00:
+    .dw introShadowText
+    .dw introOikakeText
+    .dw introUrchinText
+    .dw introDummy0Text
+    .dw introMadDogText
+
+introTextTable01:
+    .dw introBlinkyText
+    .dw introAkabeiText
+    .dw introMackyText
+    .dw introDummy1Text
+    .dw introPlatoText
+
+;   GHOST 1
+introTextTable02:
+    .dw introSpeedyText
+    .dw introMachibuseText
+    .dw introRompText
+    .dw introDummy2Text
+    .dw introKillerText
+
+introTextTable03:
+    .dw introPinkyText
+    .dw introPinkyJPText
+    .dw introMickyText
+    .dw introDummy3Text
+    .dw introDarwinText
+
+;   GHOST 2
+introTextTable04:
+    .dw introBashfulText
+    .dw introKimagureText
+    .dw introStylistText
+    .dw introDummy4Text
+    .dw introBruteText
+
+introTextTable05:
+    .dw introInkyText
+    .dw introAosukeText
+    .dw introMuckyText
+    .dw introDummy5Text
+    .dw introFreudText
+
+;   GHOST 3
+introTextTable06:
+    .dw introPokeyText
+    .dw introOtobokeText
+    .dw introCrybabyText
+    .dw introDummy6Text
+    .dw introSamText
+
+introTextTable07:
+    .dw introPokeyText@row1
+    .dw introOtobokeText@row1
+    .dw introCrybabyText@row1
+    .dw introDummy6Text@row1
+    .dw introSamText@row1
+
+introTextTable08:
+    .dw introClydeText
+    .dw introGuzutaText
+    .dw introMockyText
+    .dw introDummy7Text
+    .dw introNewtonText
+
+introTextTable09:
+    .dw introClydeText@row1
+    .dw introGuzutaText@row1
+    .dw introMockyText@row1
+    .dw introDummy7Text@row1
+    .dw introNewtonText@row1
+
+
 ;   ALL UPPER BYTES ARE $09 (UPPER 256 TILES)
+
+;   --------------------------------------
+;               [COMMON]
+;   --------------------------------------
 
 ;   CHARACTER / NICKNAME        @ [07, 01]      16
 introNicknameText:
-    .DB $01 $02 $03 $04 $05 $06 $07 $08 $09 $0A $0B $0C $0D $0E $0F $10
-
-;   -SHADOW                     @ [07, 03]      7
-introShadowText:
-    .DB $11 $12 $13 $14 $15 $16 $00
-
-;   "BLINKY"                    @ [15, 03]      7
-introBlinkyText:
-    .DB $17 $18 $19 $1A $1B $1C $1D
-
-;   -SPEEDY                     @ [07, 05]      6
-introSpeedyText:
-    .DB $1E $1F $20 $21 $22 $23
-
-;   "PINKY"                     @ [15, 05]      7
-introPinkyText:
-    .DB $24 $25 $26 $27 $28 $29 $00
-
-;   -BASHFUL                    @ [07, 07]      7
-introBashfulText:
-    .DB $2A $2B $2C $2D $2E $2F $30
-
-;   "INKY"                      @ [15, 07]      6
-introInkyText:
-    .DB $31 $32 $33 $34 $35 $00 
-
-;   -POKEY                      @ [07, 09]      5
-introPokeyText:
-@row0:
-    .DB $00 $36 $37 $38 $39
-@row1:
-    .DB $3F $40 $41 $42 $43
-
-;   "CLYDE"                     @ [15, 09]      7
-introClydeText:
-@row0:
-    .DB $3A $3B $3C $3D $3E $39 $00
-@row1:
-    .DB $44 $45 $46 $47 $48 $49 $00
+    .dw $08F8 $08F9 $08FA $08FB $08FC $08FD $08FE $08FF
+    .dw $0900 $0901 $0902 $0903 $0904 $0905 $0906 $0907
 
 ;   POINTS                      @ [09, 15]      7
 introPointsText:
 @row0:
-    .DW $0900 $0900 $094C $094D $094E $094F $0950
+    .DW $0838 $0838 $090A $090B $090C $090D $090E
 @row1:
-    .DW $0151 $0900 $0952 $0953 $0954 $0955 $0956
+    .DW $010F $0838 $0910 $0911 $0912 $0913 $0914
 @row2:
-    .DW $0157 $0158 $0959 $095A $095B $095C $095D
+    .DW $0115 $0116 $0917 $0918 $0919 $091A $091B
 
 ;   NAMCO                       @ [09, $15]     7
 introNamcoText:
-    .DB $5E $5F $60 $61 $62 $63 $64
-
+    .DB $2E $2F $30 $31 $32 $33 $34
 
 ;   @ BALLY MIDWAY 1980,1982    @ [03, $15]     19
 introBallyMidway:
-    .DB $65 $66 $67 $68 $69 $6A $6B $6C $6D $6E $6F $00 $70 $71 $72 $73 $74 $75 $76
-
+    .DB $1C $1D $1E $1F $20 $21 $22 $23 $24 $25 $26 $E9 $27 $28 $29 $2A $2B $2C $2D
 
 ;   POWER DOT                   @ [05, $0C]     1 (BG PAL)
 introPowDot:
 @row0:
-    .DB $4A
+    .DB $08
 @row1:
-    .DB $4B
-
-;
-;   CRAZY OTTO (SUBSET OF PAC-MAN'S ATTRACT)
-;
-
-;   -MAD DOG                    @ [07, 03]      7
-introMadDogText:
-    .DB $78 $79 $7A $7B $7C $7D $7E
-
-;   "PLATO"                     @ [15, 03]      7
-introPlatoText:
-    .DB $7F $80 $81 $82 $83 $84 $00
-
-;   -KILLER                     @ [07, 05]      6
-introKillerText:
-    .DB $85 $86 $87 $88 $89 $8A
-
-;   "DARWIN"                    @ [15, 05]      7
-introDarwinText:
-    .DB $8B $8C $8D $8E $8F $90 $91
-
-;   -BRUTE                      @ [07, 07]      7
-introBruteText:
-    .DB $92 $93 $94 $95 $96 $00 $00
-
-;   "FREUD"                     @ [15, 07]      6
-introFreudText:
-    .DB $97 $98 $99 $9A $9B $9C     
-
-;   -SAM                        @ [07, 09]      5
-introSamText:
-@row0:
-    .DB $00 $9D $9E $9F $00
-@row1:
-    .DB $A7 $A8 $A9 $AA $00
-
-;   "NEWTON"                    @ [15, 09]      7
-introNewtonText:
-@row0:
-    .DB $A0 $A1 $A2 $A3 $A4 $A5 $A6
-@row1:
-    .DB $AB $AC $AD $AE $AF $B0 $B1
+    .DB $09
 
 ;   GENCOMP                     @ [09, $15]     7
 introGencompText:
-    .DB $B2 $B3 $B4 $B5 $B6 $B7 $B8
+    .DB $35 $36 $37 $38 $39 $3A $3B
+
+
+;   --------------------------------------
+;           GHOST NAMES [US]
+;   --------------------------------------
+
+.FUNCTION xyToNameTbl_M(x, y) (NAMETABLE + ((y * $20 + x) * $02)) | VRAMWRITE
+
+
+;   -SHADOW
+introShadowText:
+    .dw xyToNameTbl_M($07, $03)
+    .db $06
+    .DB $3C $3D $3E $3F $40 $41
+
+;   "BLINKY"
+introBlinkyText:
+    .dw xyToNameTbl_M($0F, $03)
+    .db $07
+    .DB $42 $43 $44 $45 $46 $47 $48
+
+;   -SPEEDY
+introSpeedyText:
+    .dw xyToNameTbl_M($07, $05)
+    .db $06
+    .DB $49 $4A $4B $4C $4D $4E
+
+;   "PINKY"
+introPinkyText:
+    .dw xyToNameTbl_M($0F, $05)
+    .db $06
+    .DB $4F $50 $51 $52 $53 $54
+
+;   -BASHFUL
+introBashfulText:
+    .dw xyToNameTbl_M($07, $07)
+    .db $07
+    .DB $55 $56 $57 $58 $59 $5A $5B
+
+;   "INKY"
+introInkyText:
+    .dw xyToNameTbl_M($0F, $07)
+    .db $05
+    .DB $5C $5D $5E $5F $60 
+
+;   -POKEY
+introPokeyText:
+    .dw xyToNameTbl_M($08, $09)
+    .db $04
+    .DB $61 $62 $63 $64
+@row1:
+    .dw xyToNameTbl_M($07, $0A)
+    .db $05
+    .DB $6A $6B $6C $6D $6E
+
+;   "CLYDE"
+introClydeText:
+    .dw xyToNameTbl_M($0F, $09)
+    .db $06
+    .DB $65 $66 $67 $68 $69 $64
+@row1:
+    .dw xyToNameTbl_M($0F, $0A)
+    .db $06
+    .DB $6F $70 $71 $72 $73 $74
+
+;   --------------------------------------
+;           GHOST NAMES [JP]
+;   --------------------------------------
+
+introOikakeText:
+    .dw xyToNameTbl_M($08, $03)
+    .db $08
+    .DB $75 $76 $77 $78 $79 $7A $7B $7C
+
+introAkabeiText:
+    .dw xyToNameTbl_M($0F, $03)
+    .db $07
+    .DB $7D $7E $7F $80 $81 $82 $48
+
+introMachibuseText:
+    .dw xyToNameTbl_M($08, $05)
+    .db $09
+    .DB $83 $84 $85 $51 $86 $87 $88 $89 $8A
+
+introPinkyJPText:
+    .dw xyToNameTbl_M($10, $05)
+    .db $06
+    .DB $8B $8C $8D $8E $8F $90
+
+introKimagureText:
+    .dw xyToNameTbl_M($08, $07)
+    .db $08
+    .DB $91 $92 $93 $94 $95 $96 $97 $98
+
+introAosukeText:
+    .dw xyToNameTbl_M($0F, $07)
+    .db $07
+    .DB $99 $9A $9B $9C $9D $9E $9F 
+
+introOtobokeText:
+    .dw xyToNameTbl_M($08, $09)
+    .db $06
+    .DB $A0 $A1 $A2 $A3 $A4 $A5
+@row1:
+    .dw xyToNameTbl_M($08, $0A)
+    .db $08
+    .DB $AB $AC $AD $AE $AF $B0 $B1 $B2
+
+introGuzutaText:
+    .dw xyToNameTbl_M($0F, $09)
+    .db $07
+    .DB $65 $A6 $A7 $A8 $A9 $A3 $AA
+@row1:
+    .dw xyToNameTbl_M($0F, $0A)
+    .db $07
+    .DB $B3 $B4 $B5 $B6 $B7 $B8 $B9
+
+;   --------------------------------------
+;           GHOST NAMES [JP ALT]
+;   --------------------------------------
+
+introUrchinText:
+    .dw xyToNameTbl_M($08, $03)
+    .db $09
+    .DB $3C $3D $3E $3F $40 $41 $42 $43 $44
+
+introMackyText:
+    .dw xyToNameTbl_M($10, $03)
+    .db $06
+    .DB $45 $46 $47 $48 $49 $4A
+
+introRompText:
+    .dw xyToNameTbl_M($08, $05)
+    .db $09
+    .DB $4B $4C $4D $4E $4F $50 $4E $4F $51
+
+introMickyText:
+    .dw xyToNameTbl_M($10, $05)
+    .db $06
+    .DB $52 $53 $54 $55 $56 $57
+
+introStylistText:
+    .dw xyToNameTbl_M($08, $07)
+    .db $09
+    .DB $58 $59 $5A $5B $5C $5D $5E $5F $60
+
+introMuckyText:
+    .dw xyToNameTbl_M($10, $07)
+    .db $06
+    .DB $61 $62 $63 $64 $65 $66
+
+introCrybabyText:
+    .dw xyToNameTbl_M($08, $09)
+    .db $06
+    .DB $67 $68 $69 $67 $68 $6A
+@row1:
+    .dw xyToNameTbl_M($08, $0A)
+    .db $09
+    .DB $71 $72 $73 $74 $75 $76 $77 $78 $79
+
+introMockyText:
+    .dw xyToNameTbl_M($10, $09)
+    .db $06
+    .DB $6B $6C $6D $6E $6F $70
+@row1:
+    .dw xyToNameTbl_M($10, $0A)
+    .db $06
+    .DB $7A $7B $7C $7D $7E $7F
+    
+
+;   --------------------------------------
+;           GHOST NAMES [US ALT]
+;   --------------------------------------
+
+introDummy0Text:
+    .dw xyToNameTbl_M($07, $03)
+    .db $08
+    .DB $80 $81 $82 $83 $81 $82 $83 $42
+
+introDummy1Text:
+    .dw xyToNameTbl_M($0F, $03)
+    .db $08
+    .DB $84 $85 $86 $87 $88 $86 $89 $8A
+
+introDummy2Text:
+    .dw xyToNameTbl_M($07, $05)
+    .db $08
+    .DB $8B $8C $8D $8E $8C $8D $8E $4E
+
+introDummy3Text:
+    .dw xyToNameTbl_M($0F, $05)
+    .db $08
+    .DB $8F $90 $91 $92 $93 $91 $94 $95
+
+introDummy4Text:
+    .dw xyToNameTbl_M($07, $07)
+    .db $08
+    .DB $96 $97 $98 $99 $97 $98 $99 $5E
+
+introDummy5Text:
+    .dw xyToNameTbl_M($0F, $07)
+    .db $08
+    .DB $9A $9B $9C $9D $9E $9C $9F $A0
+
+introDummy6Text:
+    .dw xyToNameTbl_M($08, $09)
+    .db $06
+    .DB $A1 $A2 $A3 $A1 $A2 $A3
+@row1:
+    .dw xyToNameTbl_M($07, $0A)
+    .db $08
+    .DB $A7 $A8 $A9 $AA $A8 $A9 $AA $77
+    
+introDummy7Text:
+    .dw xyToNameTbl_M($0F, $09)
+    .db $08
+    .DB $A4 $A5 $6F $A6 $A5 $6F $A6 $6A
+@row1:
+    .dw xyToNameTbl_M($0F, $0A)
+    .db $08
+    .DB $AB $AC $74 $AD $AE $74 $AF $B0
+
+
+;   --------------------------------------
+;           GHOST NAMES [OTTO]
+;   --------------------------------------
+
+;   -MAD DOG
+introMadDogText:
+    .dw xyToNameTbl_M($07, $03)
+    .db $07
+    .DB $3C $BA $BB $BC $BD $BE $BF
+
+;   "PLATO"
+introPlatoText:
+    .dw xyToNameTbl_M($0F, $03)
+    .db $06
+    .DB $42 $C0 $C1 $C2 $C3 $C4
+
+;   -KILLER
+introKillerText:
+    .dw xyToNameTbl_M($07, $05)
+    .db $06
+    .DB $49 $C5 $C6 $C7 $C8 $C9
+
+;   "DARWIN"
+introDarwinText:
+    .dw xyToNameTbl_M($0F, $05)
+    .db $07
+    .DB $4F $CA $CB $CC $CD $CE $90
+
+;   -BRUTE
+introBruteText:
+    .dw xyToNameTbl_M($07, $07)
+    .db $05
+    .DB $55 $CF $D0 $D1 $D2
+
+;   "FREUD"
+introFreudText:
+    .dw xyToNameTbl_M($0F, $07)
+    .db $06
+    .DB $5C $D3 $D4 $D5 $D6 $D7
+
+;   -SAM
+introSamText:
+    .dw xyToNameTbl_M($08, $09)
+    .db $03
+    .DB $D8 $D9 $DA
+@row1:
+    .dw xyToNameTbl_M($07, $0A)
+    .db $04
+    .DB $6A $E0 $E1 $E2
+
+;   "NEWTON"
+introNewtonText:
+    .dw xyToNameTbl_M($0F, $09)
+    .db $07
+    .DB $65 $DB $DC $DD $DE $DF $AA
+@row1:
+    .dw xyToNameTbl_M($0F, $0A)
+    .db $07
+    .DB $6F $E3 $E4 $E5 $E6 $E7 $B9
 
 
 ; ----------------------------------------------
