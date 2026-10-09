@@ -360,6 +360,8 @@ generalIntroSetup00:
     LD (ghostPointSprNum), A
     LD (ghostPointShown), A
     LD (eatSubState), A
+;   CLEAR EYE DELAY FOR ALL GHOSTS
+    CALL ghostsClearEyesLag
 ;   RESET POWER DOT PALETTE BUFFER/COUNTER
     LD (powDotFrameCounter), A
 ;   RESET GLOBAL GHOST VARS
