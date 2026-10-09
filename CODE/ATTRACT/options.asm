@@ -17,14 +17,12 @@ OptionsMode:
     LD (sndTestIndex), A
 ;   TURN OFF SCREEN (AND VBLANK INTS)
     CALL turnOffScreen
-;   SET BANK FOR ATTRACT MODE GFX
-    LD A, bank(titleTileMap)
-    LD (MAPPER_SLOT2), A
 ;   LOAD BACKGROUND TILES
+    LD A, :optionsTileData
+    LD (MAPPER_SLOT2), A
     LD DE, BACKGROUND_ADDR | VRAMWRITE
     LD HL, optionsTileData
     CALL zx7_decompressVRAM
-;   RESTORE BANK
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
 ;   CLEAR TILEMAP
@@ -51,14 +49,6 @@ OptionsMode:
     CALL drawOptionText
 ;   DRAW BONUS TEXT AND TYPE
     LD A, (bonusIndex)
-    LD B, A
-        ; ADD 1 IF IN JR MODE TO DISPLAY "30K"
-    LD A, (plusBitFlags)
-    AND A, $01 << JR_PAC
-    JR Z, +
-    INC B
-+:
-    LD A, B
     LD BC, optionTileMaps@bonus
     LD DE, optionBonusText
     LD HL, NAMETABLE + ($04 * $02) + (BONUS_YPOS * $40) | VRAMWRITE

@@ -223,6 +223,8 @@ playCreditSnd:
     LD (bonusValue), HL
     LD A, $03
     LD (bonusValue + 2), A
+    LD A, $04
+    LD (bonusIndex), A
     JR @switchState
 +:
     LD A, (bonusValue + 2)
@@ -233,6 +235,8 @@ playCreditSnd:
     LD (bonusValue), HL
     LD A, $FF
     LD (bonusValue + 2), A
+    LD A, $03
+    LD (bonusIndex), A
 @switchState:
 ;   ASSUME OPTIONS IS SELECTED
     LD HL, $01 * $100 + ATTRACT_OPTIONS
