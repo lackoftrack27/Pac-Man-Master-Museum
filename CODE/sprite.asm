@@ -47,7 +47,7 @@ display1TileSprite:
     ; INFO: DISPLAYS A 2 TILE (HORIZONTALLY) SPRITE ON SCREEN
     ; INPUT: HL - ADDRESS OF TILE INDEX LIST, D - X POS, E - Y POS, A - SPRITE TABLE INDEX
     ; OUTPUT: NONE
-    ; USES: AF, BC, DE, HL
+    ; USES: AF, BC, DE, HL, AF'
 
     ; ORDER: 1 2
 display2HTileSprite:
@@ -62,6 +62,13 @@ display2HTileSprite:
 ;   LEFT SPRITE TILE
     OUT (C), E
 ;   RIGHT SPRITE TILE
+    EX AF, AF'      ; SAVE SPR TBL INDEX
+    LD A, D
+    CP A, $F8       ; CHECK IF GOES OFFSCREEN ON THE RIGHT
+    JR C, +
+    LD E, $BF + 8   ; PLACE OFFSCREEN IF SO
++:
+    EX AF, AF'      ; RESTORE SPR TBL INDEX
     OUT (C), E
 ;   OTHER SPRITE TILE (HIDDEN)
     LD E, $BF + 8
@@ -170,6 +177,15 @@ display4TileSprite:
     OUT (C), E
 ;   BOTTOM-LEFT SPRITE TILE
     OUT (VDPDATA_PORT), A
+;   RIGHT HALF CHECK
+    LD B, A         ; SAVE YPOS
+    LD A, D         ; CHECK IF GOES OFFSCREEN TO THE RIGHT
+    CP A, $F8
+    JR C, +
+    LD E, $BF + 8   ; IF SO, SET BOTH SPRITES OFFSCREEN
+    LD B, E
++:
+    LD A, B         ; RESTORE YPOS
 ;   TOP-RIGHT SPRITE TILE
     OUT (C), E
 ;   BOTTOM-RIGHT SPRITE TILE
@@ -180,6 +196,7 @@ display4TileSprite:
     ADD A, $80
     OUT (VDPCON_PORT), A
     INC C       ; CONTROL PORT
+    LD B, >SPRITE_TABLE | >VRAMWRITE
     OUT (C), B
     DEC C       ; DATA PORT
 ;   TOP-LEFT SPRITE TILE
