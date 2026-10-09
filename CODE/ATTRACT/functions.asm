@@ -211,19 +211,29 @@ playCreditSnd:
     LD A, (chan2 + SND_ID)
     CP A, SFX_CREDIT
     JR Z, -     ; IF SO, WAIT UNTIL NOT
-;   CORRECT BONUS VALUE FOR JR IF IT'S "OFF"
+;   CORRECT BONUS VALUE
     LD A, (plusBitFlags)
     AND A, $01 << JR_PAC
     JR Z, +
     LD A, (bonusValue)
     OR A
-    JP P, +
+    JP P, @switchState
     ; BONUS AT 30K FOR JR
     LD HL, $0000
     LD (bonusValue), HL
     LD A, $03
     LD (bonusValue + 2), A
+    JR @switchState
 +:
+    LD A, (bonusValue + 2)
+    CP A, $03
+    JR NZ, @switchState
+    ; NO BONUS FOR PAC/MS.PAC
+    LD HL, $FFFF
+    LD (bonusValue), HL
+    LD A, $FF
+    LD (bonusValue + 2), A
+@switchState:
 ;   ASSUME OPTIONS IS SELECTED
     LD HL, $01 * $100 + ATTRACT_OPTIONS
     LD (subGameMode), HL
