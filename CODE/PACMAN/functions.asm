@@ -83,7 +83,7 @@ pacmanReset:
 pacTileStreaming:
 ;   [182]
 ;   -----
-    ; SET VDP ADDRESS
+;   SET VDP ADDRESS
     LD C, VDPCON_PORT
     LD HL, $0B20 | VRAMWRITE
     OUT (C), L
@@ -94,10 +94,32 @@ pacTileStreaming:
     CP A, PAC_DEAD
     JP Z, @deathStream
 ;   -----
-    ; GET POSITION...
+;   FRAME CALCULATION...
     LD HL, normAniTbl   ; 1 FRAME EVERY 2 PIXELS
     LD A, (pacman.currDir)
     LD B, A
+    ; CHOOSE DIFFERENT CALC IF GAME ISN'T JR.PAC
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, @notJr
+    ; JR.PAC FRAME CALC
+    LD A, (pacman.xPos)
+    LD HL, pacman.yPos
+    ADD A, (HL)
+    LD D, A
+    LD A, B
+    INC A
+    CPL
+    AND A, $02          ; 2 FOR UP (0) AND RIGHT (3), 0 FOR LEFT (1) AND DOWN (2)
+    ADD A, D
+    AND A, $06
+    ADD A, A            ; FRAME * 8
+    ADD A, A
+    LD D, A
+    JR @addDir
+    ; PAC/MS.PAC FRAME CALC
+@notJr:
+    LD A, B
     LD DE, pacman.xPos
     RRCA
     JP C, +
@@ -115,6 +137,7 @@ pacTileStreaming:
     ADD A, L    ; HOPEFULLY NO OVERFLOW...
     LD L, A
     LD D, (HL)
+@addDir:
     ; DIRECTION * 32
     LD A, B
     RRCA
@@ -126,7 +149,7 @@ pacTileStreaming:
     addToHL_M
     JP @writeToVRAM
 @deathStream:
-    ; CONVERT DEATH FRAME POSITION TO OFFSET
+;   CONVERT DEATH FRAME POSITION TO OFFSET
     LD A, (mainTimer1)
     ADD A, A
     ADD A, A
@@ -134,7 +157,7 @@ pacTileStreaming:
     LD HL, (deathTileTblPtr)
     addToHL_M
 @writeToVRAM:
-    ; SET BANK
+;   SET BANK
     LD A, UNCOMP_BANK
     LD (MAPPER_SLOT2), A
 ;   TILE 0
@@ -192,7 +215,7 @@ pacTileStreaming:
 .REPEAT $20     ; WRITE TILE DATA TO VRAM
     OUTI
 .ENDR
-    ; SET BANK
+;   SET BANK
     LD A, DEFAULT_BANK
     LD (MAPPER_SLOT2), A
     RET
