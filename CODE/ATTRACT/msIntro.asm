@@ -2,12 +2,12 @@
 ;             INTRO MODE FOR MS. PAC-MAN
 ; -------------------------------------------------------
 
-sStateAttractTable@msIntroMode:
-@@checkState:
+MsIntroMode:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JP Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   GENERAL INTRO MODE SETUP
     CALL generalIntroSetup00
 ;   INIT. MARQUEE PALETTE BUFFER
@@ -131,8 +131,8 @@ sStateAttractTable@msIntroMode:
     CALL introDisplayText
 ;   GENERAL INTRO MODE SETUP 2
     CALL generalIntroSetup01
-@@draw:
-@@update:
+@draw:
+@update:
 ;   SET UP PORT C, AND DELAY TO MOVE CRAM DOTS DOWN
     LD BC, VDPDATA_PORT
 -:  DJNZ -
@@ -143,7 +143,7 @@ sStateAttractTable@msIntroMode:
 ;   CHECK IF BUTTON 1 WAS PRESSED
     LD A, (pressedButtons)
     BIT 4, A
-    JP NZ, sStateAttractTable@introMode@@exit ; IF SO, EXIT BACK TO TITLE
+    JP NZ, IntroMode@exit ; IF SO, EXIT BACK TO TITLE
 ;   UPDATE GHOST VISUAL COUNTERS
     CALL ghostVisCounterUpdate
 ;   SET BG MARQUEE PALETTE (DONE HERE TO MOVE CRAM DOTS DOWN)

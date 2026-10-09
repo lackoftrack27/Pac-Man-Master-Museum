@@ -2,7 +2,7 @@
 ;                     DEMO MODE
 ; -------------------------------------------------------
 
-sStateAttractTable@demoInputCheck:
+DemoInputCheck:
 ;   CHECK IF PLAYER WANTS TO EXIT DEMO
     LD A, (controlPort1)
     BIT P1_BTN_1, A ; CHECK IF BUTTON 1 IS PRESSED

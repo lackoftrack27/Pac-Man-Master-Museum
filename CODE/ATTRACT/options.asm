@@ -2,12 +2,12 @@
 ;                     OPTIONS MODE
 ; -------------------------------------------------------
 
-sStateAttractTable@optionsMode:
-@@checkState:
+OptionsMode:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JP Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   CLEAR FLAG
     XOR A
     LD (isNewState), A
@@ -51,6 +51,14 @@ sStateAttractTable@optionsMode:
     CALL drawOptionText
 ;   DRAW BONUS TEXT AND TYPE
     LD A, (bonusIndex)
+    LD B, A
+        ; ADD 1 IF IN JR MODE TO DISPLAY "30K"
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +
+    INC B
++:
+    LD A, B
     LD BC, optionTileMaps@bonus
     LD DE, optionBonusText
     LD HL, NAMETABLE + ($04 * $02) + (BONUS_YPOS * $40) | VRAMWRITE
@@ -60,12 +68,6 @@ sStateAttractTable@optionsMode:
     LD BC, optionTileMaps@speed
     LD DE, optionSpeedText
     LD HL, NAMETABLE + ($04 * $02) + (SPEED_YPOS * $40) | VRAMWRITE
-    CALL drawOptionText
-;   DRAW BONUS TEXT AND TYPE
-    LD A, (bonusIndex)
-    LD BC, optionTileMaps@bonus
-    LD DE, optionBonusText
-    LD HL, NAMETABLE + ($04 * $02) + (BONUS_YPOS * $40) | VRAMWRITE
     CALL drawOptionText
 ;   DRAW STYLE TEXT AND TYPE
     LD A, (styleIndex)
@@ -108,8 +110,8 @@ sStateAttractTable@optionsMode:
 ;   TURN ON DISPLAY
     CALL waitForVblank
     CALL turnOnScreen
-@@draw:
-@@update:
+@draw:
+@update:
 ;   GET JUST PRESSED INPUTS
     CALL getPressedInputs
 ;   PREP
@@ -117,7 +119,7 @@ sStateAttractTable@optionsMode:
 ;   CHECK IF BTN 1 IS PRESSED
     BIT P1_BTN_1, (HL)
     JR Z, +     ; IF NOT, SKIP
-@@exit:
+@exit:
 ;   SET SUBSTATE TO TITLE, SET NEW-STATE-FLAG
     LD HL, $01 * $100 + ATTRACT_TITLE
     LD (subGameMode), HL
@@ -129,26 +131,26 @@ sStateAttractTable@optionsMode:
 ;   CHECK WHAT LINE IS SELECTED
     LD A, (lineMode)    ; CHECK IF ON LIVES (0)
     OR A
-    JP Z, @@@livesLine  ; IF SO, GO PROCESS
+    JP Z, OptionsLine_Lives  ; IF SO, GO PROCESS
     INC DE      ; POINT TO INDEX FOR DIFFICULTY
     DEC A       ; CHECK IF ON DIFFICULTY (1)
-    JP Z, @@@diffLine   ; IF SO, GO PROCESS
+    JP Z, OptionsLine_Diff  ; IF SO, GO PROCESS
     INC DE      ; POINT TO INDEX FOR BONUS
     DEC A       ; CHECK IF ON BONUS (2)
-    JP Z, @@@bonusLine  ; IF SO, GO PROCESS
+    JP Z, OptionsLine_Bonus ; IF SO, GO PROCESS
     INC DE      ; POINT TO INDEX FOR SPEED
     DEC A       ; CHECK IF ON SPEED (3)
-    JP Z, @@@speedLine   ; IF SO, GO PROCESS
+    JP Z, OptionsLine_Speed ; IF SO, GO PROCESS
     INC DE      ; POINT TO INDEX FOR STYLE
     DEC A       ; CHECK IF ON STYLE (4)
-    JR Z, @@@styleLine  ; IF SO, GO PROCESS
+    JR Z, OptionsLine_Style ; IF SO, GO PROCESS
     LD DE, sndTestIndex
 
 
 
 ;   ----- "SOUND TEST" PROCESSING  [LINE INDEX: 5] -----
 
-@@@sndTestLine:
+OptionsLine_SoundTest:
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
     JP NZ, changeArrows@style
@@ -204,7 +206,7 @@ sStateAttractTable@optionsMode:
 
 ;   ----- "STYLE" PROCESSING  [LINE INDEX: 4] -----
 
-@@@styleLine:
+OptionsLine_Style:
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
     JP NZ, changeArrows@speed 
@@ -237,7 +239,7 @@ sStateAttractTable@optionsMode:
 
 ;   ----- "SPEED" PROCESSING  [LINE INDEX: 3] -----
 
-@@@speedLine:
+OptionsLine_Speed:
 ;   CHECK IF USER PRESSED UP
     BIT P1_DIR_UP, (HL)
     JP NZ, changeArrows@bonus
@@ -270,7 +272,7 @@ sStateAttractTable@optionsMode:
 
 ;   ----- "LIVES" PROCESSING  [LINE INDEX: 0] -----
 
-@@@livesLine:
+OptionsLine_Lives:
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
     JP NZ, changeArrows@diff
@@ -280,11 +282,11 @@ sStateAttractTable@optionsMode:
 ;   CHECK WHAT ITEM IS SELECTED
     LD A, (DE)
     OR A
-    JR Z, @@@@one
+    JR Z, @one
     DEC A
-    JR Z, @@@@two
+    JR Z, @two
     DEC A
-    JR Z, @@@@three
+    JR Z, @three
 ;   FIVE PROCESSING (CAN MOVE TO EITHER 1 OR 3)
     ; CHECK IF LEFT IS PRESSED
     BIT P1_DIR_LEFT, (HL)
@@ -305,10 +307,10 @@ sStateAttractTable@optionsMode:
     ; CHECK IF RIGHT IS PRESSED
     BIT P1_DIR_RIGHT, (HL)
     RET Z   ; IF NOT, END
-    JR @@@@two@selected1
+    JR @selected1
 
 ;   ONE PROCESSING (CAN MOVE TO EITHER 5 OR 2)
-@@@@one:
+@one:
     ; CHECK IF RIGHT IS PRESSED
     BIT P1_DIR_RIGHT, (HL)
     JR Z, + ; IF NOT, SKIP
@@ -328,14 +330,14 @@ sStateAttractTable@optionsMode:
     ; CHECK IF LEFT IS PRESSED
     BIT P1_DIR_LEFT, (HL)
     RET Z   ; IF NOT, END
-    JR @@@@three@selected5
+    JR @selected5
 
 ;   TWO PROCESSING (CAN MOVE TO EITHER 1 OR 3)
-@@@@two:
+@two:
 ;   CHECK IF LEFT IS PRESSED
     BIT P1_DIR_LEFT, (HL)
     JR Z, +   ; IF NOT, CHECK FOR RIGHT
-@@@@@selected1:
+@selected1:
     ; SET LIVES
     LD A, $01
     LD (startingLives), A
@@ -366,7 +368,7 @@ sStateAttractTable@optionsMode:
     JP introDisplayText
 
 ;   THREE PROCESSING (CAN MOVE TO EITHER 2 OR 5)
-@@@@three:
+@three:
     ; CHECK IF LEFT IS PRESSED
     BIT P1_DIR_LEFT, (HL)
     JR Z, +   ; IF NOT, CHECK FOR RIGHT
@@ -386,7 +388,7 @@ sStateAttractTable@optionsMode:
     ; CHECK IF RIGHT IS PRESSED
     BIT P1_DIR_RIGHT, (HL)
     RET Z   ; IF NOT, END
-@@@@@selected5:
+@selected5:
     ; SET LIVES
     LD A, $05
     LD (startingLives), A
@@ -406,7 +408,7 @@ sStateAttractTable@optionsMode:
 
 ;   ----- "DIFFICULTY" PROCESSING [LINE INDEX: 1] -----
 
-@@@diffLine:
+OptionsLine_Diff:
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
     JP NZ, changeArrows@bonus
@@ -440,7 +442,7 @@ sStateAttractTable@optionsMode:
 
 ;   ----- "BONUS" PROCESSING  [LINE INDEX: 2] -----
 
-@@@bonusLine
+OptionsLine_Bonus:
 ;   CHECK IF USER PRESSED DOWN
     BIT P1_DIR_DOWN, (HL)
     JP NZ, changeArrows@speed
@@ -450,11 +452,11 @@ sStateAttractTable@optionsMode:
 ;   CHECK WHAT ITEM IS SELECTED
     LD A, (DE)
     OR A
-    JR Z, @@@@tenK
+    JP Z, @tenK
     DEC A
-    JP Z, @@@@fiveOneK
+    JP Z, @fiveOneK
     DEC A 
-    JP Z, @@@@twoZeroK
+    JP Z, @twoZeroK
 
 ;   "OFF" PROCESSING (MOVE EITHER TO 20K OR 10K)
 ;   CHECK IF LEFT IS PRESSED
@@ -478,10 +480,10 @@ sStateAttractTable@optionsMode:
 ;   CHECK IF RIGHT IS PRESSED
     BIT P1_DIR_RIGHT, (HL)
     RET Z   ; IF NOT, END
-    JR @@@@fiveOneK@tenKSelected
+    JP @tenKSelected
 
 ;   "20K" PROCESSING (MOVE EITHER TO 10K OR OFF)
-@@@@twoZeroK:
+@twoZeroK:
 ;   CHECK IF LEFT IS PRESSED
     BIT P1_DIR_LEFT, (HL)
     JR Z, +   ; IF NOT, CHECK FOR RIGHT
@@ -503,25 +505,32 @@ sStateAttractTable@optionsMode:
 ;   CHECK IF RIGHT IS PRESSED
     BIT P1_DIR_RIGHT, (HL)
     RET Z   ; IF NOT, END
-@@@@@offSelected:
-    ; NO BONUS
+@offSelected:
+    ; CHANGE ITEM SELECTED
+    LD A, $03
+    LD (DE), A
+    ; NO BONUS (WILL BE CORRECT LATER FOR JR)
     LD HL, $FFFF
     LD (bonusValue), HL
     LD A, $FF
     LD (bonusValue + 2), A
-    ; CHANGE ITEM SELECTED
-    LD A, $03
-    LD (DE), A
-    ; UPDATE TILE MAP
+    ; SET VDP ADDRESS
     LD HL, NAMETABLE + ($13 * $02) + (BONUS_YPOS * $40) | VRAMWRITE
     RST setVDPAddress
-    LD HL, optionTileMaps@bonus + ($03 * $06)
     LD BC, $06 * $100 + VDPDATA_PORT
+    ; UPDATE TILE MAP
+        ; DO OFF FOR PAC/MS.PAC, ELSE DO 30K BONUS FOR JR
+    LD HL, optionTileMaps@bonus + ($03 * $06)
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +
+    LD HL, optionTileMaps@bonus + ($04 * $06)
++:
     JP introDisplayText
 
 
 ;   "10K" PROCESSING (MOVE EITHER TO OFF OR 15K)
-@@@@tenK:
+@tenK:
 ;   CHECK IF RIGHT IS PRESSED
     BIT P1_DIR_RIGHT, (HL)
     JR Z, + ; IF NOT, SKIP
@@ -543,14 +552,14 @@ sStateAttractTable@optionsMode:
 ;   CHECK IF LEFT IS PRESSED
     BIT P1_DIR_LEFT, (HL)
     RET Z   ; IF NOT, END
-    JR @@@@twoZeroK@offSelected
+    JR @offSelected
 
 ;   "15K" PROCESSING (MOVE EITHER TO 10K OR 20K)
-@@@@fiveOneK:
+@fiveOneK:
 ;   CHECK IF LEFT IS PRESSED
     BIT P1_DIR_LEFT, (HL)
     JR Z, +   ; IF NOT, CHECK FOR RIGHT
-@@@@@tenKSelected:
+@tenKSelected:
     ; BONUS AT 10K
     LD HL, $0000
     LD (bonusValue), HL
@@ -698,7 +707,7 @@ updateSndTestTilemap:
     RRCA
     RRCA
     RRCA
-    LD HL, @numTable
+    LD HL, DigitTileTable
     RST addToHL
     OUT (VDPDATA_PORT), A   ; TILE ID FOR DIGIT
     LD A, $01
@@ -707,7 +716,7 @@ updateSndTestTilemap:
     LD A, (sndTestIndex)
     ADD A, SFX_STOP ; CONVERT TO $80 BASED
     AND A, $0F
-    LD HL, @numTable
+    LD HL, DigitTileTable
     RST addToHL
     OUT (VDPDATA_PORT), A   ; TILE ID FOR DIGIT
     LD A, $01
@@ -715,7 +724,7 @@ updateSndTestTilemap:
     RET
 
 ;   TILE LIST FOR NUMBER DIGITS
-@numTable:
+DigitTileTable:
     .DB (HUDTEXT_VRAM / TILE_SIZE) + $0B ; 0
     .DB (HUDTEXT_VRAM / TILE_SIZE) + $0C ; 1
     .DB (HUDTEXT_VRAM / TILE_SIZE) + $0D ; 2

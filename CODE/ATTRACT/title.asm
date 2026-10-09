@@ -2,12 +2,12 @@
 ;                     TITLE MODE
 ; -------------------------------------------------------
 
-sStateAttractTable@titleMode:
-@@checkState:
+TitleMode:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JP Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   CLEAR FLAG
     XOR A
     LD (isNewState), A
@@ -82,13 +82,13 @@ sStateAttractTable@titleMode:
 ;   TURN ON DISPLAY
     CALL waitForVblank
     CALL turnOnScreen
-@@draw:
+@draw:
 ;   DRAW SELECTOR SPRITE
     LD HL, playerTileList
     LD DE, (pacPos)
     XOR A
     CALL display4TileSprite
-@@update:
+@update:
     ; SET VDP ADDRESS
     LD C, VDPCON_PORT
     LD HL, $0B20 | VRAMWRITE
@@ -117,7 +117,7 @@ sStateAttractTable@titleMode:
 ;   CHECK IF TIMER IS 0
     LD A, L
     OR A, H
-    JR NZ, @@@titleUpdate   ; IF NOT, SKIP...
+    JR NZ, @titleUpdate   ; IF NOT, SKIP...
     ; ELSE, GO TO ATTRACT MODE
     LD HL, $01 * $100 + ATTRACT_INTRO
     LD A, (plusBitFlags)
@@ -129,7 +129,7 @@ sStateAttractTable@titleMode:
     RST addToHL
     LD (subGameMode), HL
     RET
-@@@titleUpdate:
+@titleUpdate:
 ;   GET JUST PRESSED INPUTS
     CALL getPressedInputs
 ;   PREP FOR LINE PROCESSING
@@ -163,9 +163,9 @@ sStateAttractTable@titleMode:
 ;   CHECK WHAT LINE IS SELECTED
     LD A, (lineMode)
     OR A
-    JR Z, @@@onePlayerLine  ; LINE 0
+    JR Z, TitleLine_1P  ; LINE 0
     DEC A
-    JR Z, @@@twoPlayerLine  ; LINE 1
+    JR Z, TitleLine_2P  ; LINE 1
     ; FALL THROUGH TO LINE 2
 
     
@@ -174,7 +174,7 @@ sStateAttractTable@titleMode:
 
 ;   ----- "OPTIONS" PROCESSING -----
 
-@@@optionsLine:
+TitleLine_Options:
 ;   CHECK IF UP IS PRESSED
     BIT P1_DIR_UP, (HL)
     JR Z, +     ; IF NOT, SKIP
@@ -195,14 +195,14 @@ sStateAttractTable@titleMode:
     BIT P1_DIR_DOWN, (HL)
     RET Z       ; IF NOT, END
 ;   MOVE ARROW TO "1 PLAYER"
-    JR @@@twoPlayerLine@p1Selected
+    JR TitleLine_2P@p1Selected
 
 
 
 
 ;   ----- "1 PLAYER" PROCESSING -----
 
-@@@onePlayerLine:
+TitleLine_1P:
 ;   CHECK IF DOWN IS PRESSED
     BIT P1_DIR_DOWN, (HL)
     JR Z, + ; IF NOT, SKIP
@@ -223,7 +223,7 @@ sStateAttractTable@titleMode:
     BIT P1_DIR_UP, (HL)
     RET Z       ; IF NOT, END
 ;   MOVE ARROW TO "OPTIONS"
-    JR @@@twoPlayerLine@optionSelected
+    JR TitleLine_2P@optionSelected
 
 
 
@@ -231,11 +231,11 @@ sStateAttractTable@titleMode:
 
 ;   ----- "2 PLAYERS" PROCESSING -----
 
-@@@twoPlayerLine:
+TitleLine_2P:
 ;   CHECK IF DOWN IS PRESSED
     BIT P1_DIR_DOWN, (HL)
     JR Z, +   ; IF NOT, CHECK UP
-@@@@optionSelected:
+@optionSelected:
 ;   MOVE ARROW DOWN
     ; POINT TO "OPTIONS"
     LD HL, OP_SPR_POS
@@ -249,7 +249,7 @@ sStateAttractTable@titleMode:
 ;   CHECK IF UP IS PRESSED
     BIT P1_DIR_UP, (HL)
     RET Z       ; IF NOT, END
-@@@@p1Selected:
+@p1Selected:
 ;   MOVE ARROW UP
     ; POINT TO "1 PLAYER"
     LD HL, P1_SPR_POS

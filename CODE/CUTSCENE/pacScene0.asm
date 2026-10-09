@@ -1,12 +1,12 @@
 ; -------------------------------------------------------
 ;                 CUTSCENE 1 [PAC-MAN]
 ; -------------------------------------------------------
-sStateCutsceneTable@pacScene0:
-@@checkState:
+PacScene0:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw        ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   PAC-MAN CUTSCENE SETUP
     CALL pacCutsceneInit
 ;   SPECIFIC CUTSCENE INITIALIZTION
@@ -14,10 +14,10 @@ sStateCutsceneTable@pacScene0:
     LD A, (plusBitFlags)
     AND A, $01 << STYLE_0
     CALL Z, pacCutSetSpritePal0
-@@draw:
+@draw:
 ;   DO COMMON DRAW
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   DO UPDATE FOR SPECIFIC CUTSCENE
     LD HL, scene0SubTable
     LD A, (cutsceneSubState)

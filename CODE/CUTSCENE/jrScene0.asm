@@ -1,12 +1,12 @@
 ; -------------------------------------------------------
 ;                 CUTSCENE 1 [JR. PAC-MAN]
 ; -------------------------------------------------------
-sStateCutsceneTable@jrScene0:
-@@checkState:
+JrScene0:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw        ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   CUTSCENE 1 SETUP FOR JR. PAC
     LD HL, jrScene0ProgTable
     CALL jrCutSetup
@@ -64,7 +64,7 @@ sStateCutsceneTable@jrScene0:
 ;   WAIT FOR VBLANK
     CALL waitForVblank
     JP turnOnScreen
-@@draw:
+@draw:
 ;   SET ORANGE COLOR FOR ROOF
     LD HL, $0007 | CRAMWRITE
     RST setVDPAddress
@@ -118,5 +118,5 @@ sStateCutsceneTable@jrScene0:
     LD A, $06
     OUT (VDPDATA_PORT), A
     RET
-@@update:
+@update:
 ;   END

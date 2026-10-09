@@ -2,12 +2,12 @@
 ;             INTRO MODE FOR JR. PAC-MAN
 ; -------------------------------------------------------
 
-sStateAttractTable@jrIntroMode:
-@@checkState:
+JrIntroMode:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JP Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   GENERAL INTRO MODE SETUP
     CALL generalIntroSetup00
 ;   CUTSCENE SETUP
@@ -49,7 +49,7 @@ sStateAttractTable@jrIntroMode:
     CALL jrLoadStartingTileMapArea
 ;   GENERAL INTRO MODE SETUP 2
     CALL generalIntroSetup01
-@@draw:
+@draw:
 ;   WRITE SCROLL TO VDP
     LD A, (jrScrollReal)
     OUT (VDPCON_PORT), A
@@ -59,13 +59,13 @@ sStateAttractTable@jrIntroMode:
     LD A, (updateColFlag)
     OR A
     CALL NZ, drawNewColumnCutscene
-@@update:
+@update:
 ;   GET JUST PRESSED INPUTS
     CALL getPressedInputs
 ;   CHECK IF BUTTON 1 WAS PRESSED
     LD A, (pressedButtons)
     BIT 4, A
-    JP NZ, sStateAttractTable@introMode@@exit ; IF SO, EXIT BACK TO TITLE
+    JP NZ, IntroMode@exit ; IF SO, EXIT BACK TO TITLE
 ;   TEXT UPDATE
     LD HL, (mainTimer0)
     ; CHECK IF TEXT UPDATE IS COMPLETE

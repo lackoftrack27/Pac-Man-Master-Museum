@@ -25,17 +25,17 @@
 ; ---------------------------------------------------
 
 sStateCutsceneTable:
-    .DW @pacScene0      ; 00
-    .DW @pacScene1      ; 01
-    .DW @pacScene2      ; 02
+    .DW PacScene0       ; 00
+    .DW PacScene1       ; 01
+    .DW PacScene2       ; 02
     .DW switchToGameplay; 03
-    .DW @msScene0       ; 04
-    .DW @msScene1       ; 05
-    .DW @msScene2       ; 06
+    .DW MsScene0        ; 04
+    .DW MsScene1        ; 05
+    .DW MsScene2        ; 06
     .DW switchToGameplay; 07
-    .DW @jrScene0       ; 08
-    .DW @jrScene1       ; 09
-    .DW @jrScene2       ; 0A
+    .DW JrScene0        ; 08
+    .DW JrScene1        ; 09
+    .DW JrScene2        ; 0A
 
 
 

@@ -211,6 +211,19 @@ playCreditSnd:
     LD A, (chan2 + SND_ID)
     CP A, SFX_CREDIT
     JR Z, -     ; IF SO, WAIT UNTIL NOT
+;   CORRECT BONUS VALUE FOR JR IF IT'S "OFF"
+    LD A, (plusBitFlags)
+    AND A, $01 << JR_PAC
+    JR Z, +
+    LD A, (bonusValue)
+    OR A
+    JP P, +
+    ; BONUS AT 30K FOR JR
+    LD HL, $0000
+    LD (bonusValue), HL
+    LD A, $03
+    LD (bonusValue + 2), A
++:
 ;   ASSUME OPTIONS IS SELECTED
     LD HL, $01 * $100 + ATTRACT_OPTIONS
     LD (subGameMode), HL

@@ -1,12 +1,12 @@
 ; -------------------------------------------------------
 ;                 CUTSCENE 3 [MS. PAC-MAN]
 ; -------------------------------------------------------
-sStateCutsceneTable@msScene2:
-@@checkState:
+MsScene2:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw        ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   CUTSCENE 3 SETUP FOR MS. PAC
     LD HL, msScene2ProgTable
     CALL msCutSetup
@@ -16,8 +16,8 @@ sStateCutsceneTable@msScene2:
 ;   DISPLAY CUTSCENE'S ACT TITLE AND NUMBER
     LD DE, msScene2Title
     CALL msCutDisplayAct
-@@draw:
+@draw:
 ;   DO COMMON DRAW AND UPDATE
     JP msSceneCommonDrawUpdate
-@@update:
+@update:
 ;   END

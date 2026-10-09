@@ -1,12 +1,12 @@
 ; -------------------------------------------------------
 ;                 CUTSCENE 3 [JR. PAC-MAN]
 ; -------------------------------------------------------
-sStateCutsceneTable@jrScene2:
-@@checkState:
+JrScene2:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw        ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   CUTSCENE 3 SETUP FOR JR. PAC
     LD HL, jrScene2ProgTable
     CALL jrCutSetup
@@ -54,7 +54,7 @@ sStateCutsceneTable@jrScene2:
 ;   WAIT FOR VBLANK
     CALL waitForVblank
     JP turnOnScreen
-@@draw:
+@draw:
 ;   WRITE SCROLL TO VDP
     LD A, (jrScrollReal)
     OUT (VDPCON_PORT), A
@@ -113,5 +113,5 @@ sStateCutsceneTable@jrScene2:
     DJNZ -
 ;   DO COMMON DRAW AND UPDATE
     JP jrSceneCommonDrawUpdate
-@@update:
+@update:
 ;   END

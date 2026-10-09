@@ -2,12 +2,12 @@
 ;                 INTRO MODE FOR PAC-MAN
 ; -------------------------------------------------------
 
-sStateAttractTable@introMode:
-@@checkState:
+IntroMode:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JP Z, @@draw    ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JP Z, @draw    ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   GENERAL INTRO MODE SETUP
     CALL generalIntroSetup00
 ;   SET BANK FOR ATTRACT MODE GFX
@@ -58,16 +58,16 @@ sStateAttractTable@introMode:
 ;   SHORTER FIRST WAIT (LOADING TOOK UP PART OF OG'S 1 SECOND)
     LD A, ATT_FIRST_TIMER_LEN
     LD (mainTimer0), A
-@@draw:
+@draw:
 ;   UPDATE GHOST VISUAL COUNTERS
     CALL ghostVisCounterUpdate
-@@update:
+@update:
 ;   GET JUST PRESSED INPUTS
     CALL getPressedInputs
 ;   CHECK IF BUTTON 1 WAS PRESSED
     LD A, (pressedButtons)
     BIT P1_BTN_1, A
-    JR NZ, @@exit ; IF SO, EXIT BACK TO TITLE
+    JR NZ, @exit ; IF SO, EXIT BACK TO TITLE
 ;   CHECK IF STATE IS 15 OR GREATER
     LD A, (introSubState)
     CP A, $0F
@@ -76,7 +76,7 @@ sStateAttractTable@introMode:
     LD HL, mainTimer0
     DEC (HL)
     RET NZ  ; END IF NOT 0
-    JR @@@stateJump
+    JR @stateJump
 +:
 ;   DRAW FUNCTION FOR STATES 15 AND ABOVE
     ; DISPLAY PAC-MAN
@@ -100,7 +100,7 @@ sStateAttractTable@introMode:
     ; UPDATE POWER DOT PALETTE CYCLE
     CALL powDotCyclingUpdate
 ;   UPDATE FUNCTION TABLE
-@@@stateJump:
+@stateJump:
 ;   CONVERT STATE INTO OFFSET
     LD A, (introSubState)
 ;   INCREMENT STATE (WON'T TAKE EFFECT TILL NEXT TIME)
@@ -112,7 +112,7 @@ sStateAttractTable@introMode:
     RET
 
 
-@@exit:
+@exit:
 ;   REMOVE FSM CALLER
     POP HL
 ;   DISABLE INTS (REALLY JUST VDP FRAME INTS)

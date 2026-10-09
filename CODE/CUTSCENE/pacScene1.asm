@@ -1,12 +1,12 @@
 ; -------------------------------------------------------
 ;                 CUTSCENE 2 [PAC-MAN]
 ; -------------------------------------------------------
-sStateCutsceneTable@pacScene1:
-@@checkState:
+PacScene1:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw        ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   PAC-MAN COMMON CUTSCENE SETUP
     CALL pacCutsceneInit
 ;   SPECIFIC CUTSCENE INITIALIZTION
@@ -24,10 +24,10 @@ sStateCutsceneTable@pacScene1:
     ; SETUP TIMER
     LD A, 18
     LD (mainTimer0), A
-@@draw:
+@draw:
 ;   DO COMMON DRAW
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   DO UPDATE FOR SPECIFIC CUTSCENE
     LD HL, scene1SubTable
     LD A, (cutsceneSubState)

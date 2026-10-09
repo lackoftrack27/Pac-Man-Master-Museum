@@ -36,18 +36,18 @@
 ; ----------------------------------------------
 
 sStateAttractTable:
-    .dw @titleMode          ; 00
-    .dw @demoInputCheck     ; 01 [READY 01]
-    .dw @demoInputCheck     ; 02 [NORMAL]
-    .dw @demoInputCheck     ; 03 [DEAD 00]
-    .dw @demoInputCheck     ; 04 [DEAD 01]
-    .dw @demoInputCheck     ; 05 [DEAD 02]
-    .dw @optionsMode        ; 06
-    .dw @introMode          ; 07
-    .dw @demoInputCheck     ; 08 [GAME OVER]
-    .DW @msIntroMode        ; 09
-    .dw @introMode          ; 0A    CRAZY OTTO
-    .DW @jrIntroMode
+    .dw TitleMode           ; 00
+    .dw DemoInputCheck      ; 01 [READY 01]
+    .dw DemoInputCheck      ; 02 [NORMAL]
+    .dw DemoInputCheck      ; 03 [DEAD 00]
+    .dw DemoInputCheck      ; 04 [DEAD 01]
+    .dw DemoInputCheck      ; 05 [DEAD 02]
+    .dw OptionsMode         ; 06
+    .dw IntroMode           ; 07
+    .dw DemoInputCheck      ; 08 [GAME OVER]
+    .DW MsIntroMode         ; 09
+    .dw IntroMode           ; 0A    CRAZY OTTO
+    .DW JrIntroMode         ; 0B
 
 
 ; ----------------------------------------------

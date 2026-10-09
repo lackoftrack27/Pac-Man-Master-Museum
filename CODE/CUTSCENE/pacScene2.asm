@@ -1,12 +1,12 @@
 ; -------------------------------------------------------
 ;                 CUTSCENE 3 [PAC-MAN]
 ; -------------------------------------------------------
-sStateCutsceneTable@pacScene2:
-@@checkState:
+PacScene2:
+@checkState:
     LD A, (isNewState)  ; CHECK TO SEE IF THIS IS A NEW STATE
     OR A
-    JR Z, @@draw        ; IF NOT, SKIP TRANSITION CODE
-@@enter:
+    JR Z, @draw        ; IF NOT, SKIP TRANSITION CODE
+@enter:
 ;   PAC-MAN CUTSCENE SETUP
     CALL pacCutsceneInit
 ;   SPECIFIC CUTSCENE INITIALIZTION
@@ -17,10 +17,10 @@ sStateCutsceneTable@pacScene2:
     ; HIDE RIGHT-MOST PIXEL COLUMN OF BLINKY
     LD HL, blinky + X_WHOLE
     INC (HL)
-@@draw:
+@draw:
 ;   DO COMMON DRAW
     CALL generalGamePlayDraw
-@@update:
+@update:
 ;   DO UPDATE FOR SPECIFIC CUTSCENE
     LD HL, scene2SubTable
     LD A, (cutsceneSubState)

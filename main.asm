@@ -299,7 +299,7 @@ coldBoot:
     LD (liveIndex), A
     XOR A
     LD (diffIndex), A   ; 0 - NORMAL, 1 - HARD
-    LD (bonusIndex), A  ; 0 - 10K, 1 - 15K, 2 - 20K, 3 - OFF
+    LD (bonusIndex), A  ; 0 - 10K, 1 - 15K, 2 - 20K, 3 - OFF/30K
     LD (speedIndex), A  ; 0 - NORMAL, 1 - FAST
     LD (styleIndex), A  ; 0 - SMOOTH, 1 - ARCADE
 ;   RESET HIGH SCORE (ONLY FOR WHEN SRAM ISN'T PRESENT)
