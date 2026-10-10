@@ -252,6 +252,9 @@ main:
     ; SET TH TO LOW OUTPUT
     LD A, ~($01 << P1_TH_DIR | $01 << P2_TH_DIR) & $0F
     OUT (IO_CONTROL), A
+    LD A, (IX + 0)  ; TIME WASTE
+    LD A, (IX + 0)
+    LD A, (IX + 0)
     ; GET INPUTS (UP, LEFT, *DOWN, *RIGHT, A, START)
     LD A, (IX + 0)  ; TIME WASTE
     IN A, CONTROLPORT1
@@ -570,8 +573,10 @@ checkMDPause:
 ;   SET TH TO LOW OUTPUT
     LD A, ~($01 << P1_TH_DIR | $01 << P2_TH_DIR) & $0F
     OUT (IO_CONTROL), A
-;   GET INPUTS (A, START)
     LD A, (IX + 0)  ; TIME WASTE
+    LD A, (IX + 0)
+    LD A, (IX + 0)
+;   GET INPUTS (A, START)
     IN A, CONTROLPORT1
     CPL
     LD (controlPort1MD), A
