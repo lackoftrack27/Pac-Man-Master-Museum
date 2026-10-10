@@ -274,7 +274,7 @@ ghostVisCounterUpdate:
     OR A
     RET NZ
 ;   COMPUTE LOOK OFFSETS
-    LD A, (HL)
+    LD A, (frameCounter)
     RRCA
     RRCA
     RRCA
